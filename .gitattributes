@@ -1,0 +1,8 @@
+.vscode/       export-ignore
+.gitignore     export-ignore
+.gitattributes     export-ignore
+.bumpversion.cfg
+.cliff.toml
+.pre-commit-config.yaml
+src/dx_modelzoo/tools/run_benchmark_internal.py
+README_INTERNAL.md
