@@ -9,8 +9,8 @@ def get_parser():
     # eval sub command
     eval_parser = subparsers.add_parser("eval", help="Run evaluation")
     eval_parser.add_argument("model_name", type=str, help="Model name to run.")
-    eval_parser.add_argument("--onnx", type=str, required=True, help="ONNX file path.")
-    eval_parser.add_argument("--dxnn", type=str, required=True, help="DXNN file path. With this argument, you can run DXNN using the NPU.")
+    eval_parser.add_argument("--onnx", type=str, help="ONNX file path.")
+    eval_parser.add_argument("--dxnn", type=str, help="DXNN file path. With this argument, you can run DXNN using the NPU.")
     eval_parser.add_argument("--data_dir", type=str, help="Dataset root dir.", required=True)
 
     # info sub command
@@ -36,6 +36,9 @@ def validate_args(args):
     if args.command == "benchmark":
         if not (args.dxrt or args.onnxrt or args.all):
             raise ArgumentTypeError("At least one of --dxrt, --onnxrt, or --all must be specified for benchmark.")
+    if args.command == "eval":
+        if not (bool(args.onnx) ^ bool(args.dxnn)):
+            raise ArgumentTypeError("Exactly one of --onnx or --dxnn must be specified. Setting both or neither is not allowed.")
 
 
 def main():
