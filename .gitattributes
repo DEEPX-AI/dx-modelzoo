@@ -6,3 +6,8 @@
 .pre-commit-config.yaml
 src/dx_modelzoo/tools/run_benchmark_internal.py
 README_INTERNAL.md
+scripts/download_dataset.sh
+scripts/download_onnx_json_from_s3.sh
+scripts/download_onnx_json_from_dashboard.sh
+scripts/run_compile.sh
+scripts/run_evaluation
