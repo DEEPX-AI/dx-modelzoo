@@ -4,7 +4,6 @@ SCRIPT_DIR=$(realpath "$(dirname "$0")")
 PROJECT_ROOT=$(realpath -s "${SCRIPT_DIR}/..")
 RUNTIME_PATH=$(realpath -s "${PROJECT_ROOT}/../dx-runtime")
 DXRT_SRC_PATH="${RUNTIME_PATH}/dx_rt"
-DX_AS_PATH=$(realpath -s "${RUNTIME_PATH}/..")
 VENV_PATH="${PROJECT_ROOT}/venv-${PROJECT_NAME}"
 VENV_SYMLINK_TARGET_PATH=""
 VENV_MAKE_ARGS=""
@@ -203,7 +202,7 @@ main(){
     fi
 
     # Check if DXRT_SRC_PATH exists
-    if [ ! -d "$DXRT_SRC_PATH" ]; then
+    if [ ! -d $DXRT_SRC_PATH ]; then
         show_help "error" "DXRT_SRC_PATH ($DXRT_SRC_PATH) does not exist."
     fi
 
