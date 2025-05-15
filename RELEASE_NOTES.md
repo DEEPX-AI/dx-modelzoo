@@ -1,5 +1,14 @@
-# Changelog
-### Do not edit. This document is generated automatically.
+# RELEASE_NOTES
+
+## v0.1.2 / 2025-05-15
+### 1. Changed
+- None
+### 2. Fixed
+- fix: Support running setup.sh when using modelzoo standalone (without DX-AS all suite)
+- fix: Check Python venv setup and activation status in install.sh and handle errors accordingly
+### 3. Added
+- None
+
 ## [0.1.1] - 2025-05-14
 
 ### Fixes
