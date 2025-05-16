@@ -27,12 +27,12 @@ Note:
 
 - Clone the DeepX Open Modelzoo Repository
   ```
-  git clone https://github.com/DEEPX-AI/deepx_open_modelzoo.git
+  git clone https://github.com/DEEPX-AI/dx-modelzoo.git
   ```
 - Install package
 
   ```
-  cd deepx_open_modelzoo
+  cd dx-modelzoo
   ./setup.sh
   ```
 
