@@ -36,9 +36,9 @@ class APIMixin:
         except requests.ConnectionError:
             return False
 
-    def get(self, sub_url: List[str] = [], headers: str = None, params: Dict[str, str] = None):
+    def get(self, sub_url: List[str] = [], headers: str = None, params: Dict[str, str] = None, verify: bool = True):
         target_url = self._make_url(sub_url=sub_url)
-        response = requests.get(url=target_url, headers=headers, params=params)
+        response = requests.get(url=target_url, headers=headers, params=params, verify=verify)
         return response
 
     def post(self, data, headers: Dict[str, str] = None, sub_url: List[str] = []):
@@ -171,7 +171,7 @@ class APIRequest(APIMixin, FileMixin):
 
         sub_url = [self.db_related[0]]
         try:
-            response = self.get(sub_url=sub_url, params=query_params)
+            response = self.get(sub_url=sub_url, params=query_params, verify=False)
             response.raise_for_status()
         except requests.HTTPError as E:
             raise ValueError(E)

@@ -1,5 +1,14 @@
 # RELEASE_NOTES
 
+## v0.1.3 / 2025-05-26
+### 1. Changed
+- support check and install 'jq' and ' curl' in download_onnx_json_from*.sh
+- support '--exclude_from', '--include_from' and '--get_model_list' options
+### 2. Fixed
+- fix problem for SSL error using curl on intranet
+### 3. Added
+- None
+
 ## v0.1.2 / 2025-05-15
 ### 1. Changed
 - None
