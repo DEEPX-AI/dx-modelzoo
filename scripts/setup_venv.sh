@@ -136,6 +136,7 @@ make_symlink() {
         mkdir -p "$(dirname "$VENV_PATH")"
 
         # Create the new symbolic link
+        VENV_SYMLINK_TARGET_REAL_PATH=$(readlink -f $VENV_SYMLINK_TARGET_PATH)
         ln -s "$VENV_SYMLINK_TARGET_REAL_PATH" "$VENV_PATH"
 
         # Check if symlink creation failed
@@ -239,7 +240,6 @@ for i in "$@"; do
             ;;
         --venv_symlink_target_path=*)
             VENV_SYMLINK_TARGET_PATH="${1#*=}"
-            VENV_SYMLINK_TARGET_REAL_PATH=$(readlink -f $VENV_SYMLINK_TARGET_PATH)
             ;;
         --system-site-packages)
             VENV_MAKE_ARGS="--system-site-packages"
