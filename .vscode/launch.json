@@ -5,6 +5,62 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "dxmz eval MODEL SSDMV1 --dxnn",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${env:VIRTUAL_ENV}/bin/dxmz",
+            "console": "integratedTerminal",
+            "args": [
+                "eval",
+                "SSDMV1",
+                "--dxnn", "./models_1.59.0/dxnn/SSDMV1-1.dxnn",
+                "--data_dir", "./datasets/PascalVOC/VOCdevkit/VOC2007",
+                "--debug"
+            ]
+        },
+        {
+            "name": "dxmz eval MODEL SSDMV2Lite --dxnn",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${env:VIRTUAL_ENV}/bin/dxmz",
+            "console": "integratedTerminal",
+            "args": [
+                "eval",
+                "SSDMV2Lite",
+                "--dxnn", "./models_1.59.0/dxnn/SSDMV2Lite-1.dxnn",
+                "--data_dir", "./datasets/PascalVOC/VOCdevkit/VOC2007",
+                "--debug"
+            ]
+        },
+        {
+            "name": "dxmz eval MODEL YOLOv7_W6_Face --dxnn",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${env:VIRTUAL_ENV}/bin/dxmz",
+            "console": "integratedTerminal",
+            "args": [
+                "eval",
+                "YOLOv7_W6_Face",
+                "--dxnn", "./models_1.59.0/dxnn/YOLOV7_W6_Face-1.dxnn",
+                "--data_dir", "./datasets/widerface",
+                "--debug"
+            ]
+        },
+        {
+            "name": "dxmz eval MODEL YOLOv7_Face --dxnn",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${env:VIRTUAL_ENV}/bin/dxmz",
+            "console": "integratedTerminal",
+            "args": [
+                "eval",
+                "YOLOv7_Face",
+                "--dxnn", "./models_1.59.0/dxnn/YOLOV7_Face-1.dxnn",
+                "--data_dir", "./datasets/widerface",
+                "--debug"
+            ]
+        },
+        {
             "name": "run_benchmark_internal",
             "type": "debugpy",
             "request": "launch",
@@ -20,7 +76,7 @@
             "name": "dxmz benchmark --dxrt",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/venv-modelzoo/bin/dxmz",
+            "program": "${env:VIRTUAL_ENV}/bin/dxmz",
             "console": "integratedTerminal",
             "args": [
                 "benchmark",
@@ -33,7 +89,7 @@
             "name": "dxmz benchmark --onnxrt",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/venv-modelzoo/bin/dxmz",
+            "program": "${env:VIRTUAL_ENV}/bin/dxmz",
             "console": "integratedTerminal",
             "args": [
                 "benchmark",
@@ -46,7 +102,7 @@
             "name": "dxmz benchmark --all",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/venv-modelzoo/bin/dxmz",
+            "program": "${env:VIRTUAL_ENV}/bin/dxmz",
             "console": "integratedTerminal",
             "args": [
                 "benchmark",

@@ -63,9 +63,9 @@ class ModelBase(ABC):
         self.evaluator.set_preprocessing(self.preprocessing())
         self.evaluator.set_postprocessing(self.postprocessing())
 
-    def eval(self) -> None:
+    def eval(self, debug_mode=False) -> None:
         """evalutation model."""
-        with EvaluationTimer():
+        with EvaluationTimer(debug_mode):
             self.evaluator.eval()
 
     @classmethod

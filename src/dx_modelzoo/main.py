@@ -12,6 +12,7 @@ def get_parser():
     eval_parser.add_argument("--onnx", type=str, help="ONNX file path.")
     eval_parser.add_argument("--dxnn", type=str, help="DXNN file path. With this argument, you can run DXNN using the NPU.")
     eval_parser.add_argument("--data_dir", type=str, help="Dataset root dir.", required=True)
+    eval_parser.add_argument('--debug', action='store_true', help='Set debug mode')
 
     # info sub command
     info_parser = subparsers.add_parser("info", help="Show model info")

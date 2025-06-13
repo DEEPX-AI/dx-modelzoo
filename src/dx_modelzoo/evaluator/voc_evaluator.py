@@ -44,7 +44,7 @@ class VOC2007DetectionEvaluator(EvaluatorBase):
             recent_inference_times.append(inference_time)  
             total_inference_time += inference_time
             
-            batched_boxes, batched_scores, batched_classes = self.postprocessing(output)
+            batched_boxes, batched_scores, batched_classes = self.postprocessing(output, session=self.session)
             for boxes, scores, classes in zip(batched_boxes, batched_scores, batched_classes):
                 scaled_boxes = self._scale_boxes(boxes, origin_shape)
                 data_id = torch.zeros_like(classes, dtype=torch.float32) + img_count

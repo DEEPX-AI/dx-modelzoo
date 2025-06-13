@@ -1,6 +1,6 @@
 from dx_modelzoo.enums import DatasetType, EvaluationType
 from dx_modelzoo.models import ModelBase, ModelInfo
-from dx_modelzoo.models.object_dection.nms import ssd_nms
+from dx_modelzoo.models.object_dection.nms import ssd_nms_wrapper
 
 
 class SSDMV1(ModelBase):
@@ -19,7 +19,10 @@ class SSDMV1(ModelBase):
         ]
 
     def postprocessing(self):
-        return ssd_nms
+        # Note: Temporary workaround for the mismatch in output tensor order between the original ONNX model and DXNN.
+        #       The _wrapper function will be removed once the issue is properly fixed.
+        # return ssd_nms
+        return ssd_nms_wrapper
 
 
 class SSDMV2Lite(ModelBase):
@@ -38,4 +41,7 @@ class SSDMV2Lite(ModelBase):
         ]
 
     def postprocessing(self):
-        return ssd_nms
+        # Note: Temporary workaround for the mismatch in output tensor order between the original ONNX model and DXNN.
+        #       The _wrapper function will be removed once the issue is properly fixed.
+        # return ssd_nms
+        return ssd_nms_wrapper

@@ -1,5 +1,22 @@
 # RELEASE_NOTES
 
+## v0.3.1 / 2025-06-12
+### 1. Changed
+- None
+### 2. Fixed
+- chore: fix duplicated parsing error in 'yolov7_face_postprocessing_wrapper()'
+- fix:  Temporary workaround for the mismatch in output tensor order between the original ONNX model and DXNN
+### 3. Added
+- chore: support '--debug' flag in 'dxmz eval' to enable detailed logs
+
+## v0.1.5 / 2025-06-04
+### 1. Changed
+- None
+### 2. Fixed
+- Fix error for Image Denoising Add 'bsd68' EvaluationType in enums.py
+### 3. Added
+- Add internal scripts (log parser, run eval onnx and so on)
+
 ## v0.1.3 / 2025-05-26
 ### 1. Changed
 - support check and install 'jq' and ' curl' in download_onnx_json_from*.sh

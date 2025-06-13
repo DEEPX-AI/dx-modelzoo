@@ -26,6 +26,8 @@ class EvaluationType(StrEnum):
             return "mIoU"
         elif self.value == EvaluationType.widerface:
             return "AP"
+        elif self.value == EvaluationType.bsd68:
+            return "PSNR, SSIM"
         else:
             raise ValueError(f"Invalid Evaluation Type value. {self.value}")
 

@@ -43,7 +43,7 @@ class WiderFaceEvaluator(EvaluatorBase):
             recent_inference_times.append(inference_time)  
             total_inference_time += inference_time
             
-            outputs = self.postprocessing(outputs, image.shape, origin_shape)
+            outputs = self.postprocessing(outputs, image.shape, origin_shape, self.session)
             boxes = []
             for output in outputs:
                 box = [float(output[i]) for i in range(5)]

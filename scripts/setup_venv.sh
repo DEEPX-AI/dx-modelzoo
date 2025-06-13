@@ -173,7 +173,7 @@ setup_dx_engine(){
     ### Setup dx_rt python package
     #### 2. Install dx_engine (dx_rt Python package)
     pushd ${DXRT_SRC_PATH}
-    ./build.sh
+    ./build.sh --clean
     pushd ${DXRT_SRC_PATH}/python_package
     pip install .
     popd

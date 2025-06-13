@@ -48,7 +48,7 @@ def run_eval(args: Namespace) -> None:
     session_type, model_path = parse_session_type_and_path(args)
     model = ModelFactory(model_name, session_type, model_path, args.data_dir).make_model()
     print(f"Run {model_name} Evaluation.\n")
-    model.eval()
+    model.eval(debug_mode=args.debug)
 
 
 def run_info(args: Namespace) -> None:
