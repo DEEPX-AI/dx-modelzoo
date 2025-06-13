@@ -40,21 +40,21 @@ def parse_log(file_path: str) -> DefaultDict:
     current_model = None
     
     with open(file_path, 'r') as f:
-        for line in f:           
-            # 提取每个模型名称
+        for line in f:
+            # Extract each model name
             model_match = re.search(r'@JSON <START Evaluation>\s*\[([^\]]+)\]', line)
             if model_match:
                 current_model = model_match.group(1).strip()
                 continue
             
-            # 检查此模型属于什么任务，如果模型没有注册。任务为“Unknown”
+            # Determine the task of the current model, "Unknown" if unregistered
             current_task = "Unknown"
             for task, models in cfg.model_list_by_task.items():
                 if current_model in models:
                     current_task = task
                     break
             
-            # 错误检查
+            # Error check
             if "*** Error code =" in line:
                 error_match = re.search(r'\*\*\* Error code = (-\d+) \*\*\*', line)
                 if error_match and current_model and current_task:
@@ -71,9 +71,9 @@ def parse_log(file_path: str) -> DefaultDict:
             if "initialization completed" in line:
                 continue
                 
-            # 根据任务类型解析指标
+            # Parse metrics based on task type
             if current_model and current_task:
-                # 图像分类指标
+                # Image Classification metrics
                 if "Top1 Accuracy:" in line and "Top5 Accuracy:" in line and "@JSON <" in line:
                     acc_match = re.search(r'@JSON <Top1 Accuracy:([\d.]+); Top5 Accuracy:([\d.]+); Average FPS:([\d.]+)>', line)
                     if acc_match:
@@ -85,7 +85,7 @@ def parse_log(file_path: str) -> DefaultDict:
                         results[current_task][current_model][runtime_type] = metrics
                         continue
                 
-                # 对象检测指标 (mAP, mAP50)
+                # Object Detection metrics (mAP, mAP50)
                 elif "mAP:" in line and "mAP50:" in line and "@JSON <" in line:
                     map_match = re.search(r'@JSON <mAP:([\d.]+); mAP50:([\d.]+); Average FPS:([\d.]+)>', line)
                     if map_match:
@@ -96,7 +96,7 @@ def parse_log(file_path: str) -> DefaultDict:
                         }
                         results[current_task][current_model][runtime_type] = metrics
                         continue
-                # 对象检测指标 (mAP@0.5)
+                # Object Detection metrics (mAP@0.5 only)
                 elif "mAP@0.5" in line and "@JSON <" in line:
                     map_match = re.search(r'@JSON <mAP@0.5:([\d.]+); Average FPS:([\d.]+)>', line)
                     if map_match:
@@ -107,7 +107,7 @@ def parse_log(file_path: str) -> DefaultDict:
                         results[current_task][current_model][runtime_type] = metrics
                         continue
                 
-                # 语义分割指标
+                # Semantic Segmentation metrics
                 elif "mIoU:" in line and "@JSON <" in line:
                     miou_match = re.search(r'@JSON <mIoU:([\d.]+); Average FPS:([\d.]+)>', line)
                     if miou_match:
@@ -118,7 +118,7 @@ def parse_log(file_path: str) -> DefaultDict:
                         results[current_task][current_model][runtime_type] = metrics
                         continue
                 
-                # 图像降噪指标
+                # Image Denoising metrics
                 elif "Average PSNR:" in line and "Average SSIM:" in line and "@JSON <" in line:
                     psnr_match = re.search(r'@JSON <Average PSNR:([\d.]+); Average SSIM:([\d.]+); Average FPS:([\d.]+)>', line)
                     if psnr_match:
@@ -130,7 +130,7 @@ def parse_log(file_path: str) -> DefaultDict:
                         results[current_task][current_model][runtime_type] = metrics
                         continue
                 
-                # 人脸识别指标
+                # Face Recognition metrics
                 elif "@JSON <Easy Val AP:" in line:
                     face_match = re.search(r'@JSON <Easy Val AP:([\d.]+); Medium Val AP:([\d.]+); Hard Val AP:([\d.]+); Average FPS:([\d.]+)>', line)
                     if face_match:
@@ -143,7 +143,7 @@ def parse_log(file_path: str) -> DefaultDict:
                         results[current_task][current_model][runtime_type] = metrics
                         continue
             
-            # 标记评估完成
+            # Mark evaluation as completed
             if "<Evaluation COMPLETED>" in line and current_model and current_task:
                 if current_task in results and current_model in results[current_task]:
                     if runtime_type in results[current_task][current_model]:
@@ -152,11 +152,11 @@ def parse_log(file_path: str) -> DefaultDict:
 
 
 def extract_version_info(dxnn_path: str) -> Dict[str, str]:
-    """从系统和DXNN文件中提取版本信息"""
+    """Extract version information from system and DXNN file"""
     cfg = Run_benchmark_config()
     versions = cfg.DEFAULT_VERSIONS.copy()
     
-    # 从DXNN提取编译器版本
+    # Extract compiler version from DXNN file
     try:
         with open(dxnn_path, 'rb') as f:
             bs = f.read()
@@ -195,7 +195,7 @@ def extract_version_info(dxnn_path: str) -> Dict[str, str]:
 
 
 def merge_results(dxrt_results: DefaultDict, onnxrt_results: DefaultDict) -> Dict:
-    """合并DXRT和ONNXRT的结果"""
+    """Merge DXRT and ONNXRT results"""
     merged = {}
     all_tasks = set(dxrt_results.keys()) | set(onnxrt_results.keys())
     
@@ -206,19 +206,19 @@ def merge_results(dxrt_results: DefaultDict, onnxrt_results: DefaultDict) -> Dic
         for model in all_models:
             model_data = {}
             
-            # 如果有DXRT数据则添加
+            # Add DXRT data if available
             if task in dxrt_results and model in dxrt_results[task] and "DXRT" in dxrt_results[task][model]:
                 model_data["DXRT"] = dxrt_results[task][model]["DXRT"]
             
-            # 如果有ONNXRT数据则添加
+            # Add ONNXRT data if available
             if task in onnxrt_results and model in onnxrt_results[task] and "ONNXRT" in onnxrt_results[task][model]:
                 model_data["ONNXRT"] = onnxrt_results[task][model]["ONNXRT"]
             
-            # 只有当有数据时才添加模型
+            # Add model only if data exists
             if model_data:
                 task_models[model] = model_data
         
-        # 只有当有模型时才添加任务
+        # Add task only if any model exists
         if task_models:
             merged[task] = task_models
     
@@ -226,7 +226,7 @@ def merge_results(dxrt_results: DefaultDict, onnxrt_results: DefaultDict) -> Dic
 
 
 def build_metadata(versions: Dict[str, str]) -> Dict[str, str]:
-    """构建包含版本和系统信息的元数据"""
+    """Build metadata with version and system information"""
     metadata = {
         "Experiment Date": date.today().isoformat(),
         "FW Version": versions["fw_version"],
@@ -235,7 +235,7 @@ def build_metadata(versions: Dict[str, str]) -> Dict[str, str]:
         "DX Compiler Version": versions["compiler_version"],
     }
     
-    # 如果有GPU则添加GPU信息
+    # Add GPU information if available
     if torch.cuda.is_available():
         metadata.update({
             "GPU Model": torch.cuda.get_device_name(0),
