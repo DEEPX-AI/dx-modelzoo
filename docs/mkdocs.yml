@@ -1,0 +1,88 @@
+site_name: DEEPX Model Zoo Documentation
+use_directory_urls: false
+docs_dir: source # markdown 원문 폴더
+site_dir: output_web # html로 변환된 폴더
+theme:
+  name: material
+  language: en
+  font:
+    text: Noto Sans Display
+    code: Roboto Mono
+  logo: resources/deepx.png
+  favicon: ./img/favicon.png
+  palette:
+    # Palette toggle for light mode
+    - scheme: default
+      primary: black
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - toc.integrate
+    - content.code.annotate
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - content.tabs.link
+    - content.code.copy
+nav:
+  - Home: index.md
+  - DX-ModelZoo:
+    - Get Started: 'docs/GetStarted.md'
+    - Benchmark: 'docs/Benchmark.md'
+    - Dataset: 'docs/Dataset.md'
+plugins:
+  - search
+  - with-pdf:
+      author: DEEPX.ai
+      copyright: ⓒ Copyright 2025 DEEPX All Rights Reserved.
+      cover_subtitle: 2025/02/19
+      cover_logo: resources/deepx.png
+      custom_template_path: docs/source/stylesheets
+      output_path: dx-modelzoo_v0.1.0.pdf
+extra:
+  generator: false
+  social:
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/company/deepx-corporation/
+extra_css:
+  - stylesheets/extra.css
+markdown_extensions:
+  - tables
+  - markdown_grid_tables
+  - admonition
+  - def_list
+  - toc:
+      permalink: "true"
+      baselevel: 1
+      separator: ">_"
+      toc_depth: 3
+  - pymdownx.critic
+  - pymdownx.caret
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.tilde
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - attr_list
+  - md_in_html
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+copyright: ⓒ Copyright 2025 <a href="http://deepx.ai">DEEPX</a>. All Rights Reserved.
