@@ -82,7 +82,7 @@ Note:
     # To use onnx runtime:
     dxmz eval <Model Name> --onnx <onnx file path> --data_dir <dataset root dir path>
     # Example:
-    dxmz eval ResNet18 --onxx ./ResNet18.onnx --data_dir ./datasets/ILSVRC2012/val
+    dxmz eval ResNet18 --onnx ./ResNet18.onnx --data_dir ./datasets/ILSVRC2012/val
 
 
     # To use DX-Runtime:
