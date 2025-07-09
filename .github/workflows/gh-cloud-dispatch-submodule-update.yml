@@ -40,5 +40,5 @@ jobs:
             {
               "name": "dx-modelzoo",
               "sha": "${{ github.sha }}",
-              "ref": "${{ github.ref_name }}",
+              "ref": "${{ github.ref_name }}"
             }
