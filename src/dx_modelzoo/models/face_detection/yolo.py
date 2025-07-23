@@ -35,6 +35,18 @@ def make_xywh(x):
     y[:, 3] = x[:, 3] - x[:, 1]  # height
     return y
 
+def yolov5_face_postprocessing_wrapper(outputs, inp_shape, origin_shape, session):
+    if session.type == SessionType.onnxruntime:
+        pass
+    elif session.type == SessionType.dxruntime:
+        output_tensors_info = session.inference_engine.get_output_tensors_info()
+        idx = find_non_onnx_slice_index(output_tensors_info)
+        outputs = [outputs[idx]]
+    else:
+        raise Exception(f"Invalid SeessionType: {session.type}")
+    
+    return yolov5_face_postprocessing(outputs, inp_shape, origin_shape)
+
 
 def yolov5_face_postprocessing(outputs, inp_shape, origin_shape):
     h, w, _ = origin_shape
@@ -76,7 +88,7 @@ class YOLOv5s_Face(ModelBase):
         ]
 
     def postprocessing(self):
-        return yolov5_face_postprocessing
+        return yolov5_face_postprocessing_wrapper
 
 
 class YOLOv5m_Face(ModelBase):
@@ -95,7 +107,7 @@ class YOLOv5m_Face(ModelBase):
         ]
 
     def postprocessing(self):
-        return yolov5_face_postprocessing
+        return yolov5_face_postprocessing_wrapper
 
 def find_non_onnx_slice_index(data):
     indices = [i for i, item in enumerate(data) if 'onnx::Slice' not in item['name']]

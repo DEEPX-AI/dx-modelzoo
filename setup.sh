@@ -146,8 +146,8 @@ setup_venv() {
         VENV_SYMLINK_TARGET_PATH_ARGS="--venv_symlink_target_path=${VENV_SYMLINK_TARGET_PATH}"
     else
         echo -e "(host mode detected)"
-        VENV_SYMLINK_TARGET_PATH="${DX_AS_PATH:-.}/workspace/venv/${PROJECT_NAME}"
-        VENV_SYMLINK_TARGET_PATH_ARGS="--venv_symlink_target_path=${VENV_SYMLINK_TARGET_PATH}"
+        VENV_PATH="${VENV_PATH}-local"
+        VENV_SYMLINK_TARGET_PATH_ARGS=""
     fi
 
     echo -e "${TAG_INFO} VENV_PATH: ${VENV_PATH}"
