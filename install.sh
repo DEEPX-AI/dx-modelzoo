@@ -9,13 +9,8 @@ source ${SCRIPT_DIR}/scripts/color_env.sh
 check_virtualenv() {
     if [ -n "$VIRTUAL_ENV" ]; then
         venv_name=$(basename "$VIRTUAL_ENV")
-        if [ "$venv_name" = "dx-modelzoo" ]; then
-            echo "✅ Virtual environment 'dx-modelzoo' is currently active."
-            return 0
-        else
-            echo "⚠️ A different virtual environment '$venv_name' is currently active."
-            return 1
-        fi
+        echo "✅ Virtual environment '$venv_name' is currently active."
+        return 0
     else
         echo "❌ No virtual environment is currently active."
         return 1
