@@ -218,17 +218,17 @@ main(){
 }
 
 # Parse arguments
-for i in "$@"; do
-    case $i in
+while [ "$#" -gt 0 ]; do
+    case "$1" in
         --project_name=*)
-            PROJECT_NAME="${i#*=}"
+            PROJECT_NAME="${1#*=}"
             VENV_PATH="${PROJECT_ROOT}/venv-${PROJECT_NAME}"
             ;;
         --dxrt_src_path=*)
-            DXRT_SRC_PATH="${i#*=}"
+            DXRT_SRC_PATH="${1#*=}"
             ;;
         --venv_path=*)
-            VENV_PATH="${i#*=}"
+            VENV_PATH="${1#*=}"
 
             # Symbolic link cannot be created when output_dir is the current directory.
             VENV_REAL_DIR=$(readlink -f "$VENV_PATH")
@@ -254,10 +254,9 @@ for i in "$@"; do
             show_help "error" "Unknown option: $1"
             ;;
     esac
-shift
+    shift
 done
 
 main
 
 exit 0
-
