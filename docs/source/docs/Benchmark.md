@@ -28,7 +28,7 @@ model
 
 Quantitative performance evaluation across runtimes:
 
-- With ONNX RUntime :
+- With ONNX Runtime:
   ```
   dxmz eval <Model Name> --onnx <onnx file path> --data_dir <dataset root dir path>
   ```
@@ -36,7 +36,7 @@ Quantitative performance evaluation across runtimes:
   ```
   dxmz eval <Model Name> --dxnn <dxnn file path> --data_dir <dataset root dir path>
   ```
-
+<!-- 
 ### Integrated benchmarking
 
 An out-of-box benchmarking tool is provided to automatically download DXNN and ONNX models from sdk.deepx.ai, and conduct evaluations of each featured model. It takes approximately 5~ hours to complete. After that, you can find the performance comperison report in `./benchmark_report.json`.
@@ -61,4 +61,4 @@ An out-of-box benchmarking tool is provided to automatically download DXNN and O
 
   # To use DX-Runtime:
   dxmz benchmark --dxrt
-  ```
+  ``` -->

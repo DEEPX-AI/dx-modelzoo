@@ -49,7 +49,10 @@ Note:
   pip install onnxruntime-gpu==1.20.1
   ```
 
-### Docker Installation (Todo)
+### Docker Installation
+
+DX-All-Suite supports building a Docker image and running a container for the dx-modelzoo environment.
+For more details, please refer to the [Installation Using Docker for dx-modelzoo](https://github.com/DEEPX-AI/dx-all-suite/blob/main/docs/source/installation.md#installation-using-docker) guide.
 
 ## Usage Guide
 
@@ -90,7 +93,7 @@ Note:
     # Example:
     dxmz eval ResNet18 --dxnn ./ResNet18.dxnn --data_dir ./datasets/ILSVRC2012/val
     ```
-
+<!-- 
 - **Integrated benchmarking tool**
 
   - Description:
@@ -111,7 +114,7 @@ Note:
     dxmz benchmark --dxrt
     ```
 
-Refer to user guide for more details!
+Refer to user guide for more details! -->
 
 ---
 
