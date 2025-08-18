@@ -35,17 +35,26 @@ def make_xywh(x):
     y[:, 3] = x[:, 3] - x[:, 1]  # height
     return y
 
-def yolov5_face_postprocessing_wrapper(outputs, inp_shape, origin_shape, session):
-    if session.type == SessionType.onnxruntime:
-        pass
-    elif session.type == SessionType.dxruntime:
-        output_tensors_info = session.inference_engine.get_output_tensors_info()
-        idx = find_non_onnx_slice_index(output_tensors_info)
-        outputs = [outputs[idx]]
-    else:
-        raise Exception(f"Invalid SeessionType: {session.type}")
+# # Note: Temporary workaround for the mismatch in output tensor order between the original ONNX model and DXNN.
+# #       The _wrapper function will be removed once the issue is properly fixed.
+# def find_non_onnx_slice_index(data):
+#     indices = [i for i, item in enumerate(data) if 'onnx::Slice' not in item['name']]
+#     if indices.__len__() != 1:
+#         raise Exception(f"Expected exactly one output tensor, but found a different number, num of output tensor: {indices.__len__()}")
+#     else:
+#         return indices[0]
+
+# def yolov5_face_postprocessing_wrapper(outputs, inp_shape, origin_shape, session):
+#     if session.type == SessionType.onnxruntime:
+#         pass
+#     elif session.type == SessionType.dxruntime:
+#         output_tensors_info = session.inference_engine.get_output_tensors_info()
+#         idx = find_non_onnx_slice_index(output_tensors_info)
+#         outputs = [outputs[idx]]
+#     else:
+#         raise Exception(f"Invalid SeessionType: {session.type}")
     
-    return yolov5_face_postprocessing(outputs, inp_shape, origin_shape)
+#     return yolov5_face_postprocessing(outputs, inp_shape, origin_shape)
 
 
 def yolov5_face_postprocessing(outputs, inp_shape, origin_shape):
@@ -88,7 +97,10 @@ class YOLOv5s_Face(ModelBase):
         ]
 
     def postprocessing(self):
-        return yolov5_face_postprocessing_wrapper
+        return yolov5_face_postprocessing
+        # # Note: Temporary workaround for the mismatch in output tensor order between the original ONNX model and DXNN.
+        # #       The _wrapper function will be removed once the issue is properly fixed.
+        # return yolov5_face_postprocessing_wrapper
 
 
 class YOLOv5m_Face(ModelBase):
@@ -107,28 +119,31 @@ class YOLOv5m_Face(ModelBase):
         ]
 
     def postprocessing(self):
-        return yolov5_face_postprocessing_wrapper
+        return yolov5_face_postprocessing
+        # # Note: Temporary workaround for the mismatch in output tensor order between the original ONNX model and DXNN.
+        # #       The _wrapper function will be removed once the issue is properly fixed.
+        # return yolov5_face_postprocessing_wrapper
 
-def find_non_onnx_slice_index(data):
-    indices = [i for i, item in enumerate(data) if 'onnx::Slice' not in item['name']]
-    if indices.__len__() != 1:
-        raise Exception(f"Expected exactly one output tensor, but found a different number, num of output tensor: {indices.__len__()}")
-    else:
-        return indices[0]
+# # Note: Temporary workaround for the mismatch in output tensor order between the original ONNX model and DXNN.
+# #       The _wrapper function will be removed once the issue is properly fixed.
+# def find_non_onnx_slice_index(data):
+#     indices = [i for i, item in enumerate(data) if 'onnx::Slice' not in item['name']]
+#     if indices.__len__() != 1:
+#         raise Exception(f"Expected exactly one output tensor, but found a different number, num of output tensor: {indices.__len__()}")
+#     else:
+#         return indices[0]
 
-# Note: Temporary workaround for the mismatch in output tensor order between the original ONNX model and DXNN.
-#       The _wrapper function will be removed once the issue is properly fixed.
-def yolov7_face_postprocessing_wrapper(outputs, inp_shape, origin_shape, session):
-    if session.type == SessionType.onnxruntime:
-        pass
-    elif session.type == SessionType.dxruntime:
-        output_tensors_info = session.inference_engine.get_output_tensors_info()
-        idx = find_non_onnx_slice_index(output_tensors_info)
-        outputs = [outputs[idx]]
-    else:
-        raise Exception(f"Invalid SeessionType: {session.type}")
+# def yolov7_face_postprocessing_wrapper(outputs, inp_shape, origin_shape, session):
+#     if session.type == SessionType.onnxruntime:
+#         pass
+#     elif session.type == SessionType.dxruntime:
+#         output_tensors_info = session.inference_engine.get_output_tensors_info()
+#         idx = find_non_onnx_slice_index(output_tensors_info)
+#         outputs = [outputs[idx]]
+#     else:
+#         raise Exception(f"Invalid SeessionType: {session.type}")
     
-    return yolov7_face_postprocessing(outputs, inp_shape, origin_shape)
+#     return yolov7_face_postprocessing(outputs, inp_shape, origin_shape)
 
 def yolov7_face_postprocessing(outputs, inp_shape, origin_shape):
     
@@ -166,10 +181,10 @@ class YOLOv7_Face(ModelBase):
         ]
 
     def postprocessing(self):
-        # Note: Temporary workaround for the mismatch in output tensor order between the original ONNX model and DXNN.
-        #       The _wrapper function will be removed once the issue is properly fixed.
-        # return yolov7_face_postprocessing
-        return yolov7_face_postprocessing_wrapper
+        return yolov7_face_postprocessing
+        # # Note: Temporary workaround for the mismatch in output tensor order between the original ONNX model and DXNN.
+        # #       The _wrapper function will be removed once the issue is properly fixed.
+        # return yolov7_face_postprocessing_wrapper
 
 
 class YOLOv7s_Face(ModelBase):
@@ -188,10 +203,10 @@ class YOLOv7s_Face(ModelBase):
         ]
 
     def postprocessing(self):
-        # Note: Temporary workaround for the mismatch in output tensor order between the original ONNX model and DXNN.
-        #       The _wrapper function will be removed once the issue is properly fixed.
-        # return yolov7_face_postprocessing
-        return yolov7_face_postprocessing_wrapper
+        return yolov7_face_postprocessing
+        # # Note: Temporary workaround for the mismatch in output tensor order between the original ONNX model and DXNN.
+        # #       The _wrapper function will be removed once the issue is properly fixed.
+        # return yolov7_face_postprocessing_wrapper
 
 
 class YOLOv7_TTA_Face(ModelBase):
@@ -210,10 +225,10 @@ class YOLOv7_TTA_Face(ModelBase):
         ]
 
     def postprocessing(self):
-        # Note: Temporary workaround for the mismatch in output tensor order between the original ONNX model and DXNN.
-        #       The _wrapper function will be removed once the issue is properly fixed.
-        # return yolov7_face_postprocessing
-        return yolov7_face_postprocessing_wrapper
+        return yolov7_face_postprocessing
+        # # Note: Temporary workaround for the mismatch in output tensor order between the original ONNX model and DXNN.
+        # #       The _wrapper function will be removed once the issue is properly fixed.
+        # return yolov7_face_postprocessing_wrapper
 
 
 class YOLOv7_W6_Face(ModelBase):
@@ -232,10 +247,10 @@ class YOLOv7_W6_Face(ModelBase):
         ]
 
     def postprocessing(self):
-        # Note: Temporary workaround for the mismatch in output tensor order between the original ONNX model and DXNN.
-        #       The _wrapper function will be removed once the issue is properly fixed.
-        # return yolov7_face_postprocessing
-        return yolov7_face_postprocessing_wrapper
+        return yolov7_face_postprocessing
+        # # Note: Temporary workaround for the mismatch in output tensor order between the original ONNX model and DXNN.
+        # #       The _wrapper function will be removed once the issue is properly fixed.
+        # return yolov7_face_postprocessing_wrapper
 
 
 class YOLOv7_W6_TTA_Face(ModelBase):
@@ -254,7 +269,7 @@ class YOLOv7_W6_TTA_Face(ModelBase):
         ]
 
     def postprocessing(self):
-        # Note: Temporary workaround for the mismatch in output tensor order between the original ONNX model and DXNN.
-        #       The _wrapper function will be removed once the issue is properly fixed.
-        # return yolov7_face_postprocessing
-        return yolov7_face_postprocessing_wrapper
+        return yolov7_face_postprocessing
+        # # Note: Temporary workaround for the mismatch in output tensor order between the original ONNX model and DXNN.
+        # #       The _wrapper function will be removed once the issue is properly fixed.
+        # return yolov7_face_postprocessing_wrapper
