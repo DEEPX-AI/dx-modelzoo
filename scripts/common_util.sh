@@ -32,3 +32,25 @@ print_colored() {
 print_colored_v2() {
     print_colored "$2" "$1"
 }
+
+check_container_mode() {
+    # Check if running in a container
+    if grep -qE "/docker|/lxc|/containerd" /proc/1/cgroup || [ -f /.dockerenv ]; then
+        print_colored_v2 "INFO" "(container mode detected)"
+        return 0
+    else
+        print_colored_v2 "INFO" "(host mode detected)"
+        return 1
+    fi
+}
+
+check_virtualenv() {
+    if [ -n "$VIRTUAL_ENV" ]; then
+        venv_name=$(basename "$VIRTUAL_ENV")
+        print_colored_v2 "✅ Virtual environment '$venv_name' is currently active."
+        return 0
+    else
+        print_colored_v2 "❌ No virtual environment is currently active."
+        return 1
+    fi
+}

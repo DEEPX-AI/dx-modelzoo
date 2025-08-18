@@ -176,30 +176,30 @@ def non_maximum_suppression2(
 
     return torch.concat(nms_outputs, axis=0)
 
-def find_index_from_tensors_name(data, name):
-    indices = [i for i, item in enumerate(data) if name in item['name']]
-    if indices.__len__() != 1:
-        raise Exception(f"Expected exactly one output tensor, but found a different number, num of output tensor: {indices.__len__()}")
-    else:
-        return indices[0]
+# # Note: Temporary workaround for the mismatch in output tensor order between the original ONNX model and DXNN.
+# #       The _wrapper function will be removed once the issue is properly fixed.
+# def find_index_from_tensors_name(data, name):
+#     indices = [i for i, item in enumerate(data) if name in item['name']]
+#     if indices.__len__() != 1:
+#         raise Exception(f"Expected exactly one output tensor, but found a different number, num of output tensor: {indices.__len__()}")
+#     else:
+#         return indices[0]
 
-# Note: Temporary workaround for the mismatch in output tensor order between the original ONNX model and DXNN.
-#       The _wrapper function will be removed once the issue is properly fixed.
-def ssd_nms_wrapper(outputs: List[np.ndarray], prob_threshold: float = 0.01, iou_threshold: float = 0.45, session=None):
-    if session:
-        if session.type == SessionType.onnxruntime:
-            pass
-        elif session.type == SessionType.dxruntime:
-            output_tensors_info = session.inference_engine.get_output_tensors_info()
-            scores_idx = find_index_from_tensors_name(output_tensors_info, "scores")
-            boxes_idx = find_index_from_tensors_name(output_tensors_info, "boxes")
-            outputs = [outputs[scores_idx], outputs[boxes_idx]]
-        else:
-            raise Exception(f"Invalid SeessionType: {session.type}")
-    else:
-        pass
+# def ssd_nms_wrapper(outputs: List[np.ndarray], prob_threshold: float = 0.01, iou_threshold: float = 0.45, session=None):
+#     if session:
+#         if session.type == SessionType.onnxruntime:
+#             pass
+#         elif session.type == SessionType.dxruntime:
+#             output_tensors_info = session.inference_engine.get_output_tensors_info()
+#             scores_idx = find_index_from_tensors_name(output_tensors_info, "scores")
+#             boxes_idx = find_index_from_tensors_name(output_tensors_info, "boxes")
+#             outputs = [outputs[scores_idx], outputs[boxes_idx]]
+#         else:
+#             raise Exception(f"Invalid SeessionType: {session.type}")
+#     else:
+#         pass
     
-    return ssd_nms(outputs, prob_threshold, iou_threshold)
+#     return ssd_nms(outputs, prob_threshold, iou_threshold)
 
 def ssd_nms(outputs: List[np.ndarray], prob_threshold: float = 0.01, iou_threshold: float = 0.45):
     batched_class_scores, batched_boxes_coordinates = outputs
