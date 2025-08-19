@@ -12,6 +12,7 @@ PROJECT_NAME="dx-modelzoo"
 RUNTIME_PATH=$(realpath -s "${PROJECT_ROOT}/../dx-runtime")
 DXRT_SRC_PATH="${RUNTIME_PATH}/dx_rt"
 DX_AS_PATH=$(realpath -s "${RUNTIME_PATH}/..")
+ENABLE_DEBUG_LOGS=0   # New flag for debug logging
 DOCKER_VOLUME_PATH=${DOCKER_VOLUME_PATH}
 USE_FORCE=0
 REUSE_VENV=1
@@ -76,7 +77,15 @@ show_help() {
     exit 0
 }
 
-validate_path() {
+validate_environment() {
+    echo -e "=== validate_environment() ${TAG_START} ==="
+
+    # Handle --venv-force-remove and --venv-reuse conflicts
+    if [ ${FORCE_REMOVE_VENV} -eq 1 ] && [ ${REUSE_VENV} -eq 1 ]; then
+        print_colored "Cannot use both --venv-force-remove and --venv-reuse simultaneously. Please choose one." "ERROR" >&2
+        exit 1
+    fi
+
     # check DX-AS mode
     if [ ! -d "$DX_AS_PATH" ]; then
         print_colored_v2 "INFO" "[Normal mode]"
@@ -92,6 +101,8 @@ validate_path() {
         local err_msg="DXRT_SRC_PATH ($DXRT_SRC_PATH) does not exist.\nUse the '--dxrt_src_path=<dir>' option to specify the directory where the 'dx_rt' source code is located."
         show_help "error" "${err_msg}"
     fi
+
+    echo -e "=== validate_environment() ${TAG_DONE} ==="
 }
 
 install_python_and_venv() {
@@ -215,14 +226,16 @@ install_pip_packages(){
     echo -e "=== install_pip_packages() ${TAG_DONE:-[DONE]} ==="
 }
 
-setup_project(){
-    echo -e "=== setup_${PROJECT_NAME}() ${TAG_STRT} ==="
+setup_project() {
+    echo -e "=== setup_${PROJECT_NAME}() ${TAG_START} ==="
 
     if check_virtualenv; then
+        setup_dx_engine
         install_pip_packages
     else
         if [ -d "$VENV_PATH" ]; then
             activate_venv
+            setup_dx_engine
             install_pip_packages
         else
             print_colored_v2 "ERROR" "Virtual environment '${VENV_PATH}' is not exist."
@@ -278,15 +291,13 @@ show_information_message(){
 
 
 setup_venv() {
-    activate_venv
-    setup_dx_engine
     setup_project
     show_information_message
 }
 
 
 main() {
-    validate_path
+    validate_environment
     install_python_and_venv
     setup_venv
 }
@@ -322,6 +333,10 @@ while [ "$#" -gt 0 ]; do
             FORCE_REMOVE_VENV=1
             REUSE_VENV=0
             ;;
+        --verbose)
+            ENABLE_DEBUG_LOGS=1
+            VERBOSE_ARGS="--verbose"
+            ;;
         --help)
             show_help
             ;;
@@ -331,12 +346,6 @@ while [ "$#" -gt 0 ]; do
     esac
     shift
 done
-
-# Handle --venv-force-remove and --venv-reuse conflicts
-if [ ${FORCE_REMOVE_VENV} -eq 1 ] && [ ${REUSE_VENV} -eq 1 ]; then
-    print_colored "Cannot use both --venv-force-remove and --venv-reuse simultaneously. Please choose one." "ERROR" >&2
-    exit 1
-fi
 
 main
 
