@@ -3,9 +3,12 @@
 SCRIPT_DIR=$(realpath "$(dirname "$0")")
 PROJECT_ROOT=$(realpath -s "${SCRIPT_DIR}")
 
-# color env settings
-source ${PROJECT_ROOT}/scripts/color_env.sh
-source ${PROJECT_ROOT}/scripts/common_util.sh
+pushd "$PROJECT_ROOT" >&2
+# load print_colored()
+#   - usage: print_colored "message contents" "type"
+#      - types: ERROR FAIL INFO WARNING DEBUG RED BLUE YELLOW GREEN
+source "${PROJECT_ROOT}/scripts/color_env.sh"
+source "${PROJECT_ROOT}/scripts/common_util.sh"
 
 # Default values
 PROJECT_NAME="dx-modelzoo"
@@ -14,9 +17,9 @@ DXRT_SRC_PATH="${RUNTIME_PATH}/dx_rt"
 DX_AS_PATH=$(realpath -s "${RUNTIME_PATH}/..")
 ENABLE_DEBUG_LOGS=0   # New flag for debug logging
 DOCKER_VOLUME_PATH=${DOCKER_VOLUME_PATH}
-USE_FORCE=0
-REUSE_VENV=1
-FORCE_REMOVE_VENV=0
+USE_FORCE=1
+REUSE_VENV=0
+FORCE_REMOVE_VENV=1
 VENV_SYSTEM_SITE_PACKAGES_ARGS=""
 
 # Global variables for script configuration
@@ -29,7 +32,6 @@ VENV_SYMLINK_TARGET_PATH=""
 VENV_PATH_OVERRIDE=""
 VENV_SYMLINK_TARGET_PATH_OVERRIDE=""
 
-pushd $PROJECT_ROOT >&2
 
 # Function to display help message
 show_help() {
@@ -39,19 +41,21 @@ show_help() {
     echo -e "  ${COLOR_GREEN}[--dxrt_src_path=<path>]${COLOR_RESET}              Set DXRT source path (default: ${DXRT_SRC_PATH})"
     echo -e "  ${COLOR_GREEN}[--docker_volume_path=<path>]${COLOR_RESET}         Set Docker volume path (required in container mode)"
     echo -e ""
-    echo -e "  ${COLOR_GREEN}[--venv_path=<path>]${COLOR_RESET}                  Set virtual environment path (default: PROJECT_ROOT/venv-${PROJECT_NAME})"
-    echo -e "  ${COLOR_GREEN}[--venv_symlink_target_path=<dir>]${COLOR_RESET}    Set symlink target path for venv (ex: PROJECT_ROOT/../workspace/venv/${PROJECT_NAME})"
-    echo -e ""
-    echo -e "  ${COLOR_GREEN}[--system-site-packages]${COLOR_RESET}              Set venv '--system-site-packages' option."    
-    echo -e "                                          - This option is applied only when venv is created. If you use '-venv-reuse', it is ignored. "
-    echo -e ""
-    echo -e "  ${COLOR_GREEN}[-f | --venv-force-remove]${COLOR_RESET}            If specified, force remove existing virtual environment at --venv_path before creation."
-    echo -e "  ${COLOR_GREEN}[-r | --venv-reuse]${COLOR_RESET}                   If specified, reuse existing virtual environment at --venv_path if it's valid, skipping creation."
-    echo -e ""
     echo -e "  ${COLOR_GREEN}[--force]${COLOR_RESET}                             Force overwrite if the file already exists"
     echo -e "                                          - This option is applied. --venv-force-remove option is enabled automatically."
     echo -e ""
+    echo -e "  ${COLOR_GREEN}[--verbose]${COLOR_RESET}                           Enable verbose (debug) logging."
     echo -e "  ${COLOR_GREEN}[--help]${COLOR_RESET}                              Display this help message and exit."
+    echo -e ""
+    echo -e "Virtual Environment Options:"
+    echo -e "  ${COLOR_GREEN}[--venv_path=<path>]${COLOR_RESET}                  Set virtual environment path (default: PROJECT_ROOT/venv-${PROJECT_NAME})"
+    echo -e "  ${COLOR_GREEN}[--venv_symlink_target_path=<dir>]${COLOR_RESET}    Set symlink target path for venv (ex: PROJECT_ROOT/../workspace/venv/${PROJECT_NAME})"
+    echo -e ""
+    echo -e "Virtual Environment Sub-Options:"
+    echo -e "  ${COLOR_GREEN}  [--system-site-packages]${COLOR_RESET}              Set venv '--system-site-packages' option."    
+    echo -e "                                            - This option is applied only when venv is created. If you use '-venv-reuse', it is ignored. "
+    echo -e "  ${COLOR_GREEN}  [-f | --venv-force-remove]${COLOR_RESET}            (Default ON) Force remove existing virtual environment at --venv_path before creation."
+    echo -e "  ${COLOR_GREEN}  [-r | --venv-reuse]${COLOR_RESET}                   (Default OFF) Reuse existing virtual environment at --venv_path if it's valid, skipping creation."
     echo -e ""
     echo -e "${COLOR_BOLD}Examples:${COLOR_RESET}"
     echo -e "  ${COLOR_YELLOW}$0"
@@ -66,14 +70,18 @@ show_help() {
 
     if [ "$1" == "error" ] && [[ ! -n "$2" ]]; then
         print_colored_v2 "ERROR" "Invalid or missing arguments."
+        popd >&2
         exit 1
     elif [ "$1" == "error" ] && [[ -n "$2" ]]; then
         print_colored_v2 "ERROR" "$2"
+        popd >&2
         exit 1
     elif [[ "$1" == "warn" ]] && [[ -n "$2" ]]; then
         print_colored_v2 "WARNING" "$2"
+        popd >&2
         return 0
     fi
+    popd >&2
     exit 0
 }
 
@@ -82,8 +90,7 @@ validate_environment() {
 
     # Handle --venv-force-remove and --venv-reuse conflicts
     if [ ${FORCE_REMOVE_VENV} -eq 1 ] && [ ${REUSE_VENV} -eq 1 ]; then
-        print_colored "Cannot use both --venv-force-remove and --venv-reuse simultaneously. Please choose one." "ERROR" >&2
-        exit 1
+        show_help "error" "Cannot use both --venv-force-remove and --venv-reuse simultaneously. Please choose one." "ERROR" >&2
     fi
 
     # check DX-AS mode
@@ -194,22 +201,22 @@ activate_venv() {
     source ${VENV_PATH}/bin/activate
     if [ $? -ne 0 ]; then
         print_colored_v2 "ERROR" "Activate Virtual environment(${VENV_PATH}) failed! Please try installing again with the '--force' option. "
-        print_colored_v2 "HINT" "Please run 'setup.sh --force' to set up and activate the environment first."
+        print_colored_v2 "HINT" "Please run 'install.sh --force' to set up and activate the environment first."
         exit 1
     fi
 
     echo -e "=== activate_venv() ${TAG_DONE} ==="
 }
 
-setup_dx_engine(){
-    echo -e "=== setup_dx_engine() ${TAG_STRT} ==="
-    ### Setup dx_rt python package
+install_dx_engine(){
+    echo -e "=== install_dx_engine() ${TAG_STRT} ==="
+    ### install dx_rt python package
     #### 2. Install dx_engine (dx_rt Python package)
     pushd ${DXRT_SRC_PATH}
     ./build.sh --clean
     pip install ./python_package/.
     popd
-    echo -e "=== setup_dx_engine() ${TAG_DONE} ==="
+    echo -e "=== install_dx_engine() ${TAG_DONE} ==="
 }
 
 install_pip_packages(){
@@ -226,24 +233,24 @@ install_pip_packages(){
     echo -e "=== install_pip_packages() ${TAG_DONE:-[DONE]} ==="
 }
 
-setup_project() {
-    echo -e "=== setup_${PROJECT_NAME}() ${TAG_START} ==="
+install_project() {
+    echo -e "=== install_${PROJECT_NAME}() ${TAG_START} ==="
 
     if check_virtualenv; then
-        setup_dx_engine
+        install_dx_engine
         install_pip_packages
     else
         if [ -d "$VENV_PATH" ]; then
             activate_venv
-            setup_dx_engine
+            install_dx_engine
             install_pip_packages
         else
             print_colored_v2 "ERROR" "Virtual environment '${VENV_PATH}' is not exist."
-            print_colored_v2 "HINT" "Please run 'setup.sh' to set up and activate the environment first."
+            print_colored_v2 "HINT" "Please run 'install.sh' to set up and activate the environment first."
         fi
     fi
 
-    echo -e "=== setup_${PROJECT_NAME}() ${TAG_DONE} ==="
+    echo -e "=== install_${PROJECT_NAME}() ${TAG_DONE} ==="
 }
 
 create_activation_script(){
@@ -251,7 +258,7 @@ create_activation_script(){
     cat > "${ACTIVATE_SCRIPT}" << EOF
 #!/bin/bash
 # Auto-generated activation script for ${PROJECT_NAME}
-# Generated by setup.sh on $(date)
+# Generated by install.sh on $(date)
 
 VENV_PATH="${VENV_PATH}"
 
@@ -263,7 +270,7 @@ if [ -f "\${VENV_PATH}/bin/activate" ]; then
     echo "To deactivate, run: deactivate"
 else
     echo "Error: Virtual environment not found at \${VENV_PATH}"
-    echo "Please run setup.sh first to create the virtual environment."
+    echo "Please run install.sh first to create the virtual environment."
     exit 1
 fi
 EOF
@@ -289,19 +296,20 @@ show_information_message(){
     fi
 }
 
-
-setup_venv() {
-    setup_project
-    show_information_message
-}
-
-
 main() {
+    # this function is defined in scripts/common_util.sh
+    # Usage: os_check "supported_os_names" "ubuntu_versions" "debian_versions"
+    os_check "ubuntu" "18.04 20.04 22.04 24.04" ""
+
+    # this function is defined in scripts/common_util.sh
+    # Usage: arch_check "supported_arch_names"
+    arch_check "amd64 x86_64"
+    
     validate_environment
     install_python_and_venv
-    setup_venv
+    install_project
+    show_information_message
 }
-
 
 # Parse arguments
 while [ "$#" -gt 0 ]; do
