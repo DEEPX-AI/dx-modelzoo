@@ -1,4 +1,23 @@
 # RELEASE_NOTES
+
+## v0.5.0 / 2025-08-18
+
+### 1. Changed
+- Add --symlink_target_path option to install_python_and_venv.sh
+  - Add validation and error handling for symlink operations
+- Consolidate all setup functionality into setup.sh and install_python_and_venv.sh
+  - Enable venv creation at target path with symlink at specified path
+- Fix setup.sh parameter parsing and forwarding for symlink options
+- Remove deprecated scripts: install.sh, setup_venv.sh
+- Update help documentation with symlink usage examples
+
+### 2. Fixed
+- remove temporary workaround code  from postprocessing
+  - Fixed output tensor order mismatch in DXNN (dx_com v2.0.0)
+  - Removed temporary workaround wrapper functions
+
+### 3. Added
+
 ## v0.4.0 / 2025-07-28
 
 ### 1. Changed
@@ -14,7 +33,6 @@
   - When  is executed for a local (host) installation after a Docker-based setup has already created a virtual environment, a conflict can arise. Both installation methods would attempt to use the same venv path (), potentially leading to a corrupted environment.
 
 ### 3. Added
-
 
 ## v0.3.1 / 2025-06-12
 ### 1. Changed

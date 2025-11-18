@@ -66,6 +66,38 @@
             ]
         },
         {
+            "name": "dxmz eval MODEL YoloV5S --dxnn",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "/deepx/workspace/venv/dx-modelzoo/bin/dxmz",
+            "python": "/deepx/workspace/venv/dx-modelzoo/bin/python",
+            "args": [
+                "eval",
+                "YoloV5S",
+                "--dxnn",
+                "./models_2.0.0/dxnn/YOLOV5S-1.dxnn",
+                "--data_dir",
+                "./datasets/COCO/official",
+                "--debug"
+            ]
+        },
+        {
+            "name": "dxmz eval MODEL YoloV5S --onnx",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "/deepx/workspace/venv/dx-modelzoo/bin/dxmz",
+            "python": "/deepx/workspace/venv/dx-modelzoo/bin/python",
+            "args": [
+                "eval",
+                "YoloV5S",
+                "--onnx",
+                "./models_2.0.0/onnx/YOLOV5S-1.onnx",
+                "--data_dir",
+                "./datasets/COCO/official",
+                "--debug"
+            ]
+        },
+        {
             "name": "run_benchmark_internal",
             "type": "debugpy",
             "request": "launch",

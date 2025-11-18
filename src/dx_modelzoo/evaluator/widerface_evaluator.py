@@ -42,8 +42,11 @@ class WiderFaceEvaluator(EvaluatorBase):
             
             recent_inference_times.append(inference_time)  
             total_inference_time += inference_time
-            
-            outputs = self.postprocessing(outputs, image.shape, origin_shape, self.session)
+
+            # # Note: Temporary workaround for the mismatch in output tensor order between the original ONNX model and DXNN.
+            # #       The _wrapper function will be removed once the issue is properly fixed.
+            # outputs = self.postprocessing(outputs, image.shape, origin_shape, self.session)
+            outputs = self.postprocessing(outputs, image.shape, origin_shape)
             boxes = []
             for output in outputs:
                 box = [float(output[i]) for i in range(5)]
