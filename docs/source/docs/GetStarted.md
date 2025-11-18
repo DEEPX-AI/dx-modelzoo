@@ -33,7 +33,7 @@ Note:
 
   ```
   cd dx-modelzoo
-  ./setup.sh
+  ./install.sh
   ```
 
 - Install DeepX python package (refer to the official DX-RT and DX-COM installation guides, make sure dx_engine performs properly.)
