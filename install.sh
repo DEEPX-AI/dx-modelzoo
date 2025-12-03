@@ -171,12 +171,10 @@ install_python_and_venv() {
         install_py_cmd_args+=" --symlink_target_path=$VENV_SYMLINK_TARGET_PATH"
     fi
 
-    if [ ${USE_FORCE} -eq 1 ] || [ ${FORCE_REMOVE_VENV} -eq 1 ]; then
-        install_py_cmd_args+=" --venv-force-remove"
-    fi
-
     if [ ${REUSE_VENV} -eq 1 ]; then
         install_py_cmd_args+=" --venv-reuse"
+    elif [ ${USE_FORCE} -eq 1 ] || [ ${FORCE_REMOVE_VENV} -eq 1 ]; then
+        install_py_cmd_args+=" --venv-force-remove"
     fi
 
     if [ -n "${VENV_SYSTEM_SITE_PACKAGES_ARGS}" ]; then
@@ -332,6 +330,7 @@ while [ "$#" -gt 0 ]; do
             ;;
         -r|--venv-reuse)
             REUSE_VENV=1
+            FORCE_REMOVE_VENV=0
             ;;
         --system-site-packages)
             VENV_SYSTEM_SITE_PACKAGES_ARGS="--system-site-packages"
