@@ -1,6 +1,21 @@
 # RELEASE_NOTES
 
-## v0.5.0 / 2025-08-18
+## DX-MODELZOO v0.5.1 / 2025-08-18
+
+### 1. Changed
+- None
+
+### 2. Fixed
+- Enhance Python installation script to use minimum required version if no specific version is provided
+  - Reorder venv force remove logic in install_python_and_venv function
+  - Refactor Python installation script to streamline checks
+
+### 3. Added
+- None
+
+---
+
+## DX-MODELZOO v0.5.0 / 2025-08-18
 
 ### 1. Changed
 - Add --symlink_target_path option to install_python_and_venv.sh
@@ -18,7 +33,9 @@
 
 ### 3. Added
 
-## v0.4.0 / 2025-07-28
+---
+
+## DX-MODELZOO v0.4.0 / 2025-07-28
 
 ### 1. Changed
 - feat: Refactor dxmz setup and update dx_com version
@@ -34,7 +51,9 @@
 
 ### 3. Added
 
-## v0.3.1 / 2025-06-12
+---
+
+## DX-MODELZOO v0.3.1 / 2025-06-12
 ### 1. Changed
 - None
 ### 2. Fixed
@@ -43,7 +62,9 @@
 ### 3. Added
 - chore: support '--debug' flag in 'dxmz eval' to enable detailed logs
 
-## v0.1.5 / 2025-06-04
+---
+
+## DX-MODELZOO v0.1.5 / 2025-06-04
 ### 1. Changed
 - None
 ### 2. Fixed
@@ -51,7 +72,9 @@
 ### 3. Added
 - Add internal scripts (log parser, run eval onnx and so on)
 
-## v0.1.3 / 2025-05-26
+---
+
+## DX-MODELZOO v0.1.3 / 2025-05-26
 ### 1. Changed
 - support check and install 'jq' and ' curl' in download_onnx_json_from*.sh
 - support '--exclude_from', '--include_from' and '--get_model_list' options
@@ -60,7 +83,9 @@
 ### 3. Added
 - None
 
-## v0.1.2 / 2025-05-15
+---
+
+## DX-MODELZOO v0.1.2 / 2025-05-15
 ### 1. Changed
 - None
 ### 2. Fixed
@@ -69,7 +94,9 @@
 ### 3. Added
 - None
 
-## [0.1.1] - 2025-05-14
+---
+
+## DX-MODELZOO v0.1.1 - 2025-05-14
 
 ### Fixes
 
@@ -83,7 +110,9 @@
 - add evaluation scripts
 - add internal shell scripts
 
-## [0.1.0] - 2025-05-12
+---
+
+## DX-MODELZOO v0.1.0 - 2025-05-12
 
 ### Features
 
