@@ -1,6 +1,0 @@
-{
-    "python.analysis.extraPaths": [
-        "./src/dx_modelzoo/tools"
-    ],
-    "python.defaultInterpreterPath": "/deepx/workspace/venv/dx-modelzoo/bin/python"
-}

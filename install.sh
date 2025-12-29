@@ -244,7 +244,8 @@ install_project() {
             install_pip_packages
         else
             print_colored_v2 "ERROR" "Virtual environment '${VENV_PATH}' is not exist."
-            print_colored_v2 "HINT" "Please run 'install.sh' to set up and activate the environment first."
+            popd >&2
+            exit 1
         fi
     fi
 

@@ -1,5 +1,43 @@
 # RELEASE_NOTES
 
+## DX-MODELZOO v0.6.0 / 2025-12-29
+
+### 1. Changed
+
+### 2. Fixed
+
+### 3. Added
+- We are excited to announce a major update to **dx-modelzoo**, significantly expanding our evaluation capabilities. The number of supported models for evaluation has increased from **59 to 110**.
+
+#### Key Highlights
+* **Scale Increase:** Expanded evaluation support to a total of 110 models (51 new models added).
+* **Latest Architectures:** Integration of state-of-the-art models including **YOLOv10** and **YOLOv11**.
+* **Broadened Coverage:** Enhanced support for various tasks including Object Detection, Classification, Segmentation, and Denoising.
+
+#### New Supported Model List
+
+The following models are now available for evaluation:
+
+##### **Object Detection & Face Detection**
+* **YOLOv11 Series:** YOLOV11N, YOLOV11S, YOLOV11M, YOLOV11L, YOLOV11X
+* **YOLOv10 Series:** YOLOV10N, YOLOV10S, YOLOV10M, YOLOV10B, YOLOV10L, YOLOV10X
+* **DamoYolo Series:** DamoYoloT (1, 2), DamoYoloS (1, 2), DamoYoloM (1, 2), DamoYoloL-1
+* **Others:** NanoDet_RepVGG, NanoDet_RepVGGA1, SCRFD (500M, 2.5G, 10G), SSDMV1, SSDMV2Lite
+
+##### **Classification**
+* **ResNet & Variants:** ResNet (18, 34, 50, 101), ResNeXt (26, 50), WideResNet (50, 101)
+* **MobileNet & EfficientNet:** MobileNet (V1, V2, V3L), EfficientNet (B2, V2S), EfficientNet_Lite (0, 1, 2, 3, 4)
+* **RegNet Series:** RegNetX (400MF, 800MF), RegNetY (200MF, 400MF, 800MF)
+* **VGG & SqueezeNet:** VGG (11, 11BN, 13, 13BN, 19BN), SqueezeNet (1.0, 1.1)
+* **Others:** InceptionV1, HarDNet (39DS, 68), RepVGGA1, RepVGGA2, OSNet (0.25, 0.5)
+
+##### **Other Tasks**
+* **Segmentation:** DeepLabV3PlusMobilenet
+* **Denoising:** DnCNN (15, 25, 50)
+* **Depth Estimation:** FastDepth
+
+---
+
 ## DX-MODELZOO v0.5.1 / 2025-08-18
 
 ### 1. Changed

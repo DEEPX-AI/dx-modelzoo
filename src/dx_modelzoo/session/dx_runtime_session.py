@@ -15,6 +15,5 @@ class DxRuntimeSession(SessionBase):
         self.inference_engine = InferenceEngine(self.path)
 
     def run(self, inputs: torch.Tensor) -> List[np.ndarray]:
-        inputs = inputs.permute(0, 2, 3, 1).contiguous()
         inputs = torch_to_numpy(inputs)
         return self.inference_engine.Run([inputs])

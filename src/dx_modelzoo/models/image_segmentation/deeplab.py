@@ -1,24 +1,60 @@
-from dx_modelzoo.enums import DatasetType, EvaluationType, SessionType
-from dx_modelzoo.models import ModelBase, ModelInfo
-from dx_modelzoo.preprocessing import PreProcessingCompose
+from torchvision.transforms import Compose
 
-DEEP_LAB_V3_LABEL_PREPROCESSING = PreProcessingCompose(
-    preprocessings=[
-        {
-            "resize": {
-                "mode": "torchvision",
-                "size": 512,
-                "interpolation": "NEAREST",
-            }
-        },
-        {"centercrop": {"width": 512, "height": 512}},
-    ],
-    session_type=SessionType.onnxruntime,
+from dx_modelzoo.enums import DatasetType, EvaluationType
+from dx_modelzoo.models import ModelBase, ModelInfo
+from dx_modelzoo.preprocessing.centercrop import CenterCrop
+from dx_modelzoo.preprocessing.convertcolor import ConvertColor
+from dx_modelzoo.preprocessing.div import Div
+from dx_modelzoo.preprocessing.normalize import Normalize
+from dx_modelzoo.preprocessing.resize import Resize
+from dx_modelzoo.preprocessing.transpose import Transpose
+
+DEEP_LAB_V3_LABEL_PREPROCESSING = Compose(
+    [Resize(mode="torchvision", size=512, interpolation="NEAREST"), CenterCrop(512, 512)]
 )
 
 
 def deeplab_postprocessing(inputs):
     return inputs[0]
+
+
+class DeepLabV3MobilenetV2(ModelBase):
+    info = ModelInfo(
+        name="DeepLabV3MobilenetV2",
+        dataset=DatasetType.voc_seg,
+        evaluation=EvaluationType.segmentation,
+    )
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+        self.evaluator.dataset.label_preprocessing = self.label_preprocessing()
+
+    def preprocessing(self):
+        return Compose(
+            [
+                ConvertColor("BGR2RGB"),
+                Resize(mode="torchvision", size=512, interpolation="BILINEAR"),
+                CenterCrop(512, 512),
+                Div(255),
+                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                ConvertColor("BGR2RGB"),
+                Resize(mode="torchvision", size=512, interpolation="BILINEAR"),
+                CenterCrop(512, 512),
+            ]
+        )
+
+    def label_preprocessing(self):
+        return DEEP_LAB_V3_LABEL_PREPROCESSING
+
+    def postprocessing(self):
+        return deeplab_postprocessing
 
 
 class DeepLabV3PlusMobilenet(ModelBase):
@@ -35,26 +71,25 @@ class DeepLabV3PlusMobilenet(ModelBase):
         self.evaluator.dataset.label_preprocessing = self.label_preprocessing()
 
     def preprocessing(self):
-        return [
-            {"convertColor": {"form": "BGR2RGB"}},
-            {
-                "resize": {
-                    "mode": "torchvision",
-                    "size": 512,
-                    "interpolation": "BILINEAR",
-                }
-            },
-            {"centercrop": {"width": 512, "height": 512}},
-            {"div": {"x": 255}},
-            {
-                "normalize": {
-                    "mean": [0.485, 0.456, 0.406],
-                    "std": [0.229, 0.224, 0.225],
-                }
-            },
-            {"transpose": {"axis": [2, 0, 1]}},
-            {"expandDim": {"axis": 0}},
-        ]
+        return Compose(
+            [
+                ConvertColor("BGR2RGB"),
+                Resize(mode="torchvision", size=512, interpolation="BILINEAR"),
+                CenterCrop(512, 512),
+                Div(255),
+                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                ConvertColor("BGR2RGB"),
+                Resize(mode="torchvision", size=512, interpolation="BILINEAR"),
+                CenterCrop(512, 512),
+            ]
+        )
 
     def label_preprocessing(self):
         return DEEP_LAB_V3_LABEL_PREPROCESSING
@@ -76,26 +111,25 @@ class DeepLabV3PlusResnet(ModelBase):
         self.evaluator.dataset.label_preprocessing = self.label_preprocessing()
 
     def preprocessing(self):
-        return [
-            {"convertColor": {"form": "BGR2RGB"}},
-            {
-                "resize": {
-                    "mode": "torchvision",
-                    "size": 512,
-                    "interpolation": "BILINEAR",
-                }
-            },
-            {"centercrop": {"width": 512, "height": 512}},
-            {"div": {"x": 255}},
-            {
-                "normalize": {
-                    "mean": [0.485, 0.456, 0.406],
-                    "std": [0.229, 0.224, 0.225],
-                }
-            },
-            {"transpose": {"axis": [2, 0, 1]}},
-            {"expandDim": {"axis": 0}},
-        ]
+        return Compose(
+            [
+                ConvertColor("BGR2RGB"),
+                Resize(mode="torchvision", size=512, interpolation="BILINEAR"),
+                CenterCrop(512, 512),
+                Div(255),
+                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                ConvertColor("BGR2RGB"),
+                Resize(mode="torchvision", size=512, interpolation="BILINEAR"),
+                CenterCrop(512, 512),
+            ]
+        )
 
     def label_preprocessing(self):
         return DEEP_LAB_V3_LABEL_PREPROCESSING
@@ -117,26 +151,25 @@ class DeepLabV3PlusResNet50(ModelBase):
         self.evaluator.dataset.label_preprocessing = self.label_preprocessing()
 
     def preprocessing(self):
-        return [
-            {"convertColor": {"form": "BGR2RGB"}},
-            {
-                "resize": {
-                    "mode": "torchvision",
-                    "size": 512,
-                    "interpolation": "BILINEAR",
-                }
-            },
-            {"centercrop": {"width": 512, "height": 512}},
-            {"div": {"x": 255}},
-            {
-                "normalize": {
-                    "mean": [0.485, 0.456, 0.406],
-                    "std": [0.229, 0.224, 0.225],
-                }
-            },
-            {"transpose": {"axis": [2, 0, 1]}},
-            {"expandDim": {"axis": 0}},
-        ]
+        return Compose(
+            [
+                ConvertColor("BGR2RGB"),
+                Resize(mode="torchvision", size=512, interpolation="BILINEAR"),
+                CenterCrop(512, 512),
+                Div(255),
+                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                ConvertColor("BGR2RGB"),
+                Resize(mode="torchvision", size=512, interpolation="BILINEAR"),
+                CenterCrop(512, 512),
+            ]
+        )
 
     def label_preprocessing(self):
         return DEEP_LAB_V3_LABEL_PREPROCESSING
@@ -158,26 +191,25 @@ class DeepLabV3PlusResNet101(ModelBase):
         self.evaluator.dataset.label_preprocessing = self.label_preprocessing()
 
     def preprocessing(self):
-        return [
-            {"convertColor": {"form": "BGR2RGB"}},
-            {
-                "resize": {
-                    "mode": "torchvision",
-                    "size": 512,
-                    "interpolation": "BILINEAR",
-                }
-            },
-            {"centercrop": {"width": 512, "height": 512}},
-            {"div": {"x": 255}},
-            {
-                "normalize": {
-                    "mean": [0.485, 0.456, 0.406],
-                    "std": [0.229, 0.224, 0.225],
-                }
-            },
-            {"transpose": {"axis": [2, 0, 1]}},
-            {"expandDim": {"axis": 0}},
-        ]
+        return Compose(
+            [
+                ConvertColor("BGR2RGB"),
+                Resize(mode="torchvision", size=512, interpolation="BILINEAR"),
+                CenterCrop(512, 512),
+                Div(255),
+                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                ConvertColor("BGR2RGB"),
+                Resize(mode="torchvision", size=512, interpolation="BILINEAR"),
+                CenterCrop(512, 512),
+            ]
+        )
 
     def label_preprocessing(self):
         return DEEP_LAB_V3_LABEL_PREPROCESSING
@@ -199,26 +231,25 @@ class DeepLabV3PlusDRN(ModelBase):
         self.evaluator.dataset.label_preprocessing = self.label_preprocessing()
 
     def preprocessing(self):
-        return [
-            {"convertColor": {"form": "BGR2RGB"}},
-            {
-                "resize": {
-                    "mode": "torchvision",
-                    "size": 512,
-                    "interpolation": "BILINEAR",
-                }
-            },
-            {"centercrop": {"width": 512, "height": 512}},
-            {"div": {"x": 255}},
-            {
-                "normalize": {
-                    "mean": [0.485, 0.456, 0.406],
-                    "std": [0.229, 0.224, 0.225],
-                }
-            },
-            {"transpose": {"axis": [2, 0, 1]}},
-            {"expandDim": {"axis": 0}},
-        ]
+        return Compose(
+            [
+                ConvertColor("BGR2RGB"),
+                Resize(mode="torchvision", size=512, interpolation="BILINEAR"),
+                CenterCrop(512, 512),
+                Div(255),
+                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                ConvertColor("BGR2RGB"),
+                Resize(mode="torchvision", size=512, interpolation="BILINEAR"),
+                CenterCrop(512, 512),
+            ]
+        )
 
     def label_preprocessing(self):
         return DEEP_LAB_V3_LABEL_PREPROCESSING
@@ -240,26 +271,25 @@ class DeepLabV3PlusMobileNetV2(ModelBase):
         self.evaluator.dataset.label_preprocessing = self.label_preprocessing()
 
     def preprocessing(self):
-        return [
-            {"convertColor": {"form": "BGR2RGB"}},
-            {
-                "resize": {
-                    "mode": "torchvision",
-                    "size": 512,
-                    "interpolation": "BILINEAR",
-                }
-            },
-            {"centercrop": {"width": 512, "height": 512}},
-            {"div": {"x": 255}},
-            {
-                "normalize": {
-                    "mean": [0.485, 0.456, 0.406],
-                    "std": [0.229, 0.224, 0.225],
-                }
-            },
-            {"transpose": {"axis": [2, 0, 1]}},
-            {"expandDim": {"axis": 0}},
-        ]
+        return Compose(
+            [
+                ConvertColor("BGR2RGB"),
+                Resize(mode="torchvision", size=512, interpolation="BILINEAR"),
+                CenterCrop(512, 512),
+                Div(255),
+                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                ConvertColor("BGR2RGB"),
+                Resize(mode="torchvision", size=512, interpolation="BILINEAR"),
+                CenterCrop(512, 512),
+            ]
+        )
 
     def label_preprocessing(self):
         return DEEP_LAB_V3_LABEL_PREPROCESSING

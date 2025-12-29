@@ -1,16 +1,26 @@
+from dx_modelzoo.models.depth_estimation.fast_depth import FastDepth
+from dx_modelzoo.models.face_detection.scrfd import SCRFD2_5G, SCRFD10G, SCRFD500M
 from dx_modelzoo.models.face_detection.yolo import (
     YOLOv5m_Face,
     YOLOv5s_Face,
     YOLOv7_Face,
-    YOLOv7_TTA_Face,
     YOLOv7_W6_Face,
     YOLOv7_W6_TTA_Face,
     YOLOv7s_Face,
 )
 from dx_modelzoo.models.image_classification.alexnet import AlexNet
 from dx_modelzoo.models.image_classification.densenet import DenseNet121, DenseNet161
-from dx_modelzoo.models.image_classification.efficientnet import EfficientNetB2, EfficientNetV2S
-from dx_modelzoo.models.image_classification.hardnet import HarDNet39DS
+from dx_modelzoo.models.image_classification.efficientnet import (
+    EfficientNetB2,
+    EfficientNetLite0,
+    EfficientNetLite1,
+    EfficientNetLite2,
+    EfficientNetLite3,
+    EfficientNetLite4,
+    EfficientNetV2S,
+)
+from dx_modelzoo.models.image_classification.hardnet import HarDNet39DS, HarDNet68
+from dx_modelzoo.models.image_classification.inception import InceptionV1
 from dx_modelzoo.models.image_classification.mobilenet import (
     MobileNetV1,
     MobileNetV2,
@@ -19,21 +29,45 @@ from dx_modelzoo.models.image_classification.mobilenet import (
 )
 from dx_modelzoo.models.image_classification.osnet import OSNet0_5, OSNet0_25
 from dx_modelzoo.models.image_classification.regnet import (
+    RegNetX1_6GF,
     RegNetX400MF,
     RegNetX800MF,
     RegNetY200MF,
     RegNetY400MF,
     RegNetY800MF,
 )
-from dx_modelzoo.models.image_classification.repvgg import RepVGGA1
-from dx_modelzoo.models.image_classification.resnet import ResNet18, ResNet34, ResNet50, ResNet101, ResNet152
-from dx_modelzoo.models.image_classification.resnext import ResNeXt26_32x4d, ResNeXt50_32x4d
-from dx_modelzoo.models.image_classification.squeezenet import SqueezeNet1_0, SqueezeNet1_1
-from dx_modelzoo.models.image_classification.vgg import VGG11, VGG11BN, VGG13, VGG13BN, VGG19BN
-from dx_modelzoo.models.image_classification.wideresnet import WideResNet50_2, WideResNet101_2
+from dx_modelzoo.models.image_classification.repvgg import RepVGGA1, RepVGGA2
+from dx_modelzoo.models.image_classification.resnet import (
+    ResNet18,
+    ResNet34,
+    ResNet50,
+    ResNet101,
+    ResNet152,
+)
+from dx_modelzoo.models.image_classification.resnext import (
+    ResNeXt26_32x4d,
+    ResNeXt50_32x4d,
+)
+from dx_modelzoo.models.image_classification.squeezenet import (
+    SqueezeNet1_0,
+    SqueezeNet1_1,
+)
+from dx_modelzoo.models.image_classification.vgg import (
+    VGG11,
+    VGG11BN,
+    VGG13,
+    VGG13BN,
+    VGG19BN,
+)
+from dx_modelzoo.models.image_classification.wideresnet import (
+    WideResNet50_2,
+    WideResNet101_2,
+)
 from dx_modelzoo.models.image_denoising.dncnn import DnCNN_15, DnCNN_25, DnCNN_50
+from dx_modelzoo.models.image_denoising.espcn import ESPCN_x2, ESPCN_x3, ESPCN_x4
 from dx_modelzoo.models.image_segmentation.bisenet import BiSeNetV1, BiSeNetV2
 from dx_modelzoo.models.image_segmentation.deeplab import (
+    DeepLabV3MobilenetV2,
     DeepLabV3PlusDRN,
     DeepLabV3PlusMobilenet,
     DeepLabV3PlusMobileNetV2,
@@ -41,13 +75,28 @@ from dx_modelzoo.models.image_segmentation.deeplab import (
     DeepLabV3PlusResNet50,
     DeepLabV3PlusResNet101,
 )
+from dx_modelzoo.models.image_segmentation.yolo import (
+    YoloV5L_Seg,
+    YoloV5M_Seg,
+    YoloV5N_Seg,
+    YoloV5S_Seg,
+    YoloV8M_Seg,
+    YoloV8N_Seg,
+    YoloV8S_Seg,
+)
+from dx_modelzoo.models.object_dection.damoyolo import DamoYOLO
+from dx_modelzoo.models.object_dection.nanodet import NanoDet, NanoDet_RepVGGA
 from dx_modelzoo.models.object_dection.ssd import SSDMV1, SSDMV2Lite
 from dx_modelzoo.models.object_dection.yolo import (
+    DamoYoloM,
+    DamoYoloS,
+    DamoYoloT,
     YoloV3,
     YoloV5L,
     YoloV5M,
     YoloV5N,
     YoloV5S,
+    YoloV6N,
     YoloV7,
     YoloV7E6,
     YoloV7Tiny,
@@ -59,7 +108,21 @@ from dx_modelzoo.models.object_dection.yolo import (
     YoloV9C,
     YoloV9S,
     YoloV9T,
+    YoloV10,
+    YoloV11,
+    YoloXLLeaky,
     YoloXS,
+    YoloXSLeaky,
+    YoloXSWideLeaky,
+    YoloXTiny,
+)
+from dx_modelzoo.models.open_clip.ViT import ViT_B_16_dfn2b, ViT_L_14_quickgelu_dfn2b
+from dx_modelzoo.models.pose_estimation.yolo import (
+    YOLOV8L_Pose,
+    YOLOV8M_Pose,
+    YOLOV8N_Pose,
+    YOLOV8S_Pose,
+    YOLOV8X_Pose,
 )
 
 MODEL_DICT = {
@@ -71,8 +134,10 @@ MODEL_DICT = {
     ResNet101.__name__: ResNet101,
     ResNet152.__name__: ResNet152,
     YoloV5S.__name__: YoloV5S,
+    YoloV6N.__name__: YoloV6N,
     YoloV5M.__name__: YoloV5M,
     YoloV5L.__name__: YoloV5L,
+    YoloV6N.__name__: YoloV6N,
     DeepLabV3PlusDRN.__name__: DeepLabV3PlusDRN,
     DeepLabV3PlusMobileNetV2.__name__: DeepLabV3PlusMobileNetV2,
     DeepLabV3PlusResNet101.__name__: DeepLabV3PlusResNet101,
@@ -89,6 +154,11 @@ MODEL_DICT = {
     DenseNet161.__name__: DenseNet161,
     EfficientNetB2.__name__: EfficientNetB2,
     EfficientNetV2S.__name__: EfficientNetV2S,
+    EfficientNetLite0.__name__: EfficientNetLite0,
+    EfficientNetLite1.__name__: EfficientNetLite1,
+    EfficientNetLite2.__name__: EfficientNetLite2,
+    EfficientNetLite3.__name__: EfficientNetLite3,
+    EfficientNetLite4.__name__: EfficientNetLite4,
     HarDNet39DS.__name__: HarDNet39DS,
     MobileNetV1.__name__: MobileNetV1,
     MobileNetV2.__name__: MobileNetV2,
@@ -107,6 +177,7 @@ MODEL_DICT = {
     OSNet0_25.__name__: OSNet0_25,
     OSNet0_5.__name__: OSNet0_5,
     RepVGGA1.__name__: RepVGGA1,
+    RepVGGA2.__name__: RepVGGA2,
     YoloXS.__name__: YoloXS,
     YoloV3.__name__: YoloV3,
     YoloV7.__name__: YoloV7,
@@ -127,11 +198,48 @@ MODEL_DICT = {
     YOLOv5m_Face.__name__: YOLOv5m_Face,
     YOLOv7s_Face.__name__: YOLOv7s_Face,
     YOLOv7_Face.__name__: YOLOv7_Face,
-    YOLOv7_TTA_Face.__name__: YOLOv7_TTA_Face,
     YOLOv7_W6_Face.__name__: YOLOv7_W6_Face,
     YOLOv7_W6_TTA_Face.__name__: YOLOv7_W6_TTA_Face,
     YoloV8X.__name__: YoloV8X,
     YoloV8M.__name__: YoloV8M,
     YoloV8N.__name__: YoloV8N,
     YoloV8S.__name__: YoloV8S,
+    FastDepth.__name__: FastDepth,
+    HarDNet68.__name__: HarDNet68,
+    RegNetX1_6GF.__name__: RegNetX1_6GF,
+    SCRFD10G.__name__: SCRFD10G,
+    SCRFD2_5G.__name__: SCRFD2_5G,
+    SCRFD500M.__name__: SCRFD500M,
+    YoloV5L_Seg.__name__: YoloV5L_Seg,
+    YoloV5M_Seg.__name__: YoloV5M_Seg,
+    YoloV5N_Seg.__name__: YoloV5N_Seg,
+    YoloV5S_Seg.__name__: YoloV5S_Seg,
+    YoloV8M_Seg.__name__: YoloV8M_Seg,
+    YoloV8N_Seg.__name__: YoloV8N_Seg,
+    YoloV8S_Seg.__name__: YoloV8S_Seg,
+    YoloXTiny.__name__: YoloXTiny,
+    YoloXSWideLeaky.__name__: YoloXSWideLeaky,
+    YoloXSLeaky.__name__: YoloXSLeaky,
+    YoloXLLeaky.__name__: YoloXLLeaky,
+    DeepLabV3MobilenetV2.__name__: DeepLabV3MobilenetV2,
+    DamoYoloM.__name__: DamoYoloM,
+    DamoYoloS.__name__: DamoYoloS,
+    DamoYoloT.__name__: DamoYoloT,
+    ViT_B_16_dfn2b.__name__: ViT_B_16_dfn2b,
+    ViT_L_14_quickgelu_dfn2b.__name__: ViT_L_14_quickgelu_dfn2b,
+    NanoDet.__name__: NanoDet,
+    NanoDet_RepVGGA.__name__: NanoDet_RepVGGA,
+    DamoYOLO.__name__: DamoYOLO,
+    YOLOV8N_Pose.__name__: YOLOV8N_Pose,
+    YOLOV8S_Pose.__name__: YOLOV8S_Pose,
+    YOLOV8M_Pose.__name__: YOLOV8M_Pose,
+    YOLOV8L_Pose.__name__: YOLOV8L_Pose,
+    YOLOV8X_Pose.__name__: YOLOV8X_Pose,
+    ESPCN_x2.__name__: ESPCN_x2,
+    ESPCN_x3.__name__: ESPCN_x3,
+    ESPCN_x4.__name__: ESPCN_x4,
+    YoloV11.__name__: YoloV11,
+    YoloV10.__name__: YoloV10,
+    InceptionV1.__name__: InceptionV1,
+    RepVGGA2.__name__: RepVGGA2,
 }

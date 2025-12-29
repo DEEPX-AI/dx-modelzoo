@@ -2,9 +2,9 @@ from abc import ABC, abstractmethod
 from typing import Callable, Dict, List
 
 from torch.utils.data import DataLoader
+from torchvision.transforms import Compose
 
 from dx_modelzoo.dataset import DatasetBase
-from dx_modelzoo.preprocessing import PreProcessingCompose
 from dx_modelzoo.session import SessionBase
 
 PREPROCESSING = Dict[str, Dict[str, str | int | float | List[int | float]]]
@@ -31,13 +31,13 @@ class EvaluatorBase(ABC):
     def eval(self):
         ...
 
-    def set_preprocessing(self, preprocessings: List[PREPROCESSING]) -> None:
+    def set_preprocessing(self, preprocessings: Compose) -> None:
         """set preprocessing.
 
         Args:
-            preprocessings (List[PREPROCESSING]): preprocessing list.
+            preprocessings (Compose): preprocessing transform.
         """
-        self.dataset.preprocessing = PreProcessingCompose(preprocessings, self.session.type)
+        self.dataset.preprocessing = preprocessings
 
     def set_postprocessing(self, postprocessing: Callable) -> None:
         """set postprocessing.

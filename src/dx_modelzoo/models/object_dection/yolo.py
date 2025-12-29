@@ -2,10 +2,15 @@ from typing import List
 
 import numpy as np
 import torch
+from torchvision.transforms import Compose
 
 from dx_modelzoo.enums import DatasetType, EvaluationType
 from dx_modelzoo.models import ModelBase, ModelInfo
 from dx_modelzoo.models.object_dection.nms import non_maximum_suppression, non_maximum_suppression2
+from dx_modelzoo.preprocessing.convertcolor import ConvertColor
+from dx_modelzoo.preprocessing.div import Div
+from dx_modelzoo.preprocessing.resize import Resize
+from dx_modelzoo.preprocessing.transpose import Transpose
 
 
 def yolo_postprocessing(outputs):
@@ -25,20 +30,22 @@ class YoloV3(ModelBase):
         super().__init__(evaluator)
 
     def preprocessing(self):
-        return [
-            {
-                "resize": {
-                    "mode": "pad",
-                    "size": 640,
-                    "pad_location": "edge",
-                    "pad_value": [114, 114, 114],
-                }
-            },
-            {"div": {"x": 255}},
-            {"convertColor": {"form": "BGR2RGB"}},
-            {"transpose": {"axis": [2, 0, 1]}},
-            {"expandDim": {"axis": 0}},
-        ]
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                Div(255),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
 
     def postprocessing(self):
         return yolo_postprocessing
@@ -57,20 +64,22 @@ class YoloV5N(ModelBase):
         super().__init__(evaluator)
 
     def preprocessing(self):
-        return [
-            {
-                "resize": {
-                    "mode": "pad",
-                    "size": 640,
-                    "pad_location": "edge",
-                    "pad_value": [114, 114, 114],
-                }
-            },
-            {"div": {"x": 255}},
-            {"convertColor": {"form": "BGR2RGB"}},
-            {"transpose": {"axis": [2, 0, 1]}},
-            {"expandDim": {"axis": 0}},
-        ]
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                Div(255),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
 
     def postprocessing(self):
         return yolo_postprocessing
@@ -89,20 +98,22 @@ class YoloV5S(ModelBase):
         super().__init__(evaluator)
 
     def preprocessing(self):
-        return [
-            {
-                "resize": {
-                    "mode": "pad",
-                    "size": 640,
-                    "pad_location": "edge",
-                    "pad_value": [114, 114, 114],
-                }
-            },
-            {"div": {"x": 255}},
-            {"convertColor": {"form": "BGR2RGB"}},
-            {"transpose": {"axis": [2, 0, 1]}},
-            {"expandDim": {"axis": 0}},
-        ]
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                Div(255),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
 
     def postprocessing(self):
         return yolo_postprocessing
@@ -121,20 +132,22 @@ class YoloV5M(ModelBase):
         super().__init__(evaluator)
 
     def preprocessing(self):
-        return [
-            {
-                "resize": {
-                    "mode": "pad",
-                    "size": 640,
-                    "pad_location": "edge",
-                    "pad_value": [114, 114, 114],
-                }
-            },
-            {"div": {"x": 255}},
-            {"convertColor": {"form": "BGR2RGB"}},
-            {"transpose": {"axis": [2, 0, 1]}},
-            {"expandDim": {"axis": 0}},
-        ]
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                Div(255),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
 
     def postprocessing(self):
         return yolo_postprocessing
@@ -153,20 +166,56 @@ class YoloV5L(ModelBase):
         super().__init__(evaluator)
 
     def preprocessing(self):
-        return [
-            {
-                "resize": {
-                    "mode": "pad",
-                    "size": 640,
-                    "pad_location": "edge",
-                    "pad_value": [114, 114, 114],
-                }
-            },
-            {"div": {"x": 255}},
-            {"convertColor": {"form": "BGR2RGB"}},
-            {"transpose": {"axis": [2, 0, 1]}},
-            {"expandDim": {"axis": 0}},
-        ]
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                Div(255),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return yolo_postprocessing
+
+
+class YoloV6N(ModelBase):
+    info = ModelInfo(
+        name="YoloV6N",
+        dataset=DatasetType.coco,
+        evaluation=EvaluationType.coco,
+        raw_performance="35.0 / 36.3",  # ver 0.1.0 and 0.2.1 Based on GitHub
+        q_lite_performance="35.5 / 35.1",  # ver 0.1.0 and 0.2.1
+    )
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                Div(255),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
 
     def postprocessing(self):
         return yolo_postprocessing
@@ -183,20 +232,22 @@ class YoloV7(ModelBase):
         super().__init__(evaluator)
 
     def preprocessing(self):
-        return [
-            {
-                "resize": {
-                    "mode": "pad",
-                    "size": 640,
-                    "pad_location": "edge",
-                    "pad_value": [114, 114, 114],
-                }
-            },
-            {"div": {"x": 255}},
-            {"convertColor": {"form": "BGR2RGB"}},
-            {"transpose": {"axis": [2, 0, 1]}},
-            {"expandDim": {"axis": 0}},
-        ]
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                Div(255),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
 
     def postprocessing(self):
         return yolo_postprocessing
@@ -215,20 +266,22 @@ class YoloV7E6(ModelBase):
         super().__init__(evaluator)
 
     def preprocessing(self):
-        return [
-            {
-                "resize": {
-                    "mode": "pad",
-                    "size": 1280,
-                    "pad_location": "edge",
-                    "pad_value": [114, 114, 114],
-                }
-            },
-            {"div": {"x": 255}},
-            {"convertColor": {"form": "BGR2RGB"}},
-            {"transpose": {"axis": [2, 0, 1]}},
-            {"expandDim": {"axis": 0}},
-        ]
+        return Compose(
+            [
+                Resize(mode="pad", size=1280, pad_location="edge", pad_value=[114, 114, 114]),
+                Div(255),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=1280, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
 
     def postprocessing(self):
         return yolo_postprocessing
@@ -247,20 +300,22 @@ class YoloV7Tiny(ModelBase):
         super().__init__(evaluator)
 
     def preprocessing(self):
-        return [
-            {
-                "resize": {
-                    "mode": "pad",
-                    "size": 640,
-                    "pad_location": "edge",
-                    "pad_value": [114, 114, 114],
-                }
-            },
-            {"div": {"x": 255}},
-            {"convertColor": {"form": "BGR2RGB"}},
-            {"transpose": {"axis": [2, 0, 1]}},
-            {"expandDim": {"axis": 0}},
-        ]
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                Div(255),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
 
     def postprocessing(self):
         return yolo_postprocessing
@@ -294,18 +349,236 @@ class YoloXS(ModelBase):
         self.strides = torch.cat(strides, dim=1).float()
 
     def preprocessing(self):
-        return [
-            {
-                "resize": {
-                    "mode": "pad",
-                    "size": 640,
-                    "pad_location": "edge",
-                    "pad_value": [114, 114, 114],
-                }
-            },
-            {"transpose": {"axis": [2, 0, 1]}},
-            {"expandDim": {"axis": 0}},
-        ]
+        return Compose(
+            [Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]), Transpose([2, 0, 1])]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+            ]
+        )
+
+    def postprocessing(self):
+        def _yolox_postprocessing(outputs: List[np.ndarray]):
+            outputs = outputs[0]
+
+            outputs = torch.from_numpy(outputs)
+            outputs = torch.cat(
+                [
+                    (outputs[..., 0:2] + self.grids) * self.strides,
+                    torch.exp(outputs[..., 2:4]) * self.strides,
+                    outputs[..., 4:],
+                ],
+                dim=-1,
+            )
+            return non_maximum_suppression(outputs)
+
+        return _yolox_postprocessing
+
+
+class YoloXTiny(ModelBase):
+    info = ModelInfo(
+        name="YoloXTiny",
+        dataset=DatasetType.coco,
+        evaluation=EvaluationType.coco,
+    )
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+        output_strides = [8, 16, 32]
+        input_size = 416
+        grids = []
+        strides = []
+        for stride in output_strides:
+            output_size = input_size // stride
+            arange = torch.arange(output_size)
+            yv, xv = torch.meshgrid(arange, arange, indexing="ij")
+            grid = torch.stack((xv, yv), 2).view(1, -1, 2)
+            grids.append(grid)
+            shape = grid.shape[:2]
+            strides.append(torch.full((*shape, 1), stride))
+        self.grids = torch.cat(grids, dim=1).float()
+        self.strides = torch.cat(strides, dim=1).float()
+
+    def preprocessing(self):
+        return Compose(
+            [Resize(mode="pad", size=416, pad_location="edge", pad_value=[114, 114, 114]), Transpose([2, 0, 1])]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=416, pad_location="edge", pad_value=[114, 114, 114]),
+            ]
+        )
+
+    def postprocessing(self):
+        def _yolox_postprocessing(outputs: List[np.ndarray]):
+            outputs = outputs[0]
+
+            outputs = torch.from_numpy(outputs)
+            outputs = torch.cat(
+                [
+                    (outputs[..., 0:2] + self.grids) * self.strides,
+                    torch.exp(outputs[..., 2:4]) * self.strides,
+                    outputs[..., 4:],
+                ],
+                dim=-1,
+            )
+            return non_maximum_suppression(outputs)
+
+        return _yolox_postprocessing
+
+
+class YoloXSWideLeaky(ModelBase):
+    info = ModelInfo(
+        name="YoloXSWideLeaky",
+        dataset=DatasetType.coco,
+        evaluation=EvaluationType.coco,
+    )
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+        output_strides = [8, 16, 32]
+        input_size = 640
+        grids = []
+        strides = []
+        for stride in output_strides:
+            output_size = input_size // stride
+            arange = torch.arange(output_size)
+            yv, xv = torch.meshgrid(arange, arange, indexing="ij")
+            grid = torch.stack((xv, yv), 2).view(1, -1, 2)
+            grids.append(grid)
+            shape = grid.shape[:2]
+            strides.append(torch.full((*shape, 1), stride))
+        self.grids = torch.cat(grids, dim=1).float()
+        self.strides = torch.cat(strides, dim=1).float()
+
+    def preprocessing(self):
+        return Compose(
+            [Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]), Transpose([2, 0, 1])]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+            ]
+        )
+
+    def postprocessing(self):
+        def _yolox_postprocessing(outputs: List[np.ndarray]):
+            outputs = outputs[0]
+
+            outputs = torch.from_numpy(outputs)
+            outputs = torch.cat(
+                [
+                    (outputs[..., 0:2] + self.grids) * self.strides,
+                    torch.exp(outputs[..., 2:4]) * self.strides,
+                    outputs[..., 4:],
+                ],
+                dim=-1,
+            )
+            return non_maximum_suppression(outputs)
+
+        return _yolox_postprocessing
+
+
+class YoloXSLeaky(ModelBase):
+    info = ModelInfo(
+        name="YoloXSLeaky",
+        dataset=DatasetType.coco,
+        evaluation=EvaluationType.coco,
+    )
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+        output_strides = [8, 16, 32]
+        input_size = 640
+        grids = []
+        strides = []
+        for stride in output_strides:
+            output_size = input_size // stride
+            arange = torch.arange(output_size)
+            yv, xv = torch.meshgrid(arange, arange, indexing="ij")
+            grid = torch.stack((xv, yv), 2).view(1, -1, 2)
+            grids.append(grid)
+            shape = grid.shape[:2]
+            strides.append(torch.full((*shape, 1), stride))
+        self.grids = torch.cat(grids, dim=1).float()
+        self.strides = torch.cat(strides, dim=1).float()
+
+    def preprocessing(self):
+        return Compose(
+            [Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]), Transpose([2, 0, 1])]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+            ]
+        )
+
+    def postprocessing(self):
+        def _yolox_postprocessing(outputs: List[np.ndarray]):
+            outputs = outputs[0]
+
+            outputs = torch.from_numpy(outputs)
+            outputs = torch.cat(
+                [
+                    (outputs[..., 0:2] + self.grids) * self.strides,
+                    torch.exp(outputs[..., 2:4]) * self.strides,
+                    outputs[..., 4:],
+                ],
+                dim=-1,
+            )
+            return non_maximum_suppression(outputs)
+
+        return _yolox_postprocessing
+
+
+class YoloXLLeaky(ModelBase):
+    info = ModelInfo(
+        name="YoloXLLeaky",
+        dataset=DatasetType.coco,
+        evaluation=EvaluationType.coco,
+    )
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+        output_strides = [8, 16, 32]
+        input_size = 640
+        grids = []
+        strides = []
+        for stride in output_strides:
+            output_size = input_size // stride
+            arange = torch.arange(output_size)
+            yv, xv = torch.meshgrid(arange, arange, indexing="ij")
+            grid = torch.stack((xv, yv), 2).view(1, -1, 2)
+            grids.append(grid)
+            shape = grid.shape[:2]
+            strides.append(torch.full((*shape, 1), stride))
+        self.grids = torch.cat(grids, dim=1).float()
+        self.strides = torch.cat(strides, dim=1).float()
+
+    def preprocessing(self):
+        return Compose(
+            [Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]), Transpose([2, 0, 1])]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+            ]
+        )
 
     def postprocessing(self):
         def _yolox_postprocessing(outputs: List[np.ndarray]):
@@ -340,13 +613,22 @@ class YoloV8X(ModelBase):
         super().__init__(evaluator)
 
     def preprocessing(self):
-        return [
-            {"resize": {"mode": "pad", "size": 640, "pad_location": "edge", "pad_value": [114, 114, 114]}},
-            {"div": {"x": 255}},
-            {"convertColor": {"form": "BGR2RGB"}},
-            {"transpose": {"axis": [2, 0, 1]}},
-            {"expandDim": {"axis": 0}},
-        ]
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                Div(255),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
 
     def postprocessing(self):
         return yolov8_postprocessing
@@ -359,13 +641,22 @@ class YoloV8N(ModelBase):
         super().__init__(evaluator)
 
     def preprocessing(self):
-        return [
-            {"resize": {"mode": "pad", "size": 640, "pad_location": "edge", "pad_value": [114, 114, 114]}},
-            {"div": {"x": 255}},
-            {"convertColor": {"form": "BGR2RGB"}},
-            {"transpose": {"axis": [2, 0, 1]}},
-            {"expandDim": {"axis": 0}},
-        ]
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                Div(255),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
 
     def postprocessing(self):
         return yolov8_postprocessing
@@ -378,13 +669,22 @@ class YoloV8S(ModelBase):
         super().__init__(evaluator)
 
     def preprocessing(self):
-        return [
-            {"resize": {"mode": "pad", "size": 640, "pad_location": "edge", "pad_value": [114, 114, 114]}},
-            {"div": {"x": 255}},
-            {"convertColor": {"form": "BGR2RGB"}},
-            {"transpose": {"axis": [2, 0, 1]}},
-            {"expandDim": {"axis": 0}},
-        ]
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                Div(255),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
 
     def postprocessing(self):
         return yolov8_postprocessing
@@ -397,13 +697,22 @@ class YoloV8M(ModelBase):
         super().__init__(evaluator)
 
     def preprocessing(self):
-        return [
-            {"resize": {"mode": "pad", "size": 640, "pad_location": "edge", "pad_value": [114, 114, 114]}},
-            {"div": {"x": 255}},
-            {"convertColor": {"form": "BGR2RGB"}},
-            {"transpose": {"axis": [2, 0, 1]}},
-            {"expandDim": {"axis": 0}},
-        ]
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                Div(255),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
 
     def postprocessing(self):
         return yolov8_postprocessing
@@ -416,20 +725,22 @@ class YoloV8L(ModelBase):
         super().__init__(evaluator)
 
     def preprocessing(self):
-        return [
-            {
-                "resize": {
-                    "mode": "pad",
-                    "size": 640,
-                    "pad_location": "edge",
-                    "pad_value": [114, 114, 114],
-                }
-            },
-            {"div": {"x": 255}},
-            {"convertColor": {"form": "BGR2RGB"}},
-            {"transpose": {"axis": [2, 0, 1]}},
-            {"expandDim": {"axis": 0}},
-        ]
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                Div(255),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
 
     def postprocessing(self):
         return yolov8_postprocessing
@@ -454,20 +765,22 @@ class YoloV9T(ModelBase):
         super().__init__(evaluator)
 
     def preprocessing(self):
-        return [
-            {
-                "resize": {
-                    "mode": "pad",
-                    "size": 640,
-                    "pad_location": "edge",
-                    "pad_value": [114, 114, 114],
-                }
-            },
-            {"div": {"x": 255}},
-            {"convertColor": {"form": "BGR2RGB"}},
-            {"transpose": {"axis": [2, 0, 1]}},
-            {"expandDim": {"axis": 0}},
-        ]
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                Div(255),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
 
     def postprocessing(self):
         return yolov9_postprocessing
@@ -480,20 +793,22 @@ class YoloV9S(ModelBase):
         super().__init__(evaluator)
 
     def preprocessing(self):
-        return [
-            {
-                "resize": {
-                    "mode": "pad",
-                    "size": 640,
-                    "pad_location": "edge",
-                    "pad_value": [114, 114, 114],
-                }
-            },
-            {"div": {"x": 255}},
-            {"convertColor": {"form": "BGR2RGB"}},
-            {"transpose": {"axis": [2, 0, 1]}},
-            {"expandDim": {"axis": 0}},
-        ]
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                Div(255),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
 
     def postprocessing(self):
         return yolov9_postprocessing
@@ -506,20 +821,195 @@ class YoloV9C(ModelBase):
         super().__init__(evaluator)
 
     def preprocessing(self):
-        return [
-            {
-                "resize": {
-                    "mode": "pad",
-                    "size": 640,
-                    "pad_location": "edge",
-                    "pad_value": [114, 114, 114],
-                }
-            },
-            {"div": {"x": 255}},
-            {"convertColor": {"form": "BGR2RGB"}},
-            {"transpose": {"axis": [2, 0, 1]}},
-            {"expandDim": {"axis": 0}},
-        ]
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                Div(255),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
 
     def postprocessing(self):
         return yolov9_postprocessing
+
+
+def damoyolo_postprocessing(outputs: List[np.ndarray]):
+    if not isinstance(outputs, list):
+        outputs = [outputs]
+    
+    if len(outputs) == 1 and outputs[0].shape[-1] == 80:
+        return torch.empty((0, 6), dtype=torch.float32)
+    
+    if len(outputs) == 2 and outputs[0].shape[-1] == 80:
+        outputs = np.concatenate([outputs[1], outputs[0]], -1)
+    elif len(outputs) > 1:
+        outputs = np.concatenate(outputs, -1)
+    else:
+        outputs = outputs[0]
+    
+    if outputs.shape[-1] != 84:
+        return torch.empty((0, 6), dtype=torch.float32)
+    
+    outputs = torch.from_numpy(outputs)
+    return non_maximum_suppression2(outputs, conf_thres=0.005, iou_thres=0.7, cxcywh2xyxy_conversion=False)
+
+
+class DamoYoloM(ModelBase):
+    info = ModelInfo(name="DamoYoloM", dataset=DatasetType.coco, evaluation=EvaluationType.coco)
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return damoyolo_postprocessing
+
+
+class DamoYoloS(ModelBase):
+    info = ModelInfo(name="DamoYoloM", dataset=DatasetType.coco, evaluation=EvaluationType.coco)
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return damoyolo_postprocessing
+
+
+class DamoYoloT(ModelBase):
+    info = ModelInfo(name="DamoYoloM", dataset=DatasetType.coco, evaluation=EvaluationType.coco)
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return damoyolo_postprocessing
+
+
+def yolov11_postprocessing(outputs: List[np.ndarray]):
+    outputs = outputs[0]
+    outputs = torch.from_numpy(outputs)
+    outputs = outputs.transpose(1, 2)
+
+    return non_maximum_suppression2(outputs, iou_thres=0.65)
+
+
+class YoloV11(ModelBase):
+    info = ModelInfo(name="YoloV11", dataset=DatasetType.coco, evaluation=EvaluationType.coco)
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                Div(255),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return yolov11_postprocessing
+
+
+def yolov10_postprocessing(outputs: List[np.ndarray]):
+    outputs = outputs[0]
+    outputs = torch.from_numpy(outputs)
+
+    return outputs[0]
+
+
+class YoloV10(ModelBase):
+    info = ModelInfo(name="YoloV10", dataset=DatasetType.coco, evaluation=EvaluationType.coco)
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                Div(255),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return yolov10_postprocessing

@@ -1,14 +1,14 @@
-from collections import deque
 import os
 import shutil
+import time
+from collections import deque
 
 import numpy as np
+from loguru import logger
 from tqdm import tqdm
 
 from dx_modelzoo.evaluator import EvaluatorBase
 
-from loguru import logger
-import time
 
 class WiderFaceEvaluator(EvaluatorBase):
     """WiderFace Evaluator for Face Detection.
@@ -29,24 +29,25 @@ class WiderFaceEvaluator(EvaluatorBase):
         loader = self.make_loader()
         total_len = len(loader)
         total_inference_time = 0.0
-        recent_inference_times = deque(maxlen=30)  # total: 3226 
-        
-        pbar = tqdm(loader, total= total_len)
+        recent_inference_times = deque(maxlen=30)  # total: 3226
+
+        pbar = tqdm(loader, total=total_len)
         for image, origin_shape, path in pbar:
             path = path[0]
             origin_shape = [int(value[0]) for value in origin_shape]
             h, w, _ = origin_shape
-            start_time = time.time() 
+            start_time = time.time()
             outputs = self.session.run(image)
             inference_time = time.time() - start_time
-            
-            recent_inference_times.append(inference_time)  
+
+            recent_inference_times.append(inference_time)
             total_inference_time += inference_time
 
-            # # Note: Temporary workaround for the mismatch in output tensor order between the original ONNX model and DXNN.
+            # # Note: Temporary workaround for the mismatch in output tensor order between the
+            # original ONNX model and DXNN.
             # #       The _wrapper function will be removed once the issue is properly fixed.
             # outputs = self.postprocessing(outputs, image.shape, origin_shape, self.session)
-            outputs = self.postprocessing(outputs, image.shape, origin_shape)
+            outputs = self.postprocessing(outputs, image.shape, origin_shape, self.session)
             boxes = []
             for output in outputs:
                 box = [float(output[i]) for i in range(5)]
@@ -71,22 +72,27 @@ class WiderFaceEvaluator(EvaluatorBase):
                 current_fps = len(recent_inference_times) / sum(recent_inference_times)
             else:
                 current_fps = 0.0
-                
-            pbar.desc = (
-                f"WiderFace | Current_FPS:{current_fps:.1f} "
-            )
-                            
+
+            pbar.desc = f"WiderFace | Current_FPS:{current_fps:.1f} "
+
         avg_fps = total_len / total_inference_time if total_inference_time > 0 else 0.0
-        
+
         print("Finish saving results")
         aps = self.evaluation(pred=self.save_folder)
         print(f"Easy   Val AP: {round(aps[0] * 100, 3)}")
         print(f"Medium Val AP: {round(aps[1] * 100, 3)}")
         print(f"Hard   Val AP: {round(aps[2] * 100, 3)}")
-        print(f"Average FPS: {avg_fps:.2f}") 
-        logger.success(f"@JSON <Easy Val AP:{round(aps[0] * 100, 3)}; Medium Val AP:{round(aps[1] * 100, 3)}; Hard Val AP:{round(aps[2] * 100, 3)}; Average FPS:{avg_fps:.2f}>")
+        print(f"Average FPS: {avg_fps:.2f}")
+        logger.success(
+            f"@JSON <Easy Val AP:{round(aps[0] * 100, 3)}; Medium Val AP:{round(aps[1] * 100, 3)}; "
+            f"Hard Val AP:{round(aps[2] * 100, 3)}; Average FPS:{avg_fps:.2f}>"
+        )
         self.remove_cache()
-        return aps
+        
+        return {
+            "performance": [aps[0] * 100, aps[1] * 100, aps[2] * 100], 
+            "fps": avg_fps,
+        }
 
     def evaluation(self, pred, iou_thresh=0.5):
         pred = self.get_preds(pred)
