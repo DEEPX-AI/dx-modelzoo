@@ -4,7 +4,7 @@ setup(
     name="deepx-open-modelzoo",
     version="0.1.0",
     author="DeepX",
-    author_email="jwjung@deepx.ai, dhe@deepx.ai",
+    author_email="jwjung@deepx.ai",
     package_dir={"": "src"},
     packages=find_packages(where="src", include=["*"]),
     python_requires=">=3.11",
@@ -22,6 +22,7 @@ setup(
         "loguru",
         "requests",
         "prefect==3.3.1",
-        "boto3"
+        "boto3",
+        "h5py"
     ],
 )

@@ -33,7 +33,9 @@ ls -n /your/datasets/folder ./datasets
 - Purpose: Object detection evaluation.
 - Available Models:
 
-  - 'YoloV3', 'YoloV5L', 'YoloV5M', 'YoloV5N', 'YoloV5S', 'YoloV7', 'YoloV7E6', 'YoloV7Tiny', 'YoloV8L', 'YoloV9C', 'YoloV9S', 'YoloV9T', 'YoloXS'
+  - OD: 'YoloV3', 'YoloV5L', 'YoloV5M', 'YoloV5N', 'YoloV5S', 'YoloV6N', 'YoloV7', 'YoloV7E6', 'YoloV7Tiny', 'YoloV8L', 'YoloV8M', , 'YoloV8N', , 'YoloV8S',  'YoloV8X', 'YoloV9C', 'YoloV9S', 'YoloV9T', 'YoloXLLeaky', 'YoloXS', 'YoloXSLeaky', 'YoloXSWideLeaky', 'YoloXTiny'
+  - Seg: 'YoloV5L_Seg', 'YoloV5M_Seg', 'YoloV5N_Seg', 'YoloV5S_Seg', 'YoloV8M_Seg', 'YoloV8N_Seg', 'YoloV8S_Seg', 
+  - Pose: 'YOLOV8L_Pose', 'YOLOV8M_Pose', 'YOLOV8N_Pose', 'YOLOV8S_Pose', 'YOLOV8X_Pose'
 
 - Download: [COCO2017](http://images.cocodataset.org/zips/val2017.zip).
 - Dataset structure:
@@ -44,7 +46,8 @@ ls -n /your/datasets/folder ./datasets
           │       ├── *.jpg
           │       ├── ...
           ├── annotations/
-          │    └── instances_val2017.json
+          │    ├── instances_val2017.json
+          │    └── person_keypoints_val2017.json
           ...
   ```
 - Usage Example:
@@ -153,4 +156,46 @@ dxmz eval <Segmentation Model Name> --dxrt <dxnn file path> --data_dir ./dataset
 - Usage Example:
   ```
   dxmz eval <Image Denoising Model Name> --dxrt <dxnn file path> --data_dir ./datasets/BSD68
+  ```
+
+## BSD100
+
+- Purpose: Image denoising evaluation
+- Available Models:
+  - 'ESPCN_x2', 'ESPCN_x3', 'ESPCN_x4'
+- Download ([BSD100](https://huggingface.co/datasets/eugenesiow/BSD100/resolve/main/data/BSD100_LR_x2.tar.gz)).
+- Download ([BSD100](https://huggingface.co/datasets/eugenesiow/BSD100/resolve/main/data/BSD100_LR_x3.tar.gz)).
+- Download ([BSD100](https://huggingface.co/datasets/eugenesiow/BSD100/resolve/main/data/BSD100_LR_x4.tar.gz)).
+- Dataset Structure:
+  ```
+  BSD100/
+  ├── bicubic_x2/*.png
+  ├── bicubic_x3/*.png 
+  └── bicubic_x4/*.png 
+  ```
+- Usage Example:
+  ```
+  dxmz eval <Image Denoising Model Name> --dxrt <dxnn file path> --data_dir ./datasets/BSD100/bicubic_x[RATIO]/
+  ```
+
+
+## NYU Depth V2
+
+- Purpose: Depth estimation evaluation.
+- Available Models:
+  - 'FastDepth'
+- Download: [NYU Depth V2](http://datasets.lids.mit.edu/fastdepth/data/nyudepthv2.tar.gz)
+- Dataset Structure:
+  ```
+  nyudepthv2/
+  ├── val/
+  │   ├── official/
+  │   │   ├── *.h5
+  │   │   └── ...
+  │   └── ...
+  └── ...
+  ```
+- Usage Example:
+  ```
+  dxmz eval <Depth Estimation Model Name> --dxrt <dxnn file path> --data_dir ./datasets/nyudepthv2/val
   ```

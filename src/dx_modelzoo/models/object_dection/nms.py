@@ -92,7 +92,7 @@ def non_maximum_suppression(
         - The function also uses `torchvision.ops.nms` to perform the NMS filtering.
     """
     if not isinstance(outputs, torch.Tensor):
-        outputs = torch.from_numpy(outputs[0]).clone()
+        outputs = torch.from_numpy(outputs[0])
     mask = outputs[..., 4] > conf_thres
     nms_outputs = []
     for batch, output in enumerate(outputs):
@@ -120,7 +120,6 @@ def non_maximum_suppression(
 
         processed_output = torch.cat((boxes, scores, class_indeices), dim=1)
         nms_outputs.append(processed_output[nms_output_index])
-
     return torch.concat(nms_outputs, axis=0)
 
 
@@ -129,52 +128,61 @@ def non_maximum_suppression2(
     conf_thres: float = 0.001,
     iou_thres: float = 0.6,
     max_output_boxes: int = 300,
+    cxcywh2xyxy_conversion: bool = True,
 ) -> torch.Tensor:
     if not isinstance(outputs, torch.Tensor):
-        outputs = torch.from_numpy(outputs[0]).clone()
+        outputs = torch.from_numpy(outputs[0])
 
     num_classes = outputs.shape[2] - 4
-    conf_score = outputs[..., 4:].amax(2)
-    mask = conf_score > conf_thres
+    
+    classes_score = outputs[..., 4:]
+    max_scores, max_classes = classes_score.max(2)
+    mask = max_scores > conf_thres
 
     nms_outputs = []
     for batch, output in enumerate(outputs):
-        output = output[mask[batch]]
-
-        boxes, classes_score = output.split((4, num_classes), 1)
-
-        box_index, class_index = torch.where(classes_score > conf_thres)
-        filtered_output = torch.cat(
-            (
-                boxes[box_index],
-                classes_score[box_index, class_index, None],
-                class_index[:, None].float(),
-            ),
-            1,
-        )
-        boxes = convert_cxcywh_2_xyxy(filtered_output[..., :4])
-        scores = filtered_output[..., 4, None]
-        class_indeices = filtered_output[..., 5, None]
-
+        batch_mask = mask[batch]
+        if not batch_mask.any():
+            continue
+            
+        boxes = output[batch_mask, :4]
+        scores = max_scores[batch, batch_mask]
+        class_indices = max_classes[batch, batch_mask]
+        
+        if cxcywh2xyxy_conversion:
+            boxes = convert_cxcywh_2_xyxy(boxes)
+        
         num_boxes = boxes.size(0)
-        sorted_mask = scores[..., 0].argsort(descending=True)
         if num_boxes > MAX_NMS:
-            sorted_mask = sorted_mask[:MAX_NMS]
-
-        boxes = boxes[sorted_mask]
-        scores = scores[sorted_mask]
-        class_indeices = class_indeices[sorted_mask]
-
-        nms_output_index = torchvision.ops.nms(boxes + (class_indeices * MAX_WH), scores[..., 0], iou_thres)
-
-        num_nms_outputs = nms_output_index.size(0)
-        if num_nms_outputs > max_output_boxes:
+            topk_scores, topk_indices = scores.topk(MAX_NMS)
+            boxes = boxes[topk_indices]
+            scores = topk_scores
+            class_indices = class_indices[topk_indices]
+        
+        nms_output_index = torchvision.ops.nms(
+            boxes + (class_indices.float().unsqueeze(1) * MAX_WH), 
+            scores, 
+            iou_thres
+        )
+        
+        if nms_output_index.size(0) > max_output_boxes:
             nms_output_index = nms_output_index[:max_output_boxes]
+        
+        processed_output = torch.stack([
+            boxes[nms_output_index, 0],
+            boxes[nms_output_index, 1],
+            boxes[nms_output_index, 2],
+            boxes[nms_output_index, 3],
+            scores[nms_output_index],
+            class_indices[nms_output_index].float()
+        ], dim=1)
+        
+        nms_outputs.append(processed_output)
+    
+    if not nms_outputs:
+        return torch.empty((0, 6))
+    return torch.cat(nms_outputs, dim=0)
 
-        processed_output = torch.cat((boxes, scores, class_indeices), dim=1)
-        nms_outputs.append(processed_output[nms_output_index])
-
-    return torch.concat(nms_outputs, axis=0)
 
 # # Note: Temporary workaround for the mismatch in output tensor order between the original ONNX model and DXNN.
 # #       The _wrapper function will be removed once the issue is properly fixed.
@@ -198,8 +206,39 @@ def non_maximum_suppression2(
 #             raise Exception(f"Invalid SeessionType: {session.type}")
 #     else:
 #         pass
-    
+
 #     return ssd_nms(outputs, prob_threshold, iou_threshold)
+
+
+def find_index_from_tensors_name(data, name):
+    indices = [i for i, item in enumerate(data) if name in item["name"]]
+    if indices.__len__() != 1:
+        raise Exception(
+            "Expected exactly one output tensor, but found a different number, "
+            f"num of output tensor: {indices.__len__()}"
+        )
+    else:
+        return indices[0]
+
+
+# Note: Temporary workaround for the mismatch in output tensor order between the original ONNX model and DXNN.
+#       The _wrapper function will be removed once the issue is properly fixed.
+def ssd_nms_wrapper(outputs: List[np.ndarray], prob_threshold: float = 0.01, iou_threshold: float = 0.45, session=None):
+    if session:
+        if session.type == SessionType.onnxruntime:
+            pass
+        elif session.type == SessionType.dxruntime:
+            output_tensors_info = session.inference_engine.get_output_tensors_info()
+            scores_idx = find_index_from_tensors_name(output_tensors_info, "scores")
+            boxes_idx = find_index_from_tensors_name(output_tensors_info, "boxes")
+            outputs = [outputs[scores_idx], outputs[boxes_idx]]
+        else:
+            raise Exception(f"Invalid SeessionType: {session.type}")
+    else:
+        pass
+
+    return ssd_nms(outputs, prob_threshold, iou_threshold)
+
 
 def ssd_nms(outputs: List[np.ndarray], prob_threshold: float = 0.01, iou_threshold: float = 0.45):
     batched_class_scores, batched_boxes_coordinates = outputs
@@ -259,3 +298,79 @@ def hard_nms(
         ious = calculate_iou(rest_boxes, selected_box)
         indexes = indexes[ious <= iou_threshold]
     return boxes[picked, :], scores[picked, ...]
+
+
+def non_maximum_suppression_for_pose(
+    outputs: List[np.ndarray | torch.Tensor],
+    conf_thres: float = 0.001,
+    iou_thres: float = 0.6,
+    max_output_boxes: int = 300,
+    num_classes: int | None = None,
+    agnostic: bool = False,
+) -> torch.Tensor:
+    '''
+    Work-around NMS function for YOLOv8 pose models.
+    Original function is not sutable because of num classes value.
+    '''
+
+    if not isinstance(outputs, torch.Tensor):
+        outputs = torch.from_numpy(outputs[0])
+
+    score_index = 1 if num_classes is None or num_classes == 0 else num_classes
+    conf_score = outputs[..., 4:4 + score_index].amax(2)
+    mask = conf_score > conf_thres
+    extra = outputs.shape[-1] - 4 - score_index
+
+    nms_outputs = []
+    for batch, output in enumerate(outputs):
+        output = output[mask[batch]]
+        boxes, classes_score, extras = output.split((4, score_index, extra), 1)
+
+        conf, j = classes_score.max(1, keepdim=True)
+        filt = conf.view(-1) > conf_thres
+        filtered_output = torch.cat((boxes, conf, j, extras), 1)[filt]
+
+        # If none remain process next image
+        if filtered_output.numel() == 0:
+            continue
+
+        # Check shape and apply max_nms limit (Ultralytics logic)
+        n = filtered_output.shape[0]  # number of boxes
+        if n > MAX_NMS:  # excess boxes
+            # Sort by confidence and remove excess boxes
+            filt = filtered_output[:, 4].argsort(descending=True)[:MAX_NMS]
+            filtered_output = filtered_output[filt]
+
+        # Convert boxes from cxcywh to xyxy format
+        boxes = filtered_output[..., :4]
+        scores = filtered_output[..., 4, None]
+        class_indices = filtered_output[..., 5, None]
+        
+        # Convert cxcywh to xyxy format BEFORE NMS
+        boxes_xyxy = convert_cxcywh_2_xyxy(boxes)
+        
+        # Batched NMS (Ultralytics logic)
+        # Apply class offset for NMS (0 if agnostic, else class * MAX_WH)
+        c = class_indices * (0 if agnostic else MAX_WH)
+        boxes_for_nms = boxes_xyxy + c
+        
+        # Apply NMS
+        nms_output_index = torchvision.ops.nms(boxes_for_nms, scores[..., 0], iou_thres)
+        
+        # Limit detections to max_output_boxes
+        num_nms_outputs = nms_output_index.size(0)
+        if num_nms_outputs > max_output_boxes:
+            nms_output_index = nms_output_index[:max_output_boxes]
+
+        # Rebuild final output with extras
+        # Format: [xyxy, scores, class_indices, extras...]
+        final_output = torch.cat([boxes_xyxy, scores, class_indices], dim=1)
+        if filtered_output.shape[1] > 6:  # If we have extras
+            final_output = torch.cat([final_output, filtered_output[:, 6:]], dim=1)
+        
+        processed_output = final_output[nms_output_index]
+        nms_outputs.append(processed_output)
+
+    if len(nms_outputs) == 0:
+        return torch.empty((0, 0))
+    return torch.concat(nms_outputs, axis=0)

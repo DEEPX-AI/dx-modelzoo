@@ -12,11 +12,19 @@ class ModelFactory:
     it makes model instance from mdoel_name, session_type, model_path, and data_dir.
     """
 
-    def __init__(self, model_name: str, session_type: SessionType, model_path: str, data_dir: str) -> None:
+    def __init__(
+        self,
+        model_name: str,
+        session_type: SessionType,
+        model_path: str,
+        data_dir: str,
+        zero_shot_text_embedding: str = None,
+    ) -> None:
         self.model_name = model_name
         self.session_type = session_type
         self.model_path = model_path
         self.data_dir = data_dir
+        self.zero_shot_text_embedding = zero_shot_text_embedding
 
     def _get_model_cls(self) -> ModelBase:
         """get model class.
@@ -88,7 +96,10 @@ class ModelFactory:
             EvaluatorBase: evaluator.
         """
         if evaluator_type in EVAL_DICT:
-            return EVAL_DICT[evaluator_type](session, dataset)
+            if self.zero_shot_text_embedding is not None and evaluator_type == EvaluationType.zeroshot_classification:
+                return EVAL_DICT[evaluator_type](session, dataset, self.zero_shot_text_embedding)
+            else:
+                return EVAL_DICT[evaluator_type](session, dataset)
         else:
             raise ValueError(f"Invalid Model Name. {self.model_name}")
 

@@ -1,6 +1,14 @@
+from torchvision.transforms import Compose
+
 from dx_modelzoo.enums import DatasetType, EvaluationType
 from dx_modelzoo.models import ModelBase, ModelInfo
 from dx_modelzoo.models.image_classification import topk_postprocessing
+from dx_modelzoo.preprocessing.centercrop import CenterCrop
+from dx_modelzoo.preprocessing.convertcolor import ConvertColor
+from dx_modelzoo.preprocessing.div import Div
+from dx_modelzoo.preprocessing.normalize import Normalize
+from dx_modelzoo.preprocessing.resize import Resize
+from dx_modelzoo.preprocessing.transpose import Transpose
 
 
 class RegNetX400MF(ModelBase):
@@ -16,26 +24,25 @@ class RegNetX400MF(ModelBase):
         super().__init__(evaluator)
 
     def preprocessing(self):
-        return [
-            {
-                "resize": {
-                    "mode": "torchvision",
-                    "size": 232,
-                    "interpolation": "BILINEAR",
-                }
-            },
-            {"centercrop": {"width": 224, "height": 224}},
-            {"convertColor": {"form": "BGR2RGB"}},
-            {"div": {"x": 255}},
-            {
-                "normalize": {
-                    "mean": [0.485, 0.456, 0.406],
-                    "std": [0.229, 0.224, 0.225],
-                }
-            },
-            {"transpose": {"axis": [2, 0, 1]}},
-            {"expandDim": {"axis": 0}},
-        ]
+        return Compose(
+            [
+                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
+                CenterCrop(224, 224),
+                ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
+                CenterCrop(224, 224),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
 
     def postprocessing(self):
         return topk_postprocessing
@@ -54,26 +61,25 @@ class RegNetX800MF(ModelBase):
         super().__init__(evaluator)
 
     def preprocessing(self):
-        return [
-            {
-                "resize": {
-                    "mode": "torchvision",
-                    "size": 232,
-                    "interpolation": "BILINEAR",
-                }
-            },
-            {"centercrop": {"width": 224, "height": 224}},
-            {"convertColor": {"form": "BGR2RGB"}},
-            {"div": {"x": 255}},
-            {
-                "normalize": {
-                    "mean": [0.485, 0.456, 0.406],
-                    "std": [0.229, 0.224, 0.225],
-                }
-            },
-            {"transpose": {"axis": [2, 0, 1]}},
-            {"expandDim": {"axis": 0}},
-        ]
+        return Compose(
+            [
+                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
+                CenterCrop(224, 224),
+                ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
+                CenterCrop(224, 224),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
 
     def postprocessing(self):
         return topk_postprocessing
@@ -92,19 +98,23 @@ class RegNetY200MF(ModelBase):
         super().__init__(evaluator)
 
     def preprocessing(self):
-        return [
-            {"resize": {"mode": "pycls", "size": 256, "interpolation": "LINEAR"}},
-            {"centercrop": {"width": 224, "height": 224}},
-            {"div": {"x": 255}},
-            {
-                "normalize": {
-                    "mean": [0.406, 0.456, 0.485],
-                    "std": [0.225, 0.224, 0.229],
-                }
-            },
-            {"transpose": {"axis": [2, 0, 1]}},
-            {"expandDim": {"axis": 0}},
-        ]
+        return Compose(
+            [
+                Resize(mode="pycls", size=256, interpolation="LINEAR"),
+                CenterCrop(224, 224),
+                Div(255),
+                Normalize([0.406, 0.456, 0.485], [0.225, 0.224, 0.229]),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pycls", size=256, interpolation="LINEAR"),
+                CenterCrop(224, 224),
+            ]
+        )
 
     def postprocessing(self):
         return topk_postprocessing
@@ -123,26 +133,25 @@ class RegNetY400MF(ModelBase):
         super().__init__(evaluator)
 
     def preprocessing(self):
-        return [
-            {
-                "resize": {
-                    "mode": "torchvision",
-                    "size": 232,
-                    "interpolation": "BILINEAR",
-                }
-            },
-            {"centercrop": {"width": 224, "height": 224}},
-            {"convertColor": {"form": "BGR2RGB"}},
-            {"div": {"x": 255}},
-            {
-                "normalize": {
-                    "mean": [0.485, 0.456, 0.406],
-                    "std": [0.229, 0.224, 0.225],
-                }
-            },
-            {"transpose": {"axis": [2, 0, 1]}},
-            {"expandDim": {"axis": 0}},
-        ]
+        return Compose(
+            [
+                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
+                CenterCrop(224, 224),
+                ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
+                CenterCrop(224, 224),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
 
     def postprocessing(self):
         return topk_postprocessing
@@ -161,26 +170,56 @@ class RegNetY800MF(ModelBase):
         super().__init__(evaluator)
 
     def preprocessing(self):
-        return [
-            {
-                "resize": {
-                    "mode": "torchvision",
-                    "size": 232,
-                    "interpolation": "BILINEAR",
-                }
-            },
-            {"centercrop": {"width": 224, "height": 224}},
-            {"convertColor": {"form": "BGR2RGB"}},
-            {"div": {"x": 255}},
-            {
-                "normalize": {
-                    "mean": [0.485, 0.456, 0.406],
-                    "std": [0.229, 0.224, 0.225],
-                }
-            },
-            {"transpose": {"axis": [2, 0, 1]}},
-            {"expandDim": {"axis": 0}},
-        ]
+        return Compose(
+            [
+                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
+                CenterCrop(224, 224),
+                ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
+                CenterCrop(224, 224),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return topk_postprocessing
+
+
+class RegNetX1_6GF(ModelBase):
+    info = ModelInfo(name="RegNetX1_6GF", dataset=DatasetType.imagenet, evaluation=EvaluationType.image_classification)
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
+                CenterCrop(width=224, height=224),
+                ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+                Transpose(axis=[2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
+                CenterCrop(width=224, height=224),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
 
     def postprocessing(self):
         return topk_postprocessing

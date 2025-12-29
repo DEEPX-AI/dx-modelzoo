@@ -1,17 +1,16 @@
-from typing import List
+import time
 from collections import deque
+from typing import List
 
 import numpy as np
 import torch
+from loguru import logger
 from tqdm import tqdm
 
 from dx_modelzoo.dataset import DatasetBase
 from dx_modelzoo.evaluator import EvaluatorBase
 from dx_modelzoo.session import SessionBase
 from dx_modelzoo.utils import torch_to_numpy
-
-from loguru import logger
-import time
 
 
 class ICEvaluator(EvaluatorBase):
@@ -61,6 +60,11 @@ class ICEvaluator(EvaluatorBase):
             f"Top5 Accuracy:  {top5_acc:.2f}\n"
             f"Average FPS: {avg_fps:.2f}") 
         logger.success(f"@JSON <Top1 Accuracy:{top1_acc:.2f}; Top5 Accuracy:{top5_acc:.2f}; Average FPS:{avg_fps:.2f}>")
+
+        return {
+            "performance": [top1_acc, top5_acc], 
+            "fps": avg_fps,
+        }
 
     def _run_one_batch(self, image: torch.Tensor, label: torch.Tensor) -> np.ndarray:
         """run one batch.

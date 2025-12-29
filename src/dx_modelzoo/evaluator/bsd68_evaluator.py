@@ -1,17 +1,17 @@
 import math
-from typing import List, Tuple
+import time
 from collections import deque
+from typing import List, Tuple
 
 import cv2
 import numpy as np
 import torch
+from loguru import logger
 from tqdm import tqdm
 
 from dx_modelzoo.enums import SessionType
 from dx_modelzoo.evaluator import EvaluatorBase
 
-from loguru import logger
-import time
 
 class BSD68Evaluator(EvaluatorBase):
     """BSD68 Evaluator for Image Denosing.
@@ -102,6 +102,11 @@ class BSD68Evaluator(EvaluatorBase):
         print(f"Average PSNR, Average SSIM: {avg_psnr:.4f}, {avg_ssim:.4f}")
         print(f"Average FPS: {avg_fps:.2f}")      
         logger.success(f"@JSON <Average PSNR:{avg_psnr:.4f}; Average SSIM:{avg_ssim:.4f}; Average FPS:{avg_fps:.2f}>")
+
+        return {
+            "performance": [avg_psnr, avg_ssim], 
+            "fps": avg_fps,
+        }
         
 
     def perturb_image(self, img: torch.Tensor) -> torch.Tensor:

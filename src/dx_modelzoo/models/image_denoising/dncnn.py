@@ -1,9 +1,13 @@
 from typing import List
 
 import numpy as np
+from torchvision.transforms import Compose
 
 from dx_modelzoo.enums import DatasetType, EvaluationType
 from dx_modelzoo.models import ModelBase, ModelInfo
+from dx_modelzoo.preprocessing.convertcolor import ConvertColor
+from dx_modelzoo.preprocessing.div import Div
+from dx_modelzoo.preprocessing.expanddim import ExpandDim
 
 
 def dcnn_postprocessing(outputs: List[np.array]):
@@ -19,12 +23,10 @@ class DnCNN_15(ModelBase):
         self.evaluator.input_size = (512, 512)
 
     def preprocessing(self):
-        return [
-            {"convertColor": {"form": "BGR2GRAY"}},
-            {"div": {"x": 255.0}},
-            {"expandDim": {"axis": 0}},
-            {"expandDim": {"axis": 0}},
-        ]
+        return Compose([ConvertColor("BGR2GRAY"), Div(255), ExpandDim(0)])
+
+    def npu_preprocessing(self):
+        return Compose([ConvertColor("BGR2GRAY"), ExpandDim(0)])
 
     def postprocessing(self):
         return dcnn_postprocessing
@@ -39,12 +41,10 @@ class DnCNN_25(ModelBase):
         self.evaluator.input_size = (512, 512)
 
     def preprocessing(self):
-        return [
-            {"convertColor": {"form": "BGR2GRAY"}},
-            {"div": {"x": 255.0}},
-            {"expandDim": {"axis": 0}},
-            {"expandDim": {"axis": 0}},
-        ]
+        return Compose([ConvertColor("BGR2GRAY"), Div(255), ExpandDim(0)])
+
+    def npu_preprocessing(self):
+        return Compose([ConvertColor("BGR2GRAY"), ExpandDim(0)])
 
     def postprocessing(self):
         return dcnn_postprocessing
@@ -59,12 +59,10 @@ class DnCNN_50(ModelBase):
         self.evaluator.input_size = (512, 512)
 
     def preprocessing(self):
-        return [
-            {"convertColor": {"form": "BGR2GRAY"}},
-            {"div": {"x": 255.0}},
-            {"expandDim": {"axis": 0}},
-            {"expandDim": {"axis": 0}},
-        ]
+        return Compose([ConvertColor("BGR2GRAY"), Div(255), ExpandDim(0)])
+
+    def npu_preprocessing(self):
+        return Compose([ConvertColor("BGR2GRAY"), ExpandDim(0)])
 
     def postprocessing(self):
         return dcnn_postprocessing

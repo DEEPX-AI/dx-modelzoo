@@ -1,15 +1,14 @@
+import time
 from collections import deque
 
 import numpy as np
 import torch
+from loguru import logger
 from tqdm import tqdm
 
 from dx_modelzoo.dataset import DatasetBase
 from dx_modelzoo.evaluator import EvaluatorBase
 from dx_modelzoo.session import SessionBase
-
-from loguru import logger
-import time 
 
 
 class SegentationEvaluator(EvaluatorBase):
@@ -45,6 +44,11 @@ class SegentationEvaluator(EvaluatorBase):
         print(f"mIoU: {round(miou * 100, 3)}")
         print(f"Average FPS: {avg_fps:.2f}")
         logger.success(f"@JSON <mIoU:{round(miou * 100, 3)}; Average FPS:{avg_fps:.2f}>")
+
+        return {
+            "performance": [miou * 100],
+            "fps": avg_fps,
+        }
 
     def _run_one_batch(self, image: torch.Tensor, label: torch.Tensor, confusion_matrix: np.ndarray):
         start_time = time.time()
