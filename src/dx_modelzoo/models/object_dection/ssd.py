@@ -1,7 +1,14 @@
+from torchvision.transforms import Compose
+
 from dx_modelzoo.enums import DatasetType, EvaluationType
 from dx_modelzoo.models import ModelBase, ModelInfo
 from dx_modelzoo.models.object_dection.nms import ssd_nms
 # from dx_modelzoo.models.object_dection.nms import ssd_nms_wrapper
+from dx_modelzoo.models.object_dection.nms import ssd_nms_wrapper
+from dx_modelzoo.preprocessing.convertcolor import ConvertColor
+from dx_modelzoo.preprocessing.normalize import Normalize
+from dx_modelzoo.preprocessing.resize import Resize
+from dx_modelzoo.preprocessing.transpose import Transpose
 
 
 class SSDMV1(ModelBase):
@@ -11,13 +18,22 @@ class SSDMV1(ModelBase):
         super().__init__(evaluator)
 
     def preprocessing(self):
-        return [
-            {"convertColor": {"form": "BGR2RGB"}},
-            {"resize": {"mode": "default", "width": 300, "height": 300}},
-            {"normalize": {"mean": [127, 127, 127], "std": [128.0, 128.0, 128.0]}},
-            {"transpose": {"axis": [2, 0, 1]}},
-            {"expandDim": {"axis": 0}},
-        ]
+        return Compose(
+            [
+                ConvertColor("BGR2RGB"),
+                Resize(width=300, height=300),
+                Normalize([127, 127, 127], [128.0, 128.0, 128.0]),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                ConvertColor("BGR2RGB"),
+                Resize(width=300, height=300),
+            ]
+        )
 
     def postprocessing(self):
         return ssd_nms
@@ -34,13 +50,22 @@ class SSDMV2Lite(ModelBase):
         super().__init__(evaluator)
 
     def preprocessing(self):
-        return [
-            {"convertColor": {"form": "BGR2RGB"}},
-            {"resize": {"mode": "default", "width": 300, "height": 300}},
-            {"normalize": {"mean": [127, 127, 127], "std": [128.0, 128.0, 128.0]}},
-            {"transpose": {"axis": [2, 0, 1]}},
-            {"expandDim": {"axis": 0}},
-        ]
+        return Compose(
+            [
+                ConvertColor("BGR2RGB"),
+                Resize(width=300, height=300),
+                Normalize([127, 127, 127], [128.0, 128.0, 128.0]),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                ConvertColor("BGR2RGB"),
+                Resize(width=300, height=300),
+            ]
+        )
 
     def postprocessing(self):
         return ssd_nms

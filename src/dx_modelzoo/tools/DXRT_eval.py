@@ -116,8 +116,8 @@ class FileMixin:
     
 
 class URL(str, Enum):
-    OPS = "http://192.168.0.82:8002/modelzoo/api"
-    DEV = "http://192.168.0.14:8002/modelzoo/api"
+    OPS = "https://modelzoo-api.devops.dpx.ai/modelzoo/api"
+    DEV = "https://modelzoo-api-dev.devops.dpx.ai/modelzoo/api"
 
 
 class APIRequest(APIMixin, FileMixin):

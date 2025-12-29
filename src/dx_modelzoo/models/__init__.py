@@ -2,7 +2,9 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Callable, Dict, List, Optional
 
-from dx_modelzoo.enums import DatasetType, EvaluationType
+from torchvision.transforms import Compose
+
+from dx_modelzoo.enums import DatasetType, EvaluationType, SessionType
 from dx_modelzoo.evaluator import EvaluatorBase
 from dx_modelzoo.utils import EvaluationTimer
 
@@ -60,13 +62,19 @@ class ModelBase(ABC):
     def __init__(self, evaluator: EvaluatorBase) -> None:
         self.evaluator = evaluator
 
-        self.evaluator.set_preprocessing(self.preprocessing())
+        if self.evaluator.session.type == SessionType.onnxruntime:
+            self.evaluator.set_preprocessing(self.preprocessing())
+        elif self.evaluator.session.type == SessionType.dxruntime:
+            self.evaluator.set_preprocessing(self.npu_preprocessing())
+        else:
+            raise ValueError(f"Unexpected Session Type. {self.evaluator.session.type}")
         self.evaluator.set_postprocessing(self.postprocessing())
 
     def eval(self, debug_mode=False) -> None:
         """evalutation model."""
         with EvaluationTimer(debug_mode):
-            self.evaluator.eval()
+            result = self.evaluator.eval()
+        return result
 
     @classmethod
     def print_info(cls):
@@ -74,12 +82,22 @@ class ModelBase(ABC):
         cls.info.print()
 
     @abstractmethod
-    def preprocessing(self) -> List[PREPROCESSING]:
+    def preprocessing(self) -> Compose:
         """model prerpocessing.
         if has same form of dx-com config's preprocessing.
 
         Returns:
-            List[PREPROCESSING]: prerpocessings.
+            Compose: prerpocessings.
+        """
+        pass
+
+    @abstractmethod
+    def npu_preprocessing(self) -> Compose:
+        """model prerpocessing for npu..
+        Like Div, Noramlize, All Arithmetic Preprocessings are removed.
+
+        Returns:
+            Compose: prerpocessings.
         """
         pass
 

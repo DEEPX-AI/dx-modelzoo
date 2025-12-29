@@ -1,9 +1,10 @@
-from typing import Tuple
+import time
 from collections import deque
-
+from typing import Tuple
 
 import numpy as np
 import torch
+from loguru import logger
 from tqdm import tqdm
 
 from dx_modelzoo.dataset import DatasetBase
@@ -11,8 +12,6 @@ from dx_modelzoo.evaluator import EvaluatorBase
 from dx_modelzoo.session import SessionBase
 from dx_modelzoo.utils.detection import calculate_iou
 
-from loguru import logger
-import time
 
 class VOC2007DetectionEvaluator(EvaluatorBase):
     """VOC2007 Evaluator for Object Detection.
@@ -78,6 +77,11 @@ class VOC2007DetectionEvaluator(EvaluatorBase):
         print(f"mAP@0.5: {round(map50*100, 3)}")
         print(f"Average FPS: {avg_fps:.2f}")
         logger.success(f"@JSON <mAP@0.5:{round(map50*100, 3)}; Average FPS:{avg_fps:.2f}>")
+
+        return {
+            "performance": [map50*100], 
+            "fps": avg_fps,
+        }
         
     def _scale_boxes(self, boxes: torch.Tensor, origin_shape: Tuple[torch.Tensor, torch.Tensor]) -> torch.Tensor:
         height, width, _ = origin_shape

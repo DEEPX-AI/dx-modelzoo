@@ -65,3 +65,45 @@ def non_max_suppression_for_yolv7_face(outputs: torch.Tensor, conf_threshold: fl
         nms_outputs.append(filterd_output[nms_output_index])
 
     return torch.concat(nms_outputs, axis=0)
+
+
+def non_max_suppression_for_scrfd(prediction, conf_thres=0.25, iou_thres=0.45):
+    xc = prediction[..., 4] > conf_thres  # candidates
+
+    output = [torch.zeros((0, 16), device=prediction.device)] * prediction.shape[0]
+    for xi, x in enumerate(prediction):  # image index, image inference
+        x = x[xc[xi]]  # confidence
+
+        n = x.shape[0]  # number of boxes
+        if not n:
+            continue
+
+        boxes, scores = x[:, :4], x[:, 4]
+        i = torchvision.ops.nms(boxes, scores, iou_thres)
+        output[xi] = x[i]
+
+    return output
+
+
+def clip_coords(boxes, img_shape):
+    # Clip bounding xyxy bounding boxes to image shape (height, width)
+    boxes[:, 0].clamp_(0, img_shape[1])  # x1
+    boxes[:, 1].clamp_(0, img_shape[0])  # y1
+    boxes[:, 2].clamp_(0, img_shape[1])  # x2
+    boxes[:, 3].clamp_(0, img_shape[0])  # y2
+
+
+def scale_coords_for_yolov5_face(img1_shape, coords, img0_shape, ratio_pad=None):
+    # Rescale coords (xyxy) from img1_shape to img0_shape
+    if ratio_pad is None:  # calculate from img0_shape
+        gain = min(img1_shape[0] / img0_shape[0], img1_shape[1] / img0_shape[1])  # gain  = old / new
+        pad = (img1_shape[1] - img0_shape[1] * gain) / 2, (img1_shape[0] - img0_shape[0] * gain) / 2  # wh padding
+    else:
+        gain = ratio_pad[0][0]
+        pad = ratio_pad[1]
+
+    coords[:, [0, 2]] -= pad[0]  # x padding
+    coords[:, [1, 3]] -= pad[1]  # y padding
+    coords[:, :4] /= gain
+    clip_coords(coords, img0_shape)
+    return coords

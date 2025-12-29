@@ -1,10 +1,15 @@
 from typing import List, Tuple
 
 import torch
+from torchvision.transforms import Compose
 
 from dx_modelzoo.enums import DatasetType, EvaluationType, SessionType
 from dx_modelzoo.models import ModelBase, ModelInfo
 from dx_modelzoo.models.face_detection import non_max_suppression_for_yolv5_face, non_max_suppression_for_yolv7_face
+from dx_modelzoo.preprocessing.convertcolor import ConvertColor
+from dx_modelzoo.preprocessing.div import Div
+from dx_modelzoo.preprocessing.resize import Resize
+from dx_modelzoo.preprocessing.transpose import Transpose
 from dx_modelzoo.utils.detection import clip_boxes
 
 
@@ -35,6 +40,7 @@ def make_xywh(x):
     y[:, 3] = x[:, 3] - x[:, 1]  # height
     return y
 
+
 # # Note: Temporary workaround for the mismatch in output tensor order between the original ONNX model and DXNN.
 # #       The _wrapper function will be removed once the issue is properly fixed.
 # def find_non_onnx_slice_index(data):
@@ -53,11 +59,13 @@ def make_xywh(x):
 #         outputs = [outputs[idx]]
 #     else:
 #         raise Exception(f"Invalid SeessionType: {session.type}")
-    
+
 #     return yolov5_face_postprocessing(outputs, inp_shape, origin_shape)
 
 
-def yolov5_face_postprocessing(outputs, inp_shape, origin_shape):
+def yolov5_face_postprocessing(outputs, inp_shape, origin_shape, session):
+    if session.type == SessionType.dxruntime:
+        inp_shape = [inp_shape[0], inp_shape[3], inp_shape[1], inp_shape[2]]
     h, w, _ = origin_shape
 
     outputs = torch.from_numpy(outputs[0])
@@ -88,13 +96,22 @@ class YOLOv5s_Face(ModelBase):
         super().__init__(evaluator)
 
     def preprocessing(self):
-        return [
-            {"resize": {"mode": "pad", "size": 640, "pad_location": "edge", "pad_value": [114, 114, 114]}},
-            {"convertColor": {"form": "BGR2RGB"}},
-            {"transpose": {"axis": [2, 0, 1]}},
-            {"div": {"x": 255}},
-            {"expandDim": {"axis": 0}},
-        ]
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+                Div(255),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
 
     def postprocessing(self):
         return yolov5_face_postprocessing
@@ -110,19 +127,29 @@ class YOLOv5m_Face(ModelBase):
         super().__init__(evaluator)
 
     def preprocessing(self):
-        return [
-            {"resize": {"mode": "pad", "size": 640, "pad_location": "edge", "pad_value": [114, 114, 114]}},
-            {"convertColor": {"form": "BGR2RGB"}},
-            {"transpose": {"axis": [2, 0, 1]}},
-            {"div": {"x": 255.0}},
-            {"expandDim": {"axis": 0}},
-        ]
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+                Div(255),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
 
     def postprocessing(self):
         return yolov5_face_postprocessing
         # # Note: Temporary workaround for the mismatch in output tensor order between the original ONNX model and DXNN.
         # #       The _wrapper function will be removed once the issue is properly fixed.
         # return yolov5_face_postprocessing_wrapper
+
 
 # # Note: Temporary workaround for the mismatch in output tensor order between the original ONNX model and DXNN.
 # #       The _wrapper function will be removed once the issue is properly fixed.
@@ -142,11 +169,40 @@ class YOLOv5m_Face(ModelBase):
 #         outputs = [outputs[idx]]
 #     else:
 #         raise Exception(f"Invalid SeessionType: {session.type}")
-    
+
 #     return yolov7_face_postprocessing(outputs, inp_shape, origin_shape)
 
-def yolov7_face_postprocessing(outputs, inp_shape, origin_shape):
-    
+
+def find_non_onnx_slice_index(data):
+    indices = [i for i, item in enumerate(data) if "onnx::Slice" not in item["name"]]
+    if indices.__len__() != 1:
+        raise Exception(
+            f"Expected exactly one output tensor, but found a different number, num of output tensor: "
+            f"{indices.__len__()}"
+        )
+    else:
+        return indices[0]
+
+
+# Note: Temporary workaround for the mismatch in output tensor order between the original ONNX model and DXNN.
+#       The _wrapper function will be removed once the issue is properly fixed.
+def yolov7_face_postprocessing_wrapper(outputs, inp_shape, origin_shape, session):
+    if session.type == SessionType.onnxruntime:
+        pass
+    elif session.type == SessionType.dxruntime:
+        output_tensors_info = session.inference_engine.get_output_tensors_info()
+        idx = find_non_onnx_slice_index(output_tensors_info)
+        outputs = [outputs[idx]]
+    else:
+        raise Exception(f"Invalid SeessionType: {session.type}")
+
+    return yolov7_face_postprocessing(outputs, inp_shape, origin_shape, session)
+
+
+def yolov7_face_postprocessing(outputs, inp_shape, origin_shape, session):
+    if session.type == SessionType.dxruntime:
+        inp_shape = [inp_shape[0], inp_shape[3], inp_shape[1], inp_shape[2]]
+
     outputs = torch.from_numpy(outputs[0])
     outputs = non_max_suppression_for_yolv7_face(outputs, 0.01, 0.5)
 
@@ -172,13 +228,22 @@ class YOLOv7_Face(ModelBase):
         super().__init__(evaluator)
 
     def preprocessing(self):
-        return [
-            {"resize": {"mode": "pad", "size": 640, "pad_location": "edge", "pad_value": [114, 114, 114]}},
-            {"convertColor": {"form": "BGR2RGB"}},
-            {"transpose": {"axis": [2, 0, 1]}},
-            {"div": {"x": 255.0}},
-            {"expandDim": {"axis": 0}},
-        ]
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+                Div(255),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
 
     def postprocessing(self):
         return yolov7_face_postprocessing
@@ -194,13 +259,22 @@ class YOLOv7s_Face(ModelBase):
         super().__init__(evaluator)
 
     def preprocessing(self):
-        return [
-            {"resize": {"mode": "pad", "size": 640, "pad_location": "edge", "pad_value": [114, 114, 114]}},
-            {"convertColor": {"form": "BGR2RGB"}},
-            {"transpose": {"axis": [2, 0, 1]}},
-            {"div": {"x": 255.0}},
-            {"expandDim": {"axis": 0}},
-        ]
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+                Div(255),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
 
     def postprocessing(self):
         return yolov7_face_postprocessing
@@ -224,6 +298,14 @@ class YOLOv7_TTA_Face(ModelBase):
             {"expandDim": {"axis": 0}},
         ]
 
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
     def postprocessing(self):
         return yolov7_face_postprocessing
         # # Note: Temporary workaround for the mismatch in output tensor order between the original ONNX model and DXNN.
@@ -238,13 +320,22 @@ class YOLOv7_W6_Face(ModelBase):
         super().__init__(evaluator)
 
     def preprocessing(self):
-        return [
-            {"resize": {"mode": "pad", "size": 960, "pad_location": "edge", "pad_value": [114, 114, 114]}},
-            {"convertColor": {"form": "BGR2RGB"}},
-            {"transpose": {"axis": [2, 0, 1]}},
-            {"div": {"x": 255.0}},
-            {"expandDim": {"axis": 0}},
-        ]
+        return Compose(
+            [
+                Resize(mode="pad", size=960, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+                Div(255),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=960, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
 
     def postprocessing(self):
         return yolov7_face_postprocessing
@@ -260,13 +351,22 @@ class YOLOv7_W6_TTA_Face(ModelBase):
         super().__init__(evaluator)
 
     def preprocessing(self):
-        return [
-            {"resize": {"mode": "pad", "size": 1280, "pad_location": "edge", "pad_value": [114, 114, 114]}},
-            {"convertColor": {"form": "BGR2RGB"}},
-            {"transpose": {"axis": [2, 0, 1]}},
-            {"div": {"x": 255.0}},
-            {"expandDim": {"axis": 0}},
-        ]
+        return Compose(
+            [
+                Resize(mode="pad", size=1280, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+                Div(255),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=1280, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
 
     def postprocessing(self):
         return yolov7_face_postprocessing
