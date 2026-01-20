@@ -22,6 +22,15 @@ def get_parser():
         help="Zero-shot text embedding npy file path for zero-shot classification models.",
     )
 
+    # compile sub command
+    compile_parser = subparsers.add_parser("compile", help="Run model compilation")
+    compile_parser.add_argument("--onnx", type=str, help="ONNX model file path.", required=True)
+    compile_parser.add_argument("--json", type=str, help="Model JSON config file path.", default=None)
+    compile_parser.add_argument("--output", type=str, help="Output DXNN file path.", default=None)
+    compile_parser.add_argument(
+        "--use_gpu", action="store_true", help="Use GPU for quantization calibration (default: use CPU)."
+    )
+
     # info sub command
     info_parser = subparsers.add_parser("info", help="Show model info")
     info_parser.add_argument("model_name", type=str, help="Model name to show info.")

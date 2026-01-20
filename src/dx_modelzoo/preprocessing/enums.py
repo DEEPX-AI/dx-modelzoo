@@ -6,7 +6,7 @@ class ResizeMode(StrEnum):
     default = auto()
     pad = auto()
     pycls = auto()
-    
+
     @classmethod
     def has_value(cls, value: str) -> bool:
         return value in cls._value2member_map_
@@ -66,6 +66,6 @@ class CVResizeInterpolationEnum(IntEnum):
     NEAREST = 0
     LINEAR = 1
     BILINEAR = 1
-    CUBIC = 2
+    BICUBIC = 2
     AREA = 3
     LANCZOS4 = 4

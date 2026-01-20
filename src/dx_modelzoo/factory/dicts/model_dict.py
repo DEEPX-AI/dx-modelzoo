@@ -9,65 +9,135 @@ from dx_modelzoo.models.face_detection.yolo import (
     YOLOv7s_Face,
 )
 from dx_modelzoo.models.image_classification.alexnet import AlexNet
-from dx_modelzoo.models.image_classification.densenet import DenseNet121, DenseNet161
+from dx_modelzoo.models.image_classification.convnext import (
+    ConvNeXtBase224_1k,
+    ConvNeXtBase224_22k_1k,
+    ConvNeXtBase384_22k_1k,
+    ConvNeXtLarge224_1k,
+    ConvNeXtSmall224_1k,
+    ConvNeXtTiny224_1k,
+)
+from dx_modelzoo.models.image_classification.densenet import DenseNet121, DenseNet161, DenseNet169, DenseNet201
+from dx_modelzoo.models.image_classification.efficientformer import (
+    EfficientFormer_L1,
+    EfficientFormer_L3,
+    EfficientFormer_L7,
+    EfficientFormerV2_L,
+    EfficientFormerV2_S0,
+    EfficientFormerV2_S1,
+    EfficientFormerV2_S2,
+)
 from dx_modelzoo.models.image_classification.efficientnet import (
+    EfficientNetB1,
     EfficientNetB2,
+    EfficientNetEdgeTPULarge,
+    EfficientNetEdgeTPUMedium,
+    EfficientNetEdgeTPUSmall,
     EfficientNetLite0,
     EfficientNetLite1,
     EfficientNetLite2,
     EfficientNetLite3,
     EfficientNetLite4,
+    EfficientNetV2L,
+    EfficientNetV2M,
     EfficientNetV2S,
 )
+from dx_modelzoo.models.image_classification.fastvit import (
+    FastViT_MA36,
+    FastViT_S12,
+    FastViT_SA12,
+    FastViT_SA24,
+    FastViT_SA36,
+    FastViT_T8,
+    FastViT_T12,
+)
+from dx_modelzoo.models.image_classification.ghostnet import GhostNet
+from dx_modelzoo.models.image_classification.googlenet import GoogLeNet
 from dx_modelzoo.models.image_classification.hardnet import HarDNet39DS, HarDNet68
-from dx_modelzoo.models.image_classification.inception import InceptionV1
+from dx_modelzoo.models.image_classification.inception import InceptionV1, InceptionV3
+from dx_modelzoo.models.image_classification.mambaout import MambaOutBase, MambaOutFemto, MambaOutSmall, MambaOutTiny
+from dx_modelzoo.models.image_classification.maxvit import MaxViT_Tiny
+from dx_modelzoo.models.image_classification.mnasnet import MnasNet0_5, MnasNet0_75, MnasNet1_0, MnasNet1_3
 from dx_modelzoo.models.image_classification.mobilenet import (
     MobileNetV1,
     MobileNetV2,
     MobileNetV3Large,
     MobileNetV3Small,
 )
+from dx_modelzoo.models.image_classification.mobilevit import MobileViT_Small, MobileViT_X_Small, MobileViT_XX_Small
 from dx_modelzoo.models.image_classification.osnet import OSNet0_5, OSNet0_25
+from dx_modelzoo.models.image_classification.poolformer import (
+    PoolFormerM36,
+    PoolFormerM48,
+    PoolFormerS12,
+    PoolFormerS24,
+    PoolFormerS36,
+)
 from dx_modelzoo.models.image_classification.regnet import (
-    RegNetX1_6GF,
     RegNetX400MF,
     RegNetX800MF,
+    RegNetX_1_6GF,
+    RegNetX_1_6GF_3,
+    RegNetX_3_2GF,
+    RegNetX_8GF,
+    RegNetX_16GF,
+    RegNetX_32GF,
     RegNetY200MF,
     RegNetY400MF,
     RegNetY800MF,
+    RegNetY_1_6GF,
+    RegNetY_3_2GF,
+    RegNetY_8GF,
+    RegNetY_16GF,
 )
-from dx_modelzoo.models.image_classification.repvgg import RepVGGA1, RepVGGA2
-from dx_modelzoo.models.image_classification.resnet import (
-    ResNet18,
-    ResNet34,
-    ResNet50,
-    ResNet101,
-    ResNet152,
-)
+from dx_modelzoo.models.image_classification.repghost import RepGhost_1_0x, RepGhost_2_0x
+from dx_modelzoo.models.image_classification.repvgg import RepVGGA0, RepVGGA1, RepVGGA2, RepVGGB0, RepVGGB1
+from dx_modelzoo.models.image_classification.resnet import ResNet18, ResNet34, ResNet50, ResNet101, ResNet152
 from dx_modelzoo.models.image_classification.resnext import (
     ResNeXt26_32x4d,
     ResNeXt50_32x4d,
+    ResNeXt101_32x8d,
+    ResNeXt101_64x4d,
 )
-from dx_modelzoo.models.image_classification.squeezenet import (
-    SqueezeNet1_0,
-    SqueezeNet1_1,
+from dx_modelzoo.models.image_classification.shufflenet import (
+    ShuffleNetV1_x1_0,
+    ShuffleNetV2_x0_5,
+    ShuffleNetV2_x1_0,
+    ShuffleNetV2_x1_5,
+    ShuffleNetV2_x2_0,
 )
-from dx_modelzoo.models.image_classification.vgg import (
-    VGG11,
-    VGG11BN,
-    VGG13,
-    VGG13BN,
-    VGG19BN,
+from dx_modelzoo.models.image_classification.squeezenet import SqueezeNet1_0, SqueezeNet1_1, SqueezeNet1_3
+from dx_modelzoo.models.image_classification.vgg import VGG11, VGG11BN, VGG13, VGG13BN, VGG16, VGG16BN, VGG19, VGG19BN
+from dx_modelzoo.models.image_classification.vit import (
+    BeitBasePatch16_224,
+    BeitBasePatch16_384,
+    BeitLargePatch16_224,
+    BeitLargePatch16_384,
+    DeiTBase_224,
+    DeiTBase_384,
+    DeiTBaseDistilled_224,
+    DeiTBaseDistilled_384,
+    DeiTSmall_224,
+    DeiTSmallDistilled_224,
+    DeiTTiny_224,
+    DeiTTinyDistilled_224,
+    ViT_Base_BN,
+    ViT_Base_P16,
+    ViT_Base_P16_224,
+    ViT_Base_P16_384,
+    ViT_Base_P32,
+    ViT_Base_P32_384,
+    ViT_Large_P32,
+    ViT_Small_P16_224,
+    ViT_Tiny_P16_224,
 )
-from dx_modelzoo.models.image_classification.wideresnet import (
-    WideResNet50_2,
-    WideResNet101_2,
-)
+from dx_modelzoo.models.image_classification.wideresnet import WideResNet50_2, WideResNet101_2
 from dx_modelzoo.models.image_denoising.dncnn import DnCNN_15, DnCNN_25, DnCNN_50
 from dx_modelzoo.models.image_denoising.espcn import ESPCN_x2, ESPCN_x3, ESPCN_x4
 from dx_modelzoo.models.image_segmentation.bisenet import BiSeNetV1, BiSeNetV2
 from dx_modelzoo.models.image_segmentation.deeplab import (
     DeepLabV3MobilenetV2,
+    DeepLabV3MobileNetV2_Sim,
     DeepLabV3PlusDRN,
     DeepLabV3PlusMobilenet,
     DeepLabV3PlusMobileNetV2,
@@ -75,6 +145,9 @@ from dx_modelzoo.models.image_segmentation.deeplab import (
     DeepLabV3PlusResNet50,
     DeepLabV3PlusResNet101,
 )
+from dx_modelzoo.models.image_segmentation.fcn import FCN8_ResNet18, FCN8_ResNet50
+from dx_modelzoo.models.image_segmentation.segformer import SegFormer_b0_512x1024
+from dx_modelzoo.models.image_segmentation.yolact import YOLACT_RegNetX_1_6gf, YOLACT_RegNetX_800mf
 from dx_modelzoo.models.image_segmentation.yolo import (
     YoloV5L_Seg,
     YoloV5M_Seg,
@@ -84,14 +157,21 @@ from dx_modelzoo.models.image_segmentation.yolo import (
     YoloV8N_Seg,
     YoloV8S_Seg,
 )
-from dx_modelzoo.models.object_dection.damoyolo import DamoYOLO
-from dx_modelzoo.models.object_dection.nanodet import NanoDet, NanoDet_RepVGGA
-from dx_modelzoo.models.object_dection.ssd import SSDMV1, SSDMV2Lite
-from dx_modelzoo.models.object_dection.yolo import (
+from dx_modelzoo.models.object_detection.damoyolo import DamoYOLO
+from dx_modelzoo.models.object_detection.nanodet import NanoDet, NanoDet_RepVGGA
+from dx_modelzoo.models.object_detection.ssd import SSDMV1, SSDMV2Lite
+from dx_modelzoo.models.object_detection.yolo import (
     DamoYoloM,
     DamoYoloS,
     DamoYoloT,
+    YOLO26l,
+    YOLO26m,
+    YOLO26n,
+    YOLO26s,
+    YOLO26x,
     YoloV3,
+    YoloV3_416,
+    YoloV3_Tiny,
     YoloV5L,
     YoloV5M,
     YoloV5N,
@@ -116,16 +196,68 @@ from dx_modelzoo.models.object_dection.yolo import (
     YoloXSWideLeaky,
     YoloXTiny,
 )
-from dx_modelzoo.models.open_clip.ViT import ViT_B_16_dfn2b, ViT_L_14_quickgelu_dfn2b
-from dx_modelzoo.models.pose_estimation.yolo import (
-    YOLOV8L_Pose,
-    YOLOV8M_Pose,
-    YOLOV8N_Pose,
-    YOLOV8S_Pose,
-    YOLOV8X_Pose,
+from dx_modelzoo.models.open_clip.convnext import (
+    ConvNextBase_w_320_laion_aesthetic_s13b_b82k,
+    ConvNextBase_w_laion2b_s13b_b82k_augreg,
+    ConvNextLarge_d_laion2b_s26b_b102k_augreg,
+    ConvNextLarge_w_320_laion2b_s29b_b131k_ft_soup,
 )
+from dx_modelzoo.models.open_clip.resnet import RN50x16_openai, RN50x64_openai
+from dx_modelzoo.models.open_clip.ViT import (
+    ViT_B_16_dfn2b,
+    ViT_B_16_quickgelu_metaclip_fullcc,
+    ViT_B_32_256_datacomp_s34b_b68k,
+    ViT_L_14_336_openai,
+    ViT_L_14_CLIPA_336_datacomp1b,
+    ViT_L_14_CLIPA_datacomp1b,
+    ViT_L_14_datacomp_xl_s13b_b90k,
+    ViT_L_14_quickgelu_dfn2b,
+)
+from dx_modelzoo.models.pose_estimation.yolo import YOLOV8L_Pose, YOLOV8M_Pose, YOLOV8N_Pose, YOLOV8S_Pose, YOLOV8X_Pose
 
 MODEL_DICT = {
+    YOLACT_RegNetX_1_6gf.__name__: YOLACT_RegNetX_1_6gf,
+    YOLACT_RegNetX_800mf.__name__: YOLACT_RegNetX_800mf,
+    SegFormer_b0_512x1024.__name__: SegFormer_b0_512x1024,
+    FCN8_ResNet18.__name__: FCN8_ResNet18,
+    FCN8_ResNet50.__name__: FCN8_ResNet50,
+    RepGhost_1_0x.__name__: RepGhost_1_0x,
+    RepGhost_2_0x.__name__: RepGhost_2_0x,
+    ViT_Large_P32.__name__: ViT_Large_P32,
+    ViT_Base_P16.__name__: ViT_Base_P16,
+    ViT_Base_P32.__name__: ViT_Base_P32,
+    ViT_Base_BN.__name__: ViT_Base_BN,
+    ViT_Base_P16_224.__name__: ViT_Base_P16_224,
+    ViT_Base_P16_384.__name__: ViT_Base_P16_384,
+    ViT_Base_P32_384.__name__: ViT_Base_P32_384,
+    ViT_Small_P16_224.__name__: ViT_Small_P16_224,
+    ViT_Tiny_P16_224.__name__: ViT_Tiny_P16_224,
+    MobileViT_Small.__name__: MobileViT_Small,
+    MobileViT_X_Small.__name__: MobileViT_X_Small,
+    MobileViT_XX_Small.__name__: MobileViT_XX_Small,
+    MaxViT_Tiny.__name__: MaxViT_Tiny,
+    FastViT_MA36.__name__: FastViT_MA36,
+    FastViT_S12.__name__: FastViT_S12,
+    FastViT_SA12.__name__: FastViT_SA12,
+    FastViT_SA24.__name__: FastViT_SA24,
+    FastViT_SA36.__name__: FastViT_SA36,
+    FastViT_T12.__name__: FastViT_T12,
+    FastViT_T8.__name__: FastViT_T8,
+    PoolFormerM36.__name__: PoolFormerM36,
+    PoolFormerM48.__name__: PoolFormerM48,
+    PoolFormerS12.__name__: PoolFormerS12,
+    PoolFormerS24.__name__: PoolFormerS24,
+    PoolFormerS36.__name__: PoolFormerS36,
+    MambaOutBase.__name__: MambaOutBase,
+    MambaOutFemto.__name__: MambaOutFemto,
+    MambaOutSmall.__name__: MambaOutSmall,
+    MambaOutTiny.__name__: MambaOutTiny,
+    ConvNeXtLarge224_1k.__name__: ConvNeXtLarge224_1k,
+    ConvNeXtSmall224_1k.__name__: ConvNeXtSmall224_1k,
+    ConvNeXtTiny224_1k.__name__: ConvNeXtTiny224_1k,
+    ConvNeXtBase224_22k_1k.__name__: ConvNeXtBase224_22k_1k,
+    ConvNeXtBase384_22k_1k.__name__: ConvNeXtBase384_22k_1k,
+    ConvNeXtBase224_1k.__name__: ConvNeXtBase224_1k,
     ResNet18.__name__: ResNet18,
     YoloV5N.__name__: YoloV5N,
     DeepLabV3PlusMobilenet.__name__: DeepLabV3PlusMobilenet,
@@ -140,30 +272,56 @@ MODEL_DICT = {
     YoloV6N.__name__: YoloV6N,
     DeepLabV3PlusDRN.__name__: DeepLabV3PlusDRN,
     DeepLabV3PlusMobileNetV2.__name__: DeepLabV3PlusMobileNetV2,
+    DeepLabV3MobileNetV2_Sim.__name__: DeepLabV3MobileNetV2_Sim,
     DeepLabV3PlusResNet101.__name__: DeepLabV3PlusResNet101,
     DeepLabV3PlusResNet50.__name__: DeepLabV3PlusResNet50,
     DeepLabV3PlusResnet.__name__: DeepLabV3PlusResnet,
     ResNeXt50_32x4d.__name__: ResNeXt50_32x4d,
     ResNeXt26_32x4d.__name__: ResNeXt26_32x4d,
+    ResNeXt101_32x8d.__name__: ResNeXt101_32x8d,
+    ResNeXt101_64x4d.__name__: ResNeXt101_64x4d,
     RegNetX400MF.__name__: RegNetX400MF,
     RegNetX800MF.__name__: RegNetX800MF,
     RegNetY200MF.__name__: RegNetY200MF,
     RegNetY400MF.__name__: RegNetY400MF,
     RegNetY800MF.__name__: RegNetY800MF,
+    ShuffleNetV1_x1_0.__name__: ShuffleNetV1_x1_0,
+    ShuffleNetV2_x0_5.__name__: ShuffleNetV2_x0_5,
+    ShuffleNetV2_x1_0.__name__: ShuffleNetV2_x1_0,
+    ShuffleNetV2_x1_5.__name__: ShuffleNetV2_x1_5,
+    ShuffleNetV2_x2_0.__name__: ShuffleNetV2_x2_0,
     DenseNet121.__name__: DenseNet121,
     DenseNet161.__name__: DenseNet161,
+    DenseNet169.__name__: DenseNet169,
+    DenseNet201.__name__: DenseNet201,
+    EfficientNetEdgeTPUSmall.__name__: EfficientNetEdgeTPUSmall,
+    EfficientNetEdgeTPUMedium.__name__: EfficientNetEdgeTPUMedium,
+    EfficientNetEdgeTPULarge.__name__: EfficientNetEdgeTPULarge,
+    EfficientNetB1.__name__: EfficientNetB1,
     EfficientNetB2.__name__: EfficientNetB2,
     EfficientNetV2S.__name__: EfficientNetV2S,
+    EfficientNetV2M.__name__: EfficientNetV2M,
+    EfficientNetV2L.__name__: EfficientNetV2L,
     EfficientNetLite0.__name__: EfficientNetLite0,
     EfficientNetLite1.__name__: EfficientNetLite1,
     EfficientNetLite2.__name__: EfficientNetLite2,
     EfficientNetLite3.__name__: EfficientNetLite3,
     EfficientNetLite4.__name__: EfficientNetLite4,
+    EfficientFormer_L1.__name__: EfficientFormer_L1,
+    EfficientFormer_L3.__name__: EfficientFormer_L1,
+    EfficientFormer_L7.__name__: EfficientFormer_L1,
+    EfficientFormerV2_L.__name__: EfficientFormer_L1,
+    EfficientFormerV2_S0.__name__: EfficientFormer_L1,
+    EfficientFormerV2_S1.__name__: EfficientFormer_L1,
+    EfficientFormerV2_S2.__name__: EfficientFormer_L1,
+    GhostNet.__name__: GhostNet,
+    GoogLeNet.__name__: GoogLeNet,
     HarDNet39DS.__name__: HarDNet39DS,
     MobileNetV1.__name__: MobileNetV1,
     MobileNetV2.__name__: MobileNetV2,
     SqueezeNet1_0.__name__: SqueezeNet1_0,
     SqueezeNet1_1.__name__: SqueezeNet1_1,
+    SqueezeNet1_3.__name__: SqueezeNet1_3,
     VGG11BN.__name__: VGG11BN,
     VGG19BN.__name__: VGG19BN,
     WideResNet101_2.__name__: WideResNet101_2,
@@ -172,14 +330,22 @@ MODEL_DICT = {
     VGG11.__name__: VGG11,
     VGG13.__name__: VGG13,
     VGG13BN.__name__: VGG13BN,
+    VGG16.__name__: VGG16,
+    VGG16BN.__name__: VGG16BN,
+    VGG19.__name__: VGG19,
     MobileNetV3Large.__name__: MobileNetV3Large,
     MobileNetV3Small.__name__: MobileNetV3Small,
     OSNet0_25.__name__: OSNet0_25,
     OSNet0_5.__name__: OSNet0_5,
     RepVGGA1.__name__: RepVGGA1,
     RepVGGA2.__name__: RepVGGA2,
+    RepVGGA0.__name__: RepVGGA0,
+    RepVGGB0.__name__: RepVGGB0,
+    RepVGGB1.__name__: RepVGGB1,
     YoloXS.__name__: YoloXS,
     YoloV3.__name__: YoloV3,
+    YoloV3_416.__name__: YoloV3_416,
+    YoloV3_Tiny.__name__: YoloV3_Tiny,
     YoloV7.__name__: YoloV7,
     YoloV7E6.__name__: YoloV7E6,
     YoloV7Tiny.__name__: YoloV7Tiny,
@@ -204,9 +370,23 @@ MODEL_DICT = {
     YoloV8M.__name__: YoloV8M,
     YoloV8N.__name__: YoloV8N,
     YoloV8S.__name__: YoloV8S,
+    YOLO26n.__name__: YOLO26n,
+    YOLO26s.__name__: YOLO26s,
+    YOLO26m.__name__: YOLO26m,
+    YOLO26l.__name__: YOLO26l,
+    YOLO26x.__name__: YOLO26x,
     FastDepth.__name__: FastDepth,
     HarDNet68.__name__: HarDNet68,
-    RegNetX1_6GF.__name__: RegNetX1_6GF,
+    RegNetX_1_6GF.__name__: RegNetX_1_6GF,
+    RegNetX_1_6GF_3.__name__: RegNetX_1_6GF_3,
+    RegNetX_16GF.__name__: RegNetX_16GF,
+    RegNetX_3_2GF.__name__: RegNetX_3_2GF,
+    RegNetX_32GF.__name__: RegNetX_32GF,
+    RegNetX_8GF.__name__: RegNetX_8GF,
+    RegNetY_1_6GF.__name__: RegNetY_1_6GF,
+    RegNetY_16GF.__name__: RegNetY_16GF,
+    RegNetY_3_2GF.__name__: RegNetY_3_2GF,
+    RegNetY_8GF.__name__: RegNetY_8GF,
     SCRFD10G.__name__: SCRFD10G,
     SCRFD2_5G.__name__: SCRFD2_5G,
     SCRFD500M.__name__: SCRFD500M,
@@ -241,5 +421,34 @@ MODEL_DICT = {
     YoloV11.__name__: YoloV11,
     YoloV10.__name__: YoloV10,
     InceptionV1.__name__: InceptionV1,
+    InceptionV3.__name__: InceptionV3,
+    MnasNet0_5.__name__: MnasNet0_5,
+    MnasNet0_75.__name__: MnasNet0_75,
+    MnasNet1_0.__name__: MnasNet1_0,
+    MnasNet1_3.__name__: MnasNet1_3,
     RepVGGA2.__name__: RepVGGA2,
+    BeitBasePatch16_224.__name__: BeitBasePatch16_224,
+    BeitLargePatch16_224.__name__: BeitLargePatch16_224,
+    BeitBasePatch16_384.__name__: BeitBasePatch16_384,
+    BeitLargePatch16_384.__name__: BeitLargePatch16_384,
+    DeiTBase_224.__name__: DeiTBase_224,
+    DeiTBase_384.__name__: DeiTBase_384,
+    DeiTBaseDistilled_224.__name__: DeiTBaseDistilled_224,
+    DeiTBaseDistilled_384.__name__: DeiTBaseDistilled_384,
+    DeiTSmall_224.__name__: DeiTSmall_224,
+    DeiTSmallDistilled_224.__name__: DeiTSmallDistilled_224,
+    DeiTTiny_224.__name__: DeiTTiny_224,
+    DeiTTinyDistilled_224.__name__: DeiTTinyDistilled_224,
+    ViT_B_32_256_datacomp_s34b_b68k.__name__: ViT_B_32_256_datacomp_s34b_b68k,
+    ViT_B_16_quickgelu_metaclip_fullcc.__name__: ViT_B_16_quickgelu_metaclip_fullcc,
+    ViT_L_14_CLIPA_datacomp1b.__name__: ViT_L_14_CLIPA_datacomp1b,
+    ViT_L_14_datacomp_xl_s13b_b90k.__name__: ViT_L_14_datacomp_xl_s13b_b90k,
+    ViT_L_14_336_openai.__name__: ViT_L_14_336_openai,
+    ViT_L_14_CLIPA_336_datacomp1b.__name__: ViT_L_14_CLIPA_336_datacomp1b,
+    RN50x64_openai.__name__: RN50x64_openai,
+    RN50x16_openai.__name__: RN50x16_openai,
+    ConvNextBase_w_laion2b_s13b_b82k_augreg.__name__: ConvNextBase_w_laion2b_s13b_b82k_augreg,
+    ConvNextBase_w_320_laion_aesthetic_s13b_b82k.__name__: ConvNextBase_w_320_laion_aesthetic_s13b_b82k,
+    ConvNextLarge_d_laion2b_s26b_b102k_augreg.__name__: ConvNextLarge_d_laion2b_s26b_b102k_augreg,
+    ConvNextLarge_w_320_laion2b_s29b_b131k_ft_soup.__name__: ConvNextLarge_w_320_laion2b_s29b_b131k_ft_soup,
 }

@@ -11,13 +11,11 @@ from dx_modelzoo.preprocessing.resize import Resize
 from dx_modelzoo.preprocessing.transpose import Transpose
 
 
-class VGG11(ModelBase):
+class FastViT_MA36(ModelBase):
     info = ModelInfo(
-        name="VGG11",
+        name="FastViT_MA36",
         dataset=DatasetType.imagenet,
         evaluation=EvaluationType.image_classification,
-        raw_performance="69.03 88.63",
-        q_lite_performance="68.94 88.61",
     )
 
     def __init__(self, evaluator):
@@ -26,11 +24,11 @@ class VGG11(ModelBase):
     def preprocessing(self):
         return Compose(
             [
-                Resize(mode="torchvision", size=256, interpolation="BILINEAR"),
-                CenterCrop(224, 224),
+                Resize(mode="torchvision", size=256, interpolation="BICUBIC"),
+                CenterCrop(256, 256),
                 ConvertColor("BGR2RGB"),
                 Div(255),
-                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5]),
                 Transpose([2, 0, 1]),
             ]
         )
@@ -38,8 +36,8 @@ class VGG11(ModelBase):
     def npu_preprocessing(self):
         return Compose(
             [
-                Resize(mode="torchvision", size=256, interpolation="BILINEAR"),
-                CenterCrop(224, 224),
+                Resize(mode="torchvision", size=256, interpolation="BICUBIC"),
+                CenterCrop(256, 256),
                 ConvertColor("BGR2RGB"),
             ]
         )
@@ -48,13 +46,11 @@ class VGG11(ModelBase):
         return topk_postprocessing
 
 
-class VGG11BN(ModelBase):
+class FastViT_S12(ModelBase):
     info = ModelInfo(
-        name="VGG11BN",
+        name="FastViT_S12",
         dataset=DatasetType.imagenet,
         evaluation=EvaluationType.image_classification,
-        raw_performance="70.37 89.81",
-        q_lite_performance="70.24, 89.73",
     )
 
     def __init__(self, evaluator):
@@ -63,11 +59,11 @@ class VGG11BN(ModelBase):
     def preprocessing(self):
         return Compose(
             [
-                Resize(mode="torchvision", size=256, interpolation="BILINEAR"),
-                CenterCrop(224, 224),
+                Resize(mode="torchvision", size=256, interpolation="BICUBIC"),
+                CenterCrop(256, 256),
                 ConvertColor("BGR2RGB"),
                 Div(255),
-                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5]),
                 Transpose([2, 0, 1]),
             ]
         )
@@ -75,8 +71,8 @@ class VGG11BN(ModelBase):
     def npu_preprocessing(self):
         return Compose(
             [
-                Resize(mode="torchvision", size=256, interpolation="BILINEAR"),
-                CenterCrop(224, 224),
+                Resize(mode="torchvision", size=256, interpolation="BICUBIC"),
+                CenterCrop(256, 256),
                 ConvertColor("BGR2RGB"),
             ]
         )
@@ -85,13 +81,11 @@ class VGG11BN(ModelBase):
         return topk_postprocessing
 
 
-class VGG13(ModelBase):
+class FastViT_SA12(ModelBase):
     info = ModelInfo(
-        name="VGG13",
+        name="FastViT_SA12",
         dataset=DatasetType.imagenet,
         evaluation=EvaluationType.image_classification,
-        raw_performance="69.93 89.26",
-        q_lite_performance="69.83 89.26",
     )
 
     def __init__(self, evaluator):
@@ -100,11 +94,11 @@ class VGG13(ModelBase):
     def preprocessing(self):
         return Compose(
             [
-                Resize(mode="torchvision", size=256, interpolation="BILINEAR"),
-                CenterCrop(224, 224),
+                Resize(mode="torchvision", size=256, interpolation="BICUBIC"),
+                CenterCrop(256, 256),
                 ConvertColor("BGR2RGB"),
                 Div(255),
-                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5]),
                 Transpose([2, 0, 1]),
             ]
         )
@@ -112,8 +106,8 @@ class VGG13(ModelBase):
     def npu_preprocessing(self):
         return Compose(
             [
-                Resize(mode="torchvision", size=256, interpolation="BILINEAR"),
-                CenterCrop(224, 224),
+                Resize(mode="torchvision", size=256, interpolation="BICUBIC"),
+                CenterCrop(256, 256),
                 ConvertColor("BGR2RGB"),
             ]
         )
@@ -122,13 +116,11 @@ class VGG13(ModelBase):
         return topk_postprocessing
 
 
-class VGG13BN(ModelBase):
+class FastViT_SA24(ModelBase):
     info = ModelInfo(
-        name="VGG13BN",
+        name="FastViT_SA24",
         dataset=DatasetType.imagenet,
         evaluation=EvaluationType.image_classification,
-        raw_performance="71.56 90.38",
-        q_lite_performance="71.59 90.37",
     )
 
     def __init__(self, evaluator):
@@ -137,11 +129,11 @@ class VGG13BN(ModelBase):
     def preprocessing(self):
         return Compose(
             [
-                Resize(mode="torchvision", size=256, interpolation="BILINEAR"),
-                CenterCrop(224, 224),
+                Resize(mode="torchvision", size=256, interpolation="BICUBIC"),
+                CenterCrop(256, 256),
                 ConvertColor("BGR2RGB"),
                 Div(255),
-                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5]),
                 Transpose([2, 0, 1]),
             ]
         )
@@ -149,8 +141,8 @@ class VGG13BN(ModelBase):
     def npu_preprocessing(self):
         return Compose(
             [
-                Resize(mode="torchvision", size=256, interpolation="BILINEAR"),
-                CenterCrop(224, 224),
+                Resize(mode="torchvision", size=256, interpolation="BICUBIC"),
+                CenterCrop(256, 256),
                 ConvertColor("BGR2RGB"),
             ]
         )
@@ -159,13 +151,11 @@ class VGG13BN(ModelBase):
         return topk_postprocessing
 
 
-class VGG19BN(ModelBase):
+class FastViT_SA36(ModelBase):
     info = ModelInfo(
-        name="VGG19BN",
+        name="FastViT_SA36",
         dataset=DatasetType.imagenet,
         evaluation=EvaluationType.image_classification,
-        raw_performance="74.24 91.84",
-        q_lite_performance="74.09 91.80",
     )
 
     def __init__(self, evaluator):
@@ -174,11 +164,11 @@ class VGG19BN(ModelBase):
     def preprocessing(self):
         return Compose(
             [
-                Resize(mode="torchvision", size=256, interpolation="BILINEAR"),
-                CenterCrop(224, 224),
+                Resize(mode="torchvision", size=256, interpolation="BICUBIC"),
+                CenterCrop(256, 256),
                 ConvertColor("BGR2RGB"),
                 Div(255),
-                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5]),
                 Transpose([2, 0, 1]),
             ]
         )
@@ -186,8 +176,8 @@ class VGG19BN(ModelBase):
     def npu_preprocessing(self):
         return Compose(
             [
-                Resize(mode="torchvision", size=256, interpolation="BILINEAR"),
-                CenterCrop(224, 224),
+                Resize(mode="torchvision", size=256, interpolation="BICUBIC"),
+                CenterCrop(256, 256),
                 ConvertColor("BGR2RGB"),
             ]
         )
@@ -196,13 +186,11 @@ class VGG19BN(ModelBase):
         return topk_postprocessing
 
 
-class VGG16(ModelBase):
+class FastViT_T12(ModelBase):
     info = ModelInfo(
-        name="VGG16",
+        name="FastViT_T12",
         dataset=DatasetType.imagenet,
         evaluation=EvaluationType.image_classification,
-        raw_performance="",
-        q_lite_performance="",
     )
 
     def __init__(self, evaluator):
@@ -211,11 +199,11 @@ class VGG16(ModelBase):
     def preprocessing(self):
         return Compose(
             [
-                Resize(mode="torchvision", size=256, interpolation="BILINEAR"),
-                CenterCrop(224, 224),
+                Resize(mode="torchvision", size=256, interpolation="BICUBIC"),
+                CenterCrop(256, 256),
                 ConvertColor("BGR2RGB"),
                 Div(255),
-                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5]),
                 Transpose([2, 0, 1]),
             ]
         )
@@ -223,8 +211,8 @@ class VGG16(ModelBase):
     def npu_preprocessing(self):
         return Compose(
             [
-                Resize(mode="torchvision", size=256, interpolation="BILINEAR"),
-                CenterCrop(224, 224),
+                Resize(mode="torchvision", size=256, interpolation="BICUBIC"),
+                CenterCrop(256, 256),
                 ConvertColor("BGR2RGB"),
             ]
         )
@@ -233,13 +221,11 @@ class VGG16(ModelBase):
         return topk_postprocessing
 
 
-class VGG16BN(ModelBase):
+class FastViT_T8(ModelBase):
     info = ModelInfo(
-        name="VGG16BN",
+        name="FastViT_T8",
         dataset=DatasetType.imagenet,
         evaluation=EvaluationType.image_classification,
-        raw_performance="",
-        q_lite_performance="",
     )
 
     def __init__(self, evaluator):
@@ -248,11 +234,11 @@ class VGG16BN(ModelBase):
     def preprocessing(self):
         return Compose(
             [
-                Resize(mode="torchvision", size=256, interpolation="BILINEAR"),
-                CenterCrop(224, 224),
+                Resize(mode="torchvision", size=256, interpolation="BICUBIC"),
+                CenterCrop(256, 256),
                 ConvertColor("BGR2RGB"),
                 Div(255),
-                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5]),
                 Transpose([2, 0, 1]),
             ]
         )
@@ -260,45 +246,8 @@ class VGG16BN(ModelBase):
     def npu_preprocessing(self):
         return Compose(
             [
-                Resize(mode="torchvision", size=256, interpolation="BILINEAR"),
-                CenterCrop(224, 224),
-                ConvertColor("BGR2RGB"),
-            ]
-        )
-
-    def postprocessing(self):
-        return topk_postprocessing
-
-
-class VGG19(ModelBase):
-    info = ModelInfo(
-        name="VGG19",
-        dataset=DatasetType.imagenet,
-        evaluation=EvaluationType.image_classification,
-        raw_performance="74.24 91.84",
-        q_lite_performance="74.09 91.80",
-    )
-
-    def __init__(self, evaluator):
-        super().__init__(evaluator)
-
-    def preprocessing(self):
-        return Compose(
-            [
-                Resize(mode="torchvision", size=256, interpolation="BILINEAR"),
-                CenterCrop(224, 224),
-                ConvertColor("BGR2RGB"),
-                Div(255),
-                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-                Transpose([2, 0, 1]),
-            ]
-        )
-
-    def npu_preprocessing(self):
-        return Compose(
-            [
-                Resize(mode="torchvision", size=256, interpolation="BILINEAR"),
-                CenterCrop(224, 224),
+                Resize(mode="torchvision", size=256, interpolation="BICUBIC"),
+                CenterCrop(256, 256),
                 ConvertColor("BGR2RGB"),
             ]
         )

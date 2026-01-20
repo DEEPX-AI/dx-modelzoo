@@ -1,6 +1,9 @@
+from typing import Callable
+
 from torchvision.transforms import Compose
 
 from dx_modelzoo.enums import DatasetType, EvaluationType
+from dx_modelzoo.evaluator.ic_evaluator import ICEvaluator
 from dx_modelzoo.models import ModelBase, ModelInfo
 from dx_modelzoo.models.image_classification import topk_postprocessing
 from dx_modelzoo.preprocessing.centercrop import CenterCrop
@@ -11,188 +14,186 @@ from dx_modelzoo.preprocessing.resize import Resize
 from dx_modelzoo.preprocessing.transpose import Transpose
 
 
-class RepVGGA1(ModelBase):
+class ShuffleNetV1_x1_0(ModelBase):
     info = ModelInfo(
-        name="RepVGGA1",
+        name="ShuffleNetV1_x1_0",
         dataset=DatasetType.imagenet,
         evaluation=EvaluationType.image_classification,
-        raw_performance="74.09 91.71",
-        q_lite_performance="62.88 84.79",
+        raw_performance="69.75 89.08",
+        q_lite_performance="69.57 88.97",
     )
 
-    def __init__(self, evaluator):
+    def __init__(self, evaluator: ICEvaluator) -> None:
         super().__init__(evaluator)
 
-    def preprocessing(self):
+    def preprocessing(self) -> Compose:
         return Compose(
             [
-                Resize(mode="torchvision", size=320, interpolation="BILINEAR"),
-                CenterCrop(320, 320),
+                Resize(mode="torchvision", size=256, interpolation="BILINEAR"),
+                CenterCrop(224, 224),
                 ConvertColor("BGR2RGB"),
-                Div(255),
+                Div(x=255),
                 Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-                Transpose([2, 0, 1]),
+                Transpose(axis=[2, 0, 1]),
             ]
         )
 
     def npu_preprocessing(self):
         return Compose(
             [
-                Resize(mode="torchvision", size=320, interpolation="BILINEAR"),
-                CenterCrop(320, 320),
+                Resize(mode="torchvision", size=256, interpolation="BILINEAR"),
+                CenterCrop(224, 224),
                 ConvertColor("BGR2RGB"),
             ]
         )
 
-    def postprocessing(self):
+    def postprocessing(self) -> Callable:
         return topk_postprocessing
 
 
-class RepVGGA2(ModelBase):
+class ShuffleNetV2_x0_5(ModelBase):
     info = ModelInfo(
-        name="RepVGGA2",
+        name="ShuffleNetV2_x0_5",
         dataset=DatasetType.imagenet,
         evaluation=EvaluationType.image_classification,
-        raw_performance="76.48, ?",  # from Paper table
-        q_lite_performance="55.89, 80.26",
+        raw_performance="69.75 89.08",
+        q_lite_performance="69.57 88.97",
     )
 
-    def __init__(self, evaluator):
+    def __init__(self, evaluator: ICEvaluator) -> None:
         super().__init__(evaluator)
 
-    def preprocessing(self):
+    def preprocessing(self) -> Compose:
         return Compose(
             [
-                Resize(mode="torchvision", size=320, interpolation="BILINEAR"),
-                CenterCrop(320, 320),
+                Resize(mode="torchvision", size=256, interpolation="BILINEAR"),
+                CenterCrop(224, 224),
                 ConvertColor("BGR2RGB"),
-                Div(255),
+                Div(x=255),
                 Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-                Transpose([2, 0, 1]),
+                Transpose(axis=[2, 0, 1]),
             ]
         )
 
     def npu_preprocessing(self):
         return Compose(
             [
-                Resize(mode="torchvision", size=320, interpolation="BILINEAR"),
-                CenterCrop(320, 320),
+                Resize(mode="torchvision", size=256, interpolation="BILINEAR"),
+                CenterCrop(224, 224),
                 ConvertColor("BGR2RGB"),
             ]
         )
 
-    def postprocessing(self):
+    def postprocessing(self) -> Callable:
         return topk_postprocessing
 
 
-class RepVGGA0(ModelBase):
+class ShuffleNetV2_x1_0(ModelBase):
     info = ModelInfo(
-        name="RepVGGA0",
+        name="ShuffleNetV2_x1_0",
         dataset=DatasetType.imagenet,
         evaluation=EvaluationType.image_classification,
-        raw_performance="",
-        q_lite_performance="",
+        raw_performance="69.75 89.08",
+        q_lite_performance="69.57 88.97",
     )
 
-    def __init__(self, evaluator):
+    def __init__(self, evaluator: ICEvaluator) -> None:
         super().__init__(evaluator)
 
-    def preprocessing(self):
+    def preprocessing(self) -> Compose:
         return Compose(
             [
-                Resize(mode="torchvision", size=320, interpolation="BILINEAR"),
-                CenterCrop(320, 320),
+                Resize(mode="torchvision", size=256, interpolation="BILINEAR"),
+                CenterCrop(224, 224),
                 ConvertColor("BGR2RGB"),
-                Div(255),
+                Div(x=255),
                 Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-                Transpose([2, 0, 1]),
+                Transpose(axis=[2, 0, 1]),
             ]
         )
 
     def npu_preprocessing(self):
         return Compose(
             [
-                Resize(mode="torchvision", size=320, interpolation="BILINEAR"),
-                CenterCrop(320, 320),
+                Resize(mode="torchvision", size=256, interpolation="BILINEAR"),
+                CenterCrop(224, 224),
                 ConvertColor("BGR2RGB"),
             ]
         )
 
-    def postprocessing(self):
+    def postprocessing(self) -> Callable:
         return topk_postprocessing
 
 
-class RepVGGB0(ModelBase):
+class ShuffleNetV2_x1_5(ModelBase):
     info = ModelInfo(
-        name="RepVGGB0",
+        name="ShuffleNetV2_x1_5",
         dataset=DatasetType.imagenet,
         evaluation=EvaluationType.image_classification,
-        raw_performance="",
-        q_lite_performance="",
+        raw_performance="69.75 89.08",
+        q_lite_performance="69.57 88.97",
     )
 
-    def __init__(self, evaluator):
+    def __init__(self, evaluator: ICEvaluator) -> None:
         super().__init__(evaluator)
 
-    def preprocessing(self):
+    def preprocessing(self) -> Compose:
         return Compose(
             [
-                Resize(mode="torchvision", size=320, interpolation="BILINEAR"),
-                CenterCrop(320, 320),
+                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
+                CenterCrop(224, 224),
                 ConvertColor("BGR2RGB"),
-                Div(255),
+                Div(x=255),
                 Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-                Transpose([2, 0, 1]),
+                Transpose(axis=[2, 0, 1]),
             ]
         )
 
     def npu_preprocessing(self):
         return Compose(
             [
-                Resize(mode="torchvision", size=320, interpolation="BILINEAR"),
-                CenterCrop(320, 320),
+                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
+                CenterCrop(224, 224),
                 ConvertColor("BGR2RGB"),
             ]
         )
 
-    def postprocessing(self):
+    def postprocessing(self) -> Callable:
         return topk_postprocessing
 
 
-class RepVGGB1(ModelBase):
+class ShuffleNetV2_x2_0(ModelBase):
     info = ModelInfo(
-        name="RepVGGB1",
+        name="ShuffleNetV2_x2_0",
         dataset=DatasetType.imagenet,
         evaluation=EvaluationType.image_classification,
-        raw_performance="",
-        q_lite_performance="",
+        raw_performance="69.75 89.08",
+        q_lite_performance="69.57 88.97",
     )
 
-    def __init__(self, evaluator):
+    def __init__(self, evaluator: ICEvaluator) -> None:
         super().__init__(evaluator)
 
-    def preprocessing(self):
+    def preprocessing(self) -> Compose:
         return Compose(
             [
-                Resize(mode="torchvision", size=320, interpolation="BILINEAR"),
-                CenterCrop(320, 320),
+                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
+                CenterCrop(224, 224),
                 ConvertColor("BGR2RGB"),
-                Div(255),
+                Div(x=255),
                 Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-                Transpose([2, 0, 1]),
+                Transpose(axis=[2, 0, 1]),
             ]
         )
 
     def npu_preprocessing(self):
         return Compose(
             [
-                Resize(mode="torchvision", size=320, interpolation="BILINEAR"),
-                CenterCrop(320, 320),
+                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
+                CenterCrop(224, 224),
                 ConvertColor("BGR2RGB"),
             ]
         )
 
-    def postprocessing(self):
+    def postprocessing(self) -> Callable:
         return topk_postprocessing
-
-

@@ -135,7 +135,7 @@ class PadResize:
         height_ratio, width_ratio = ratios
 
         interpolation = self.interpolation
-        if self.pad_location == "edge" and height_ratio == width_ratio and height_ratio != 1:
+        if height_ratio == width_ratio and height_ratio != 1:
             interpolation = INTER_LINEAR if height_ratio > 1 else INTER_AREA
 
         resized_image = cv2.resize(inputs, (aligned_width, aligned_height), interpolation=interpolation)
@@ -165,6 +165,11 @@ class PadResize:
             bottom = int(round(height_pad + 0.1))
             left = int(round(width_pad - 0.1))
             right = int(round(width_pad + 0.1))
+        elif self.pad_location == "back":
+            top = 0
+            left = 0
+            bottom = int(round(height_pad))
+            right = int(round(width_pad))
         else:
             raise ValueError(f"Invalid pad_location value. {self.pad_location}")
         image = cv2.copyMakeBorder(inputs, top, bottom, left, right, cv2.BORDER_CONSTANT, value=self.pad_value)

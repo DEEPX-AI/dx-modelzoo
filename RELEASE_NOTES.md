@@ -1,5 +1,63 @@
 # RELEASE_NOTES
 
+## DX-MODELZOO v0.7.0 / 2026-01-20
+
+### 1. Changed
+- **Environment Variable Update:** Added `DXNN_DEVICES` for device configuration
+- **Evaluator Improvements:** 
+  - Refactored log format for better readability
+  - Applied async run to all task evaluators for improved performance
+  - Enhanced progress bar to include dataset name
+
+### 2. Fixed
+- **Data Type Handling:** Ensured input data type matches expected dtype in DxRuntimeSession run methods
+- **Model-Specific Fixes:**
+  - Added missing normalization and division steps in GoogLeNet NPU preprocessing
+  - Corrected keypoint scaling logic in COCO pose evaluator
+  - Removed redundant preprocessing steps from MobileViT, ViT, FastViT, and EfficientNet models
+- **Detection & NMS:** Enhanced box processing, NMS conversion, and COCO evaluation options
+- **Resize Logic:** Adjusted padding logic in PadResize class for better handling of pad_location
+- **Import Path:** Fixed import path for object_detection module
+
+### 3. Added
+This release includes a major expansion of **dx-modelzoo v0.7.0**, adding **85+ new models** across multiple computer vision tasks.
+
+#### **Compile Command**
+- Added `compile` command for generating `.dxnn` files directly from ONNX and JSON files
+- Support for GPU option in quantization during compilation
+
+#### **New Model Categories & Architectures**
+
+##### **Object Detection**
+- **YOLO26 Series:** yolo26n, yolo26s, yolo26m, yolo26l, yolo26x
+- **YOLOv3 Series:** YoloV3_416, YoloV3_Tiny
+
+##### **Semantic Segmentation**
+- **DeepLab Series:** DeepLabV3PlusMobileNetV2
+- **FCN Series:** FCN8_ResNet50, FCN8_ResNet18
+
+##### **Image Classification**
+- **FastViT Series:** FastViT_MA36, FastViT_SA24, FastViT_SA36
+- **EfficientFormer Series:** EfficientFormer_L3, EfficientFormer_L7
+- **DenseNet Series:** DenseNet169, DenseNet201
+- **EfficientNet Series:** EfficientNetV2L
+- **RegNet Series:** RegNetX_1_6GF, RegNetX_1_6GF_3, RegNetX_16GF, RegNetX_3_2GF, RegNetX_32GF, RegNetX_8GF
+- **ResNeXt Series:** ResNeXt101_64x4d
+- **RepGhost Series:** RepGhost_2_0x
+- **ShuffleNet Series:** ShuffleNetV1_x1_0, ShuffleNetV2_x0_5, ShuffleNetV2_x1_0, ShuffleNetV2_x1_5, ShuffleNetV2_x2_0
+- **VGG Series:** VGG16, VGG16BN, VGG19
+- **MnasNet Series:** MnasNet0_5, MnasNet0_75, MnasNet1_0, MnasNet1_3
+- **Others:** 
+  - GhostNet
+  - SqueezeNet1_3
+
+#### **Infrastructure Improvements**
+- **Session Management:** Added environment variable (`DXNN_DEVICES`) for device configuration
+- **Async Evaluation:** Full async support across all evaluators for better performance
+- **Installation:** Enhanced install.sh to support dx_rt dependency installation with `--all` flag
+
+---
+
 ## DX-MODELZOO v0.6.0 / 2025-12-29
 
 ### 1. Changed

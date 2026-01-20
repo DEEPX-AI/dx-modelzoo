@@ -4,7 +4,7 @@ import numpy as np
 import torch
 
 
-def get_ratios(image: np.ndarray, origin_shape: List[torch.Tensor]) -> torch.Tensor:
+def get_ratios(image: np.ndarray, origin_shape: List[torch.Tensor], use_both_ratios: bool = False) -> torch.Tensor:
     """get image's heigh, width ratio for resize.
 
     Args:
@@ -17,7 +17,14 @@ def get_ratios(image: np.ndarray, origin_shape: List[torch.Tensor]) -> torch.Ten
     origin_height, origin_width, _ = origin_shape
     size = image.shape[3]
 
-    ratios = size / torch.maximum(origin_height, origin_width)
+    if not use_both_ratios:
+        if origin_height > origin_width:
+            ratios = size / origin_height, size / origin_height
+        else:
+            ratios = size / origin_width, size / origin_width
+    else:
+        ratios = size / origin_height, size / origin_width
+
     return ratios
 
 
@@ -36,8 +43,8 @@ def get_pad_size(
     """
     origin_height, origin_width, _ = origin_shape
     size = image.shape[3]
-    new_height = (origin_height * ratios).type(torch.int)
-    new_width = (origin_width * ratios).type(torch.int)
+    new_height = (origin_height * ratios[0]).type(torch.int)
+    new_width = (origin_width * ratios[1]).type(torch.int)
     height_pad = (size - new_height) / 2
     width_pad = (size - new_width) / 2
     return height_pad, width_pad
@@ -48,6 +55,7 @@ def scale_boxes(
     origin_shape: List[torch.Tensor],
     ratios: torch.Tensor,
     pads: Tuple[torch.Tensor, torch.Tensor],
+    use_padding: bool = True,
 ) -> torch.Tensor:
     """scaling boxes to origin shape.
 
@@ -60,9 +68,15 @@ def scale_boxes(
     Returns:
         np.ndarray: scaled boxes.
     """
-    boxes[:, [0, 2]] -= pads[1] - 0.1  # x padding
-    boxes[:, [1, 3]] -= pads[0] - 0.1  # y padding
-    boxes[:, :4] /= ratios
+    if use_padding:
+        boxes[:, [0, 2]] -= pads[1] - 0.1  # x padding
+        boxes[:, [1, 3]] -= pads[0] - 0.1  # y padding
+
+    boxes[:, 0] /= ratios[0]
+    boxes[:, 1] /= ratios[1]
+    boxes[:, 2] /= ratios[0]
+    boxes[:, 3] /= ratios[1]
+
     return clip_boxes(boxes, origin_shape)
 
 

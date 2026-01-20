@@ -194,8 +194,287 @@ class RegNetY800MF(ModelBase):
         return topk_postprocessing
 
 
-class RegNetX1_6GF(ModelBase):
-    info = ModelInfo(name="RegNetX1_6GF", dataset=DatasetType.imagenet, evaluation=EvaluationType.image_classification)
+class RegNetX_1_6GF(ModelBase):
+    info = ModelInfo(name="RegNetX_1_6GF", dataset=DatasetType.imagenet, evaluation=EvaluationType.image_classification)
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
+                CenterCrop(width=224, height=224),
+                ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+                Transpose(axis=[2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
+                CenterCrop(width=224, height=224),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return topk_postprocessing
+
+
+class RegNetX_1_6GF_3(ModelBase):
+    info = ModelInfo(name="RegNetX_1_6GF_3", dataset=DatasetType.imagenet, evaluation=EvaluationType.image_classification)
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
+                CenterCrop(width=224, height=224),
+                ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+                Transpose(axis=[2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
+                CenterCrop(width=224, height=224),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return topk_postprocessing
+
+
+class RegNetX_16GF(ModelBase):
+    info = ModelInfo(name="RegNetX_16GF", dataset=DatasetType.imagenet, evaluation=EvaluationType.image_classification)
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
+                CenterCrop(width=224, height=224),
+                ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+                Transpose(axis=[2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
+                CenterCrop(width=224, height=224),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return topk_postprocessing
+
+
+class RegNetX_3_2GF(ModelBase):
+    info = ModelInfo(name="RegNetX_3_2GF", dataset=DatasetType.imagenet, evaluation=EvaluationType.image_classification)
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
+                CenterCrop(width=224, height=224),
+                ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+                Transpose(axis=[2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
+                CenterCrop(width=224, height=224),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return topk_postprocessing
+
+
+class RegNetX_32GF(ModelBase):
+    info = ModelInfo(name="RegNetX_32GF", dataset=DatasetType.imagenet, evaluation=EvaluationType.image_classification)
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
+                CenterCrop(width=224, height=224),
+                ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+                Transpose(axis=[2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
+                CenterCrop(width=224, height=224),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return topk_postprocessing
+
+
+class RegNetX_8GF(ModelBase):
+    info = ModelInfo(name="RegNetX_8GF", dataset=DatasetType.imagenet, evaluation=EvaluationType.image_classification)
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
+                CenterCrop(width=224, height=224),
+                ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+                Transpose(axis=[2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
+                CenterCrop(width=224, height=224),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return topk_postprocessing
+
+
+class RegNetY_1_6GF(ModelBase):
+    info = ModelInfo(name="RegNetY_1_6GF", dataset=DatasetType.imagenet, evaluation=EvaluationType.image_classification)
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
+                CenterCrop(width=224, height=224),
+                ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+                Transpose(axis=[2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
+                CenterCrop(width=224, height=224),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return topk_postprocessing
+
+
+class RegNetY_16GF(ModelBase):
+    info = ModelInfo(name="RegNetY_16GF", dataset=DatasetType.imagenet, evaluation=EvaluationType.image_classification)
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=384, interpolation="BILINEAR"),
+                CenterCrop(width=384, height=384),
+                ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+                Transpose(axis=[2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=384, interpolation="BILINEAR"),
+                CenterCrop(width=384, height=384),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return topk_postprocessing
+
+
+class RegNetY_3_2GF(ModelBase):
+    info = ModelInfo(name="RegNetY_3_2GF", dataset=DatasetType.imagenet, evaluation=EvaluationType.image_classification)
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
+                CenterCrop(width=224, height=224),
+                ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+                Transpose(axis=[2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
+                CenterCrop(width=224, height=224),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return topk_postprocessing
+
+
+class RegNetY_8GF(ModelBase):
+    info = ModelInfo(name="RegNetY_8GF", dataset=DatasetType.imagenet, evaluation=EvaluationType.image_classification)
 
     def __init__(self, evaluator):
         super().__init__(evaluator)

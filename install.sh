@@ -211,6 +211,7 @@ install_dx_engine(){
     ### install dx_rt python package
     #### 2. Install dx_engine (dx_rt Python package)
     pushd ${DXRT_SRC_PATH}
+    ./install.sh --all
     ./build.sh --clean
     pip install ./python_package/.
     popd

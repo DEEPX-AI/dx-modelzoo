@@ -1,4 +1,4 @@
-# src/dx_modelzoo/models/object_dection/damoyolo.py
+# src/dx_modelzoo/models/object_detection/damoyolo.py
 
 import numpy as np
 import torch

@@ -61,6 +61,7 @@ def non_maximum_suppression(
     iou_thres: float = 0.6,
     max_output_boxes: int = 300,
     multi_label: bool = False,
+    cxcywh2xyxy_conversion: bool = True,
 ) -> torch.Tensor:
     """Perform Non-Maximum Suppression (NMS) to filter out redundant bounding boxes based on confidence scores and
     Intersection over Union (IoU).
@@ -99,7 +100,10 @@ def non_maximum_suppression(
         output = output[mask[batch]]
         confidence_scores = get_confidence_scores(output)
         filtered_output = filter_outputs_by_conf_score(output, confidence_scores, conf_thres, multi_label)
-        boxes = convert_cxcywh_2_xyxy(filtered_output[..., :4])
+        if cxcywh2xyxy_conversion:
+            boxes = convert_cxcywh_2_xyxy(filtered_output[..., :4])
+        else:
+            boxes = filtered_output[..., :4]
         scores = filtered_output[..., 4, None]
         class_indeices = filtered_output[..., 5, None]
 
@@ -134,7 +138,7 @@ def non_maximum_suppression2(
         outputs = torch.from_numpy(outputs[0])
 
     num_classes = outputs.shape[2] - 4
-    
+
     classes_score = outputs[..., 4:]
     max_scores, max_classes = classes_score.max(2)
     mask = max_scores > conf_thres
@@ -144,41 +148,40 @@ def non_maximum_suppression2(
         batch_mask = mask[batch]
         if not batch_mask.any():
             continue
-            
+
         boxes = output[batch_mask, :4]
         scores = max_scores[batch, batch_mask]
         class_indices = max_classes[batch, batch_mask]
-        
+
         if cxcywh2xyxy_conversion:
             boxes = convert_cxcywh_2_xyxy(boxes)
-        
+
         num_boxes = boxes.size(0)
         if num_boxes > MAX_NMS:
             topk_scores, topk_indices = scores.topk(MAX_NMS)
             boxes = boxes[topk_indices]
             scores = topk_scores
             class_indices = class_indices[topk_indices]
-        
-        nms_output_index = torchvision.ops.nms(
-            boxes + (class_indices.float().unsqueeze(1) * MAX_WH), 
-            scores, 
-            iou_thres
-        )
-        
+
+        nms_output_index = torchvision.ops.nms(boxes + (class_indices.float().unsqueeze(1) * MAX_WH), scores, iou_thres)
+
         if nms_output_index.size(0) > max_output_boxes:
             nms_output_index = nms_output_index[:max_output_boxes]
-        
-        processed_output = torch.stack([
-            boxes[nms_output_index, 0],
-            boxes[nms_output_index, 1],
-            boxes[nms_output_index, 2],
-            boxes[nms_output_index, 3],
-            scores[nms_output_index],
-            class_indices[nms_output_index].float()
-        ], dim=1)
-        
+
+        processed_output = torch.stack(
+            [
+                boxes[nms_output_index, 0],
+                boxes[nms_output_index, 1],
+                boxes[nms_output_index, 2],
+                boxes[nms_output_index, 3],
+                scores[nms_output_index],
+                class_indices[nms_output_index].float(),
+            ],
+            dim=1,
+        )
+
         nms_outputs.append(processed_output)
-    
+
     if not nms_outputs:
         return torch.empty((0, 6))
     return torch.cat(nms_outputs, dim=0)
@@ -308,16 +311,16 @@ def non_maximum_suppression_for_pose(
     num_classes: int | None = None,
     agnostic: bool = False,
 ) -> torch.Tensor:
-    '''
+    """
     Work-around NMS function for YOLOv8 pose models.
     Original function is not sutable because of num classes value.
-    '''
+    """
 
     if not isinstance(outputs, torch.Tensor):
         outputs = torch.from_numpy(outputs[0])
 
     score_index = 1 if num_classes is None or num_classes == 0 else num_classes
-    conf_score = outputs[..., 4:4 + score_index].amax(2)
+    conf_score = outputs[..., 4 : 4 + score_index].amax(2)
     mask = conf_score > conf_thres
     extra = outputs.shape[-1] - 4 - score_index
 
@@ -345,18 +348,18 @@ def non_maximum_suppression_for_pose(
         boxes = filtered_output[..., :4]
         scores = filtered_output[..., 4, None]
         class_indices = filtered_output[..., 5, None]
-        
+
         # Convert cxcywh to xyxy format BEFORE NMS
         boxes_xyxy = convert_cxcywh_2_xyxy(boxes)
-        
+
         # Batched NMS (Ultralytics logic)
         # Apply class offset for NMS (0 if agnostic, else class * MAX_WH)
         c = class_indices * (0 if agnostic else MAX_WH)
         boxes_for_nms = boxes_xyxy + c
-        
+
         # Apply NMS
         nms_output_index = torchvision.ops.nms(boxes_for_nms, scores[..., 0], iou_thres)
-        
+
         # Limit detections to max_output_boxes
         num_nms_outputs = nms_output_index.size(0)
         if num_nms_outputs > max_output_boxes:
@@ -367,7 +370,7 @@ def non_maximum_suppression_for_pose(
         final_output = torch.cat([boxes_xyxy, scores, class_indices], dim=1)
         if filtered_output.shape[1] > 6:  # If we have extras
             final_output = torch.cat([final_output, filtered_output[:, 6:]], dim=1)
-        
+
         processed_output = final_output[nms_output_index]
         nms_outputs.append(processed_output)
 

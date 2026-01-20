@@ -11,83 +11,9 @@ from dx_modelzoo.preprocessing.resize import Resize
 from dx_modelzoo.preprocessing.transpose import Transpose
 
 
-class RepVGGA1(ModelBase):
+class MnasNet0_5(ModelBase):
     info = ModelInfo(
-        name="RepVGGA1",
-        dataset=DatasetType.imagenet,
-        evaluation=EvaluationType.image_classification,
-        raw_performance="74.09 91.71",
-        q_lite_performance="62.88 84.79",
-    )
-
-    def __init__(self, evaluator):
-        super().__init__(evaluator)
-
-    def preprocessing(self):
-        return Compose(
-            [
-                Resize(mode="torchvision", size=320, interpolation="BILINEAR"),
-                CenterCrop(320, 320),
-                ConvertColor("BGR2RGB"),
-                Div(255),
-                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-                Transpose([2, 0, 1]),
-            ]
-        )
-
-    def npu_preprocessing(self):
-        return Compose(
-            [
-                Resize(mode="torchvision", size=320, interpolation="BILINEAR"),
-                CenterCrop(320, 320),
-                ConvertColor("BGR2RGB"),
-            ]
-        )
-
-    def postprocessing(self):
-        return topk_postprocessing
-
-
-class RepVGGA2(ModelBase):
-    info = ModelInfo(
-        name="RepVGGA2",
-        dataset=DatasetType.imagenet,
-        evaluation=EvaluationType.image_classification,
-        raw_performance="76.48, ?",  # from Paper table
-        q_lite_performance="55.89, 80.26",
-    )
-
-    def __init__(self, evaluator):
-        super().__init__(evaluator)
-
-    def preprocessing(self):
-        return Compose(
-            [
-                Resize(mode="torchvision", size=320, interpolation="BILINEAR"),
-                CenterCrop(320, 320),
-                ConvertColor("BGR2RGB"),
-                Div(255),
-                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-                Transpose([2, 0, 1]),
-            ]
-        )
-
-    def npu_preprocessing(self):
-        return Compose(
-            [
-                Resize(mode="torchvision", size=320, interpolation="BILINEAR"),
-                CenterCrop(320, 320),
-                ConvertColor("BGR2RGB"),
-            ]
-        )
-
-    def postprocessing(self):
-        return topk_postprocessing
-
-
-class RepVGGA0(ModelBase):
-    info = ModelInfo(
-        name="RepVGGA0",
+        name="MnasNet0_5",
         dataset=DatasetType.imagenet,
         evaluation=EvaluationType.image_classification,
         raw_performance="",
@@ -100,8 +26,8 @@ class RepVGGA0(ModelBase):
     def preprocessing(self):
         return Compose(
             [
-                Resize(mode="torchvision", size=320, interpolation="BILINEAR"),
-                CenterCrop(320, 320),
+                Resize(mode="torchvision", size=256, interpolation="BILINEAR"),
+                CenterCrop(height=224, width=224),
                 ConvertColor("BGR2RGB"),
                 Div(255),
                 Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
@@ -112,8 +38,8 @@ class RepVGGA0(ModelBase):
     def npu_preprocessing(self):
         return Compose(
             [
-                Resize(mode="torchvision", size=320, interpolation="BILINEAR"),
-                CenterCrop(320, 320),
+                Resize(mode="torchvision", size=256, interpolation="BILINEAR"),
+                CenterCrop(height=224, width=224),
                 ConvertColor("BGR2RGB"),
             ]
         )
@@ -122,9 +48,9 @@ class RepVGGA0(ModelBase):
         return topk_postprocessing
 
 
-class RepVGGB0(ModelBase):
+class MnasNet0_75(ModelBase):
     info = ModelInfo(
-        name="RepVGGB0",
+        name="MnasNet0_75",
         dataset=DatasetType.imagenet,
         evaluation=EvaluationType.image_classification,
         raw_performance="",
@@ -137,8 +63,8 @@ class RepVGGB0(ModelBase):
     def preprocessing(self):
         return Compose(
             [
-                Resize(mode="torchvision", size=320, interpolation="BILINEAR"),
-                CenterCrop(320, 320),
+                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
+                CenterCrop(height=224, width=224),
                 ConvertColor("BGR2RGB"),
                 Div(255),
                 Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
@@ -149,8 +75,8 @@ class RepVGGB0(ModelBase):
     def npu_preprocessing(self):
         return Compose(
             [
-                Resize(mode="torchvision", size=320, interpolation="BILINEAR"),
-                CenterCrop(320, 320),
+                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
+                CenterCrop(height=224, width=224),
                 ConvertColor("BGR2RGB"),
             ]
         )
@@ -159,9 +85,9 @@ class RepVGGB0(ModelBase):
         return topk_postprocessing
 
 
-class RepVGGB1(ModelBase):
+class MnasNet1_0(ModelBase):
     info = ModelInfo(
-        name="RepVGGB1",
+        name="MnasNet1_0",
         dataset=DatasetType.imagenet,
         evaluation=EvaluationType.image_classification,
         raw_performance="",
@@ -174,8 +100,8 @@ class RepVGGB1(ModelBase):
     def preprocessing(self):
         return Compose(
             [
-                Resize(mode="torchvision", size=320, interpolation="BILINEAR"),
-                CenterCrop(320, 320),
+                Resize(mode="torchvision", size=256, interpolation="BILINEAR"),
+                CenterCrop(height=224, width=224),
                 ConvertColor("BGR2RGB"),
                 Div(255),
                 Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
@@ -186,13 +112,51 @@ class RepVGGB1(ModelBase):
     def npu_preprocessing(self):
         return Compose(
             [
-                Resize(mode="torchvision", size=320, interpolation="BILINEAR"),
-                CenterCrop(320, 320),
+                Resize(mode="torchvision", size=256, interpolation="BILINEAR"),
+                CenterCrop(height=224, width=224),
                 ConvertColor("BGR2RGB"),
             ]
         )
 
     def postprocessing(self):
         return topk_postprocessing
+
+
+class MnasNet1_3(ModelBase):
+    info = ModelInfo(
+        name="MnasNet1_3",
+        dataset=DatasetType.imagenet,
+        evaluation=EvaluationType.image_classification,
+        raw_performance="",
+        q_lite_performance="",
+    )
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
+                CenterCrop(height=224, width=224),
+                ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
+                CenterCrop(height=224, width=224),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return topk_postprocessing
+
 
 

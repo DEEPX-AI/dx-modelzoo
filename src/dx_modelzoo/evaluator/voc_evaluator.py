@@ -1,3 +1,5 @@
+import queue
+import threading
 import time
 from collections import deque
 from typing import Tuple
@@ -8,6 +10,7 @@ from loguru import logger
 from tqdm import tqdm
 
 from dx_modelzoo.dataset import DatasetBase
+from dx_modelzoo.enums import SessionType
 from dx_modelzoo.evaluator import EvaluatorBase
 from dx_modelzoo.session import SessionBase
 from dx_modelzoo.utils.detection import calculate_iou
@@ -25,25 +28,30 @@ class VOC2007DetectionEvaluator(EvaluatorBase):
         super().__init__(session, dataset)
 
     def eval(self):
+        # Use async evaluation for DX runtime
+        if self.session.type == SessionType.dxruntime:
+            return self._eval_async()
+
         loader = self.make_loader()
         total_len = len(loader)
         results = []
         img_count = 0
-        
+
         total_inference_time = 0.0
         recent_inference_times = deque(maxlen=50)  # total
-        
+
         pbar = tqdm(loader, total=total_len)
         for images, origin_shape in pbar:
-            
-            start_time = time.time() 
+
+            start_time = time.time()
             output = self.session.run(images)
             inference_time = time.time() - start_time
-            
-            recent_inference_times.append(inference_time)  
+
+            recent_inference_times.append(inference_time)
             total_inference_time += inference_time
-            
-            # # Note: Temporary workaround for the mismatch in output tensor order between the original ONNX model and DXNN.
+
+            # # Note: Temporary workaround for the mismatch in output tensor order between the original ONNX model
+            # and DXNN.
             # #       The _wrapper function will be removed once the issue is properly fixed.
             # batched_boxes, batched_scores, batched_classes = self.postprocessing(output, session=self.session)
             batched_boxes, batched_scores, batched_classes = self.postprocessing(output)
@@ -61,15 +69,13 @@ class VOC2007DetectionEvaluator(EvaluatorBase):
                 )
                 results.append(result)
                 img_count += 1
-            
+
             if len(recent_inference_times) > 0:
                 current_fps = len(recent_inference_times) / sum(recent_inference_times)
             else:
                 current_fps = 0.0
 
-            pbar.desc = (
-                f"VOC | Cuurent_FPS:{current_fps:.1f}"
-            )
+            pbar.desc = f"VOC | Current_FPS:{current_fps:.1f}"
         results = torch.cat(results)
         avg_fps = total_len / total_inference_time if total_inference_time > 0 else 0.0
 
@@ -79,10 +85,130 @@ class VOC2007DetectionEvaluator(EvaluatorBase):
         logger.success(f"@JSON <mAP@0.5:{round(map50*100, 3)}; Average FPS:{avg_fps:.2f}>")
 
         return {
-            "performance": [map50*100], 
+            "performance": [map50 * 100],
             "fps": avg_fps,
         }
-        
+
+    def _eval_async(self):
+        """Async evaluation for DX runtime using run_async/wait pattern."""
+        loader = self.make_loader()
+        total_len = len(loader)
+
+        # Shared state with lock
+        lock = threading.Lock()
+        results = []
+        img_count = [0]  # Use list for mutability in closure
+        worker_error = None
+
+        # Queue for pending jobs: (job_id, origin_shape, batch_img_count)
+        pending_queue = queue.Queue(maxsize=32)
+        done_event = threading.Event()
+
+        # Wall-clock time measurement
+        wall_start_time = time.time()
+
+        pbar = tqdm(total=total_len, desc="VOC")
+
+        def result_worker():
+            """Worker thread that collects results."""
+            nonlocal worker_error
+
+            while True:
+                try:
+                    item = pending_queue.get(timeout=0.1)
+                except queue.Empty:
+                    if done_event.is_set():
+                        break
+                    continue
+
+                if item is None:  # Sentinel
+                    break
+
+                job_id, origin_shape, batch_img_start = item
+
+                try:
+                    # Wait for NPU result
+                    output = self.session.wait(job_id)
+
+                    # Postprocessing
+                    batched_boxes, batched_scores, batched_classes = self.postprocessing(output)
+
+                    batch_results = []
+                    local_img_count = batch_img_start
+                    for boxes, scores, classes in zip(batched_boxes, batched_scores, batched_classes):
+                        scaled_boxes = self._scale_boxes(boxes, origin_shape)
+                        data_id = torch.zeros_like(classes, dtype=torch.float32) + local_img_count
+                        result = torch.cat(
+                            [
+                                data_id.reshape(-1, 1),
+                                classes.reshape(-1, 1).float(),
+                                scores.reshape(-1, 1),
+                                scaled_boxes,
+                            ],
+                            dim=1,
+                        )
+                        batch_results.append(result)
+                        local_img_count += 1
+
+                    with lock:
+                        results.extend(batch_results)
+
+                        # Wall-clock based FPS
+                        elapsed = time.time() - wall_start_time
+                        processed_count = pbar.n + 1
+                        current_fps = processed_count / elapsed if elapsed > 0 else 0.0
+
+                        pbar.set_description(f"VOC | Current_FPS:{current_fps:.1f}")
+                        pbar.update(1)
+
+                except Exception as e:
+                    with lock:
+                        worker_error = e
+                    break
+
+        # Start worker thread
+        worker_thread = threading.Thread(target=result_worker, daemon=True)
+        worker_thread.start()
+
+        try:
+            # Main thread: submit jobs
+            for images, origin_shape in loader:
+                with lock:
+                    if worker_error is not None:
+                        raise worker_error
+
+                batch_img_start = img_count[0]
+                img_count[0] += images.size(0)
+
+                job_id = self.session.run_async(images)
+
+                pending_queue.put((job_id, origin_shape, batch_img_start))
+
+            # Signal completion and wait for worker
+            done_event.set()
+            pending_queue.put(None)  # Sentinel
+            worker_thread.join()
+
+            if worker_error is not None:
+                raise worker_error
+
+        finally:
+            pbar.close()
+
+        results = torch.cat(results)
+        total_wall_time = time.time() - wall_start_time
+        avg_fps = total_len / total_wall_time if total_wall_time > 0 else 0.0
+
+        map50 = self.calculate_mAP50(results)
+        print(f"mAP@0.5: {round(map50*100, 3)}")
+        print(f"Average FPS: {avg_fps:.2f}")
+        logger.success(f"@JSON <mAP@0.5:{round(map50*100, 3)}; Average FPS:{avg_fps:.2f}>")
+
+        return {
+            "performance": [map50 * 100],
+            "fps": avg_fps,
+        }
+
     def _scale_boxes(self, boxes: torch.Tensor, origin_shape: Tuple[torch.Tensor, torch.Tensor]) -> torch.Tensor:
         height, width, _ = origin_shape
         sclaed_boxes = boxes.clone()

@@ -296,3 +296,46 @@ class DeepLabV3PlusMobileNetV2(ModelBase):
 
     def postprocessing(self):
         return deeplab_postprocessing
+
+
+DEEP_LAB_V3_LABEL_PREPROCESSING_2 = Compose(
+    [Resize(mode="torchvision", size=513, interpolation="NEAREST"), CenterCrop(513, 513)]
+)
+
+
+class DeepLabV3MobileNetV2_Sim(ModelBase):
+    info = ModelInfo(
+        name="DeepLabV3MobileNetV2_Sim",
+        dataset=DatasetType.voc_seg,
+        evaluation=EvaluationType.segmentation,
+        raw_performance="",
+    )
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+        self.evaluator.dataset.label_preprocessing = self.label_preprocessing()
+
+    def preprocessing(self):
+        return Compose(
+            [
+                ConvertColor("BGR2RGB"),
+                Resize(mode="torchvision", size=513, interpolation="NEAREST"),
+                CenterCrop(513, 513),
+                Div(255),
+                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                ConvertColor("BGR2RGB"),
+                Resize(mode="torchvision", size=513, interpolation="BILINEAR"),
+            ]
+        )
+
+    def label_preprocessing(self):
+        return DEEP_LAB_V3_LABEL_PREPROCESSING_2
+
+    def postprocessing(self):
+        return deeplab_postprocessing

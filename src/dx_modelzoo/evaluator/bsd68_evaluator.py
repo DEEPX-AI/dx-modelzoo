@@ -1,4 +1,6 @@
 import math
+import queue
+import threading
 import time
 from collections import deque
 from typing import List, Tuple
@@ -21,11 +23,13 @@ class BSD68Evaluator(EvaluatorBase):
         dataset: COCO dataset.
     """
 
-    def __init__(self, session, dataset):
+    def __init__(self, session, dataset, async_queue_size: int = 32):
         super().__init__(session, dataset)
 
         self._noise_level = None
         self._input_size = None
+        self.async_queue_size = async_queue_size
+        self._use_async = session.type == SessionType.dxruntime
 
     @property
     def nosie_level(self) -> int:
@@ -48,16 +52,23 @@ class BSD68Evaluator(EvaluatorBase):
         self._input_size = input_size
 
     def eval(self):
+        if self._use_async:
+            logger.info(f"Using async evaluation with queue_size={self.async_queue_size}")
+            return self._eval_async()
+        return self._eval_sync()
+
+    def _eval_sync(self):
+        """Synchronous evaluation (original behavior)."""
         loader = self.make_loader()
         total_len = len(loader)
         np.random.seed(seed=0)
 
         psnr_list = []
         ssim_list = []
-        
-        recent_inference_times = deque(maxlen=5)  #total : 68
+
+        recent_inference_times = deque(maxlen=5)  # total : 68
         total_inference_time = 0.0
-        
+
         pbar = tqdm(loader, total=total_len)
         for inp_image, origin_image in pbar:
             img_shape = inp_image.shape
@@ -67,10 +78,10 @@ class BSD68Evaluator(EvaluatorBase):
             start_time = time.time()
             outputs = self.session.run(inp_image)
             inference_time = time.time() - start_time
-            
-            recent_inference_times.append(inference_time)     
+
+            recent_inference_times.append(inference_time)
             total_inference_time += inference_time
-            
+
             outputs = self.postprocessing(outputs)
 
             _, _, h, w = img_shape
@@ -88,26 +99,116 @@ class BSD68Evaluator(EvaluatorBase):
                 current_fps = len(recent_inference_times) / sum(recent_inference_times)
             else:
                 current_fps = 0.0
-                
-            pbar.desc = (
-                f"BSD68 | Current_FPS:{current_fps:.1f}"
-            )
 
-         # Calculate final metrics
+            pbar.desc = f"BSD68 | Current_FPS:{current_fps:.1f}"
+
+        return self._finalize_results(psnr_list, ssim_list, total_len, total_inference_time)
+
+    def _eval_async(self):
+        """Asynchronous evaluation for NPU session using native async API."""
+        loader = self.make_loader()
+        total_len = len(loader)
+        np.random.seed(seed=0)  # Must be set before perturb_image calls
+
+        # Thread-safe state
+        job_queue: queue.Queue = queue.Queue(maxsize=self.async_queue_size)
+        result_lock = threading.Lock()
+
+        psnr_list = []
+        ssim_list = []
+        processed_count = 0
+        worker_done = threading.Event()
+
+        wall_start_time = time.time()
+        pbar = tqdm(total=total_len)
+
+        def worker_thread():
+            """Worker thread: wait for jobs and process results."""
+            nonlocal processed_count
+
+            while True:
+                try:
+                    item = job_queue.get(timeout=1.0)
+                except queue.Empty:
+                    if worker_done.is_set() and job_queue.empty():
+                        break
+                    continue
+
+                if item is None:  # Poison pill
+                    break
+
+                job_id, origin_image, img_shape = item
+
+                # Wait for NPU to complete
+                outputs = self.session.wait(job_id)
+
+                # Postprocessing
+                outputs = self.postprocessing(outputs)
+
+                _, _, h, w = img_shape
+                outputs = np.squeeze(outputs)
+                outputs = np.uint8((outputs * 255.0).clip(0, 255).round())
+                outputs = outputs[:h, :w]
+
+                origin_np = np.squeeze(origin_image.cpu().detach().numpy())
+                origin_np = cv2.cvtColor(origin_np, cv2.COLOR_BGR2GRAY)
+
+                psnr = self.calculate_psnr(origin_np, outputs)
+                ssim = self.calculate_ssim(origin_np, outputs)
+
+                with result_lock:
+                    psnr_list.append(psnr)
+                    ssim_list.append(ssim)
+                    processed_count += 1
+
+                    elapsed = time.time() - wall_start_time
+                    current_fps = processed_count / elapsed if elapsed > 0 else 0.0
+
+                    pbar.desc = f"BSD68 | Current_FPS:{current_fps:.1f}"
+                    pbar.update(1)
+
+                job_queue.task_done()
+
+        # Start worker thread
+        worker = threading.Thread(target=worker_thread, daemon=True)
+        worker.start()
+
+        # Main thread: perturb images in order and submit async jobs
+        for inp_image, origin_image in loader:
+            img_shape = inp_image.shape
+            inp_image = self.perturb_image(inp_image)  # Must be in order for reproducibility
+            inp_image = self.padding(inp_image, img_shape)
+
+            job_id = self.session.run_async(inp_image)
+            job_queue.put((job_id, origin_image, img_shape))
+
+        # Signal completion and wait for worker
+        worker_done.set()
+        job_queue.put(None)
+        worker.join()
+
+        pbar.close()
+
+        total_inference_time = time.time() - wall_start_time
+        return self._finalize_results(psnr_list, ssim_list, total_len, total_inference_time)
+
+    def _finalize_results(
+        self, psnr_list: List[float], ssim_list: List[float], total_len: int, total_time: float
+    ) -> dict:
+        """Calculate and log final metrics."""
         avg_psnr = sum(psnr_list) / len(psnr_list)
         avg_ssim = sum(ssim_list) / len(ssim_list)
-        avg_fps = total_len / total_inference_time if total_inference_time > 0 else 0
-        
+        avg_fps = total_len / total_time if total_time > 0 else 0
+
         print(f"Noise Level: {self.noise_level}")
         print(f"Average PSNR, Average SSIM: {avg_psnr:.4f}, {avg_ssim:.4f}")
-        print(f"Average FPS: {avg_fps:.2f}")      
+        print(f"Average FPS: {avg_fps:.2f}")
         logger.success(f"@JSON <Average PSNR:{avg_psnr:.4f}; Average SSIM:{avg_ssim:.4f}; Average FPS:{avg_fps:.2f}>")
 
         return {
-            "performance": [avg_psnr, avg_ssim], 
+            "performance": [avg_psnr, avg_ssim],
             "fps": avg_fps,
         }
-        
 
     def perturb_image(self, img: torch.Tensor) -> torch.Tensor:
         """make input noisy image."""

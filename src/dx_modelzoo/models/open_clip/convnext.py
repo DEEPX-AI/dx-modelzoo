@@ -2,7 +2,6 @@ from torchvision.transforms import Compose
 
 from dx_modelzoo.enums import DatasetType, EvaluationType
 from dx_modelzoo.models import ModelBase, ModelInfo
-from dx_modelzoo.models.image_classification import topk_postprocessing
 from dx_modelzoo.preprocessing.centercrop import CenterCrop
 from dx_modelzoo.preprocessing.convertcolor import ConvertColor
 from dx_modelzoo.preprocessing.div import Div
@@ -11,13 +10,11 @@ from dx_modelzoo.preprocessing.resize import Resize
 from dx_modelzoo.preprocessing.transpose import Transpose
 
 
-class ResNeXt26_32x4d(ModelBase):
+class ConvNextBase_w_laion2b_s13b_b82k_augreg(ModelBase):
     info = ModelInfo(
-        name="ResNetXt26_32x4d",
+        name="ConvNextBase_w_laion2b_s13b_b82k_augreg",
         dataset=DatasetType.imagenet,
-        evaluation=EvaluationType.image_classification,
-        raw_performance="75.85 92.54",
-        q_lite_performance="75.68 92.50",
+        evaluation=EvaluationType.zeroshot_classification,
     )
 
     def __init__(self, evaluator):
@@ -26,47 +23,11 @@ class ResNeXt26_32x4d(ModelBase):
     def preprocessing(self):
         return Compose(
             [
-                Resize(mode="torchvision", size=256, interpolation="BILINEAR"),
-                CenterCrop(224, 224),
-                ConvertColor("BGR2RGB"),
-                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-                Transpose([2, 0, 1]),
-            ]
-        )
-
-    def npu_preprocessing(self):
-        return Compose(
-            [
-                Resize(mode="torchvision", size=256, interpolation="BILINEAR"),
-                CenterCrop(224, 224),
-                ConvertColor("BGR2RGB"),
-            ]
-        )
-
-    def postprocessing(self):
-        return topk_postprocessing
-
-
-class ResNeXt50_32x4d(ModelBase):
-    info = ModelInfo(
-        name="ResNeXt50_32x4d",
-        dataset=DatasetType.imagenet,
-        evaluation=EvaluationType.image_classification,
-        raw_performance="81.19 95.35",
-        q_lite_performance="80.95 95.30",
-    )
-
-    def __init__(self, evaluator):
-        super().__init__(evaluator)
-
-    def preprocessing(self):
-        return Compose(
-            [
-                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
-                CenterCrop(224, 224),
+                Resize(width=256, height=256),
+                CenterCrop(height=256, width=256),
                 ConvertColor("BGR2RGB"),
                 Div(255),
-                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                Normalize([0.48145466, 0.4578275, 0.40821073], [0.26862954, 0.26130258, 0.27577711]),
                 Transpose([2, 0, 1]),
             ]
         )
@@ -74,23 +35,24 @@ class ResNeXt50_32x4d(ModelBase):
     def npu_preprocessing(self):
         return Compose(
             [
-                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
-                CenterCrop(224, 224),
+                Resize(width=256, height=256),
+                CenterCrop(height=256, width=256),
                 ConvertColor("BGR2RGB"),
             ]
         )
 
     def postprocessing(self):
-        return topk_postprocessing
+        def open_clip_postprocessing(output):
+            return output[0]
+
+        return open_clip_postprocessing
 
 
-class ResNeXt101_32x8d(ModelBase):
+class ConvNextBase_w_320_laion_aesthetic_s13b_b82k(ModelBase):
     info = ModelInfo(
-        name="ResNeXt101_32x8d",
+        name="ConvNextBase_w_320_laion_aesthetic_s13b_b82k",
         dataset=DatasetType.imagenet,
-        evaluation=EvaluationType.image_classification,
-        raw_performance="",
-        q_lite_performance="",
+        evaluation=EvaluationType.zeroshot_classification,
     )
 
     def __init__(self, evaluator):
@@ -99,11 +61,11 @@ class ResNeXt101_32x8d(ModelBase):
     def preprocessing(self):
         return Compose(
             [
-                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
-                CenterCrop(224, 224),
+                Resize(width=320, height=320),
+                CenterCrop(height=320, width=320),
                 ConvertColor("BGR2RGB"),
                 Div(255),
-                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                Normalize([0.48145466, 0.4578275, 0.40821073], [0.26862954, 0.26130258, 0.27577711]),
                 Transpose([2, 0, 1]),
             ]
         )
@@ -111,23 +73,24 @@ class ResNeXt101_32x8d(ModelBase):
     def npu_preprocessing(self):
         return Compose(
             [
-                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
-                CenterCrop(224, 224),
+                Resize(width=320, height=320),
+                CenterCrop(height=320, width=320),
                 ConvertColor("BGR2RGB"),
             ]
         )
 
     def postprocessing(self):
-        return topk_postprocessing
+        def open_clip_postprocessing(output):
+            return output[0]
+
+        return open_clip_postprocessing
 
 
-class ResNeXt101_64x4d(ModelBase):
+class ConvNextLarge_d_laion2b_s26b_b102k_augreg(ModelBase):
     info = ModelInfo(
-        name="ResNeXt101_64x4d",
+        name="ConvNextLarge_d_laion2b_s26b_b102k_augreg",
         dataset=DatasetType.imagenet,
-        evaluation=EvaluationType.image_classification,
-        raw_performance="",
-        q_lite_performance="",
+        evaluation=EvaluationType.zeroshot_classification,
     )
 
     def __init__(self, evaluator):
@@ -136,11 +99,11 @@ class ResNeXt101_64x4d(ModelBase):
     def preprocessing(self):
         return Compose(
             [
-                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
-                CenterCrop(224, 224),
+                Resize(width=256, height=256),
+                CenterCrop(height=256, width=256),
                 ConvertColor("BGR2RGB"),
                 Div(255),
-                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                Normalize([0.48145466, 0.4578275, 0.40821073], [0.26862954, 0.26130258, 0.27577711]),
                 Transpose([2, 0, 1]),
             ]
         )
@@ -148,12 +111,52 @@ class ResNeXt101_64x4d(ModelBase):
     def npu_preprocessing(self):
         return Compose(
             [
-                Resize(mode="torchvision", size=232, interpolation="BILINEAR"),
-                CenterCrop(224, 224),
+                Resize(width=256, height=256),
+                CenterCrop(height=256, width=256),
                 ConvertColor("BGR2RGB"),
             ]
         )
 
     def postprocessing(self):
-        return topk_postprocessing
+        def open_clip_postprocessing(output):
+            return output[0]
 
+        return open_clip_postprocessing
+
+
+class ConvNextLarge_w_320_laion2b_s29b_b131k_ft_soup(ModelBase):
+    info = ModelInfo(
+        name="ConvNextLarge_w_320_laion2b_s29b_b131k_ft_soup",
+        dataset=DatasetType.imagenet,
+        evaluation=EvaluationType.zeroshot_classification,
+    )
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(width=320, height=320),
+                CenterCrop(height=320, width=320),
+                ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize([0.48145466, 0.4578275, 0.40821073], [0.26862954, 0.26130258, 0.27577711]),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(width=320, height=320),
+                CenterCrop(height=320, width=320),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        def open_clip_postprocessing(output):
+            return output[0]
+
+        return open_clip_postprocessing

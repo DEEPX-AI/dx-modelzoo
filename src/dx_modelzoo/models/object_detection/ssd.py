@@ -2,9 +2,9 @@ from torchvision.transforms import Compose
 
 from dx_modelzoo.enums import DatasetType, EvaluationType
 from dx_modelzoo.models import ModelBase, ModelInfo
-from dx_modelzoo.models.object_dection.nms import ssd_nms
-# from dx_modelzoo.models.object_dection.nms import ssd_nms_wrapper
-from dx_modelzoo.models.object_dection.nms import ssd_nms_wrapper
+
+# from dx_modelzoo.models.object_detection.nms import ssd_nms_wrapper
+from dx_modelzoo.models.object_detection.nms import ssd_nms, ssd_nms_wrapper
 from dx_modelzoo.preprocessing.convertcolor import ConvertColor
 from dx_modelzoo.preprocessing.normalize import Normalize
 from dx_modelzoo.preprocessing.resize import Resize

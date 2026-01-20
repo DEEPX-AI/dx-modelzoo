@@ -6,24 +6,15 @@ from dx_modelzoo.models.image_classification import topk_postprocessing
 from dx_modelzoo.preprocessing.centercrop import CenterCrop
 from dx_modelzoo.preprocessing.convertcolor import ConvertColor
 from dx_modelzoo.preprocessing.div import Div
-from dx_modelzoo.preprocessing.normalize import Normalize
 from dx_modelzoo.preprocessing.resize import Resize
 from dx_modelzoo.preprocessing.transpose import Transpose
 
 
-def postprocess_inceptionv1(outputs):
-    outputs = outputs[0][:, 1:]
-
-    return topk_postprocessing([outputs])
-
-
-class InceptionV1(ModelBase):
+class MobileViT_Small(ModelBase):
     info = ModelInfo(
-        name="InceptionV1",
+        name="MobileViT_Small",
         dataset=DatasetType.imagenet,
         evaluation=EvaluationType.image_classification,
-        raw_performance="",
-        q_lite_performance="",
     )
 
     def __init__(self, evaluator):
@@ -32,11 +23,10 @@ class InceptionV1(ModelBase):
     def preprocessing(self):
         return Compose(
             [
-                Resize(mode="torchvision", size=256, interpolation="BILINEAR"),
-                CenterCrop(height=224, width=224),
+                Resize(mode="torchvision", size=288, interpolation="BICUBIC"),
+                CenterCrop(256, 256),
                 ConvertColor("BGR2RGB"),
                 Div(255),
-                Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5]),
                 Transpose([2, 0, 1]),
             ]
         )
@@ -44,44 +34,8 @@ class InceptionV1(ModelBase):
     def npu_preprocessing(self):
         return Compose(
             [
-                Resize(mode="torchvision", size=256, interpolation="BILINEAR"),
-                CenterCrop(height=224, width=224),
-                ConvertColor("BGR2RGB"),
-            ]
-        )
-
-    def postprocessing(self):
-        return postprocess_inceptionv1
-
-class InceptionV3(ModelBase):
-    info = ModelInfo(
-        name="InceptionV3",
-        dataset=DatasetType.imagenet,
-        evaluation=EvaluationType.image_classification,
-        raw_performance="",
-        q_lite_performance="",
-    )
-
-    def __init__(self, evaluator):
-        super().__init__(evaluator)
-
-    def preprocessing(self):
-        return Compose(
-            [
-                Resize(mode="torchvision", size=342, interpolation="BILINEAR"),
-                CenterCrop(height=299, width=299),
-                ConvertColor("BGR2RGB"),
-                Div(255),
-                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-                Transpose([2, 0, 1]),
-            ]
-        )
-
-    def npu_preprocessing(self):
-        return Compose(
-            [
-                Resize(mode="torchvision", size=342, interpolation="BILINEAR"),
-                CenterCrop(height=299, width=299),
+                Resize(mode="torchvision", size=288, interpolation="BICUBIC"),
+                CenterCrop(256, 256),
                 ConvertColor("BGR2RGB"),
             ]
         )
@@ -89,3 +43,70 @@ class InceptionV3(ModelBase):
     def postprocessing(self):
         return topk_postprocessing
 
+
+class MobileViT_X_Small(ModelBase):
+    info = ModelInfo(
+        name="MobileViT_X_Small",
+        dataset=DatasetType.imagenet,
+        evaluation=EvaluationType.image_classification,
+    )
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=288, interpolation="BICUBIC"),
+                CenterCrop(256, 256),
+                ConvertColor("BGR2RGB"),
+                Div(255),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=288, interpolation="BICUBIC"),
+                CenterCrop(256, 256),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return topk_postprocessing
+
+
+class MobileViT_XX_Small(ModelBase):
+    info = ModelInfo(
+        name="MobileViT_XX_Small",
+        dataset=DatasetType.imagenet,
+        evaluation=EvaluationType.image_classification,
+    )
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=288, interpolation="BICUBIC"),
+                CenterCrop(256, 256),
+                ConvertColor("BGR2RGB"),
+                Div(255),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=288, interpolation="BICUBIC"),
+                CenterCrop(256, 256),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return topk_postprocessing

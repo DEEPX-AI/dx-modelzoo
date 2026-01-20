@@ -11,6 +11,49 @@ from dx_modelzoo.preprocessing.resize import Resize
 from dx_modelzoo.preprocessing.transpose import Transpose
 
 
+def postprocess_tpu(outputs):
+    outputs = outputs[0][:, 1:]
+
+    return topk_postprocessing([outputs])
+
+
+class EfficientNetB1(ModelBase):
+    info = ModelInfo(
+        name="EfficientNetB1",
+        dataset=DatasetType.imagenet,
+        evaluation=EvaluationType.image_classification,
+        raw_performance="",
+        q_lite_performance="",
+    )
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=256, interpolation="BICUBIC"),
+                CenterCrop(240, 240),
+                ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=256, interpolation="BICUBIC"),
+                CenterCrop(240, 240),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return topk_postprocessing
+
+
 class EfficientNetB2(ModelBase):
     info = ModelInfo(
         name="EfficientNetB2",
@@ -77,6 +120,80 @@ class EfficientNetV2S(ModelBase):
             [
                 Resize(mode="torchvision", size=384, interpolation="BILINEAR"),
                 CenterCrop(384, 384),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return topk_postprocessing
+
+
+class EfficientNetV2M(ModelBase):
+    info = ModelInfo(
+        name="EfficientNetV2M",
+        dataset=DatasetType.imagenet,
+        evaluation=EvaluationType.image_classification,
+        raw_performance="",
+        q_lite_performance="",
+    )
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=480, interpolation="BILINEAR"),
+                CenterCrop(480, 480),
+                ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=480, interpolation="BILINEAR"),
+                CenterCrop(480, 480),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return topk_postprocessing
+
+
+class EfficientNetV2L(ModelBase):
+    info = ModelInfo(
+        name="EfficientNetV2L",
+        dataset=DatasetType.imagenet,
+        evaluation=EvaluationType.image_classification,
+        raw_performance="",
+        q_lite_performance="",
+    )
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=480, interpolation="BICUBIC"),
+                CenterCrop(480, 480),
+                ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5]),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=480, interpolation="BICUBIC"),
+                CenterCrop(480, 480),
                 ConvertColor("BGR2RGB"),
             ]
         )
@@ -263,7 +380,7 @@ class EfficientNetLite4(ModelBase):
 
     def npu_preprocessing(self):
         """NPU preprocessing for EfficientNet-Lite1.
-        
+
         Same geometric transformations but without normalization
         (handled by NPU hardware).
         """
@@ -277,3 +394,108 @@ class EfficientNetLite4(ModelBase):
 
     def postprocessing(self):
         return topk_postprocessing
+
+
+class EfficientNetEdgeTPULarge(ModelBase):
+    info = ModelInfo(
+        name="EfficientNetEdgeTPULarge",
+        dataset=DatasetType.imagenet,
+        evaluation=EvaluationType.image_classification,
+        raw_performance="",
+        q_lite_performance="",
+    )
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=343, interpolation="BILINEAR"),
+                CenterCrop(300, 300),
+                ConvertColor("BGR2RGB"),
+                Normalize([127.0, 127.0, 127.0], [128.0, 128.0, 128.0]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=343, interpolation="BILINEAR"),
+                CenterCrop(300, 300),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return postprocess_tpu
+
+
+class EfficientNetEdgeTPUMedium(ModelBase):
+    info = ModelInfo(
+        name="EfficientNetEdgeTPUMedium",
+        dataset=DatasetType.imagenet,
+        evaluation=EvaluationType.image_classification,
+        raw_performance="",
+        q_lite_performance="",
+    )
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=274, interpolation="BILINEAR"),
+                CenterCrop(240, 240),
+                ConvertColor("BGR2RGB"),
+                Normalize([127.0, 127.0, 127.0], [128.0, 128.0, 128.0]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=274, interpolation="BILINEAR"),
+                CenterCrop(240, 240),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return postprocess_tpu
+
+
+class EfficientNetEdgeTPUSmall(ModelBase):
+    info = ModelInfo(
+        name="EfficientNetEdgeTPUMedium",
+        dataset=DatasetType.imagenet,
+        evaluation=EvaluationType.image_classification,
+        raw_performance="",
+        q_lite_performance="",
+    )
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=224, interpolation="BILINEAR"),
+                CenterCrop(224, 224),
+                ConvertColor("BGR2RGB"),
+                Normalize([127.0, 127.0, 127.0], [128.0, 128.0, 128.0]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=256, interpolation="BILINEAR"),
+                CenterCrop(224, 224),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return postprocess_tpu

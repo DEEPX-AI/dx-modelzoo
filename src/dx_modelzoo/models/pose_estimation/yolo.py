@@ -6,7 +6,7 @@ from torchvision.transforms import Compose
 
 from dx_modelzoo.enums import DatasetType, EvaluationType
 from dx_modelzoo.models import ModelBase, ModelInfo
-from dx_modelzoo.models.object_dection.nms import non_maximum_suppression_for_pose
+from dx_modelzoo.models.object_detection.nms import non_maximum_suppression_for_pose
 from dx_modelzoo.preprocessing.convertcolor import ConvertColor
 from dx_modelzoo.preprocessing.div import Div
 from dx_modelzoo.preprocessing.resize import Resize

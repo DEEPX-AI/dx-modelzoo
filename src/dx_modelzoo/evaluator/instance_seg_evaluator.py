@@ -1,5 +1,8 @@
 import json
+import os
+import queue
 import tempfile
+import threading
 import time
 from collections import deque
 from typing import List, Tuple
@@ -13,6 +16,7 @@ from pycocotools.cocoeval import COCOeval
 from pycocotools.mask import encode as rle_encode
 from tqdm import tqdm
 
+from dx_modelzoo.enums import SessionType
 from dx_modelzoo.evaluator import EvaluatorBase
 from dx_modelzoo.evaluator.constant import COCO80TO91MAPPER
 
@@ -59,6 +63,10 @@ class InstanceSegEvaluator(EvaluatorBase):
 
     def eval(self) -> None:
         """Evaluation instance segmentation model with COCO dataset."""
+        # Use async evaluation for DX runtime
+        if self.session.type == SessionType.dxruntime:
+            return self._eval_async()
+
         loader = self.make_loader()  # Assuming dataset is iterable
         total_len = len(loader)
 
@@ -98,7 +106,7 @@ class InstanceSegEvaluator(EvaluatorBase):
         logger.success(f"@JSON <mAP:{round(mAP*100, 3)}; mAP50:{round(mAP50*100, 3)}; Average FPS:{avg_fps:.2f}>")
 
         return {
-            "performance": [mAP*100, mAP50*100], 
+            "performance": [mAP * 100, mAP50 * 100],
             "fps": avg_fps,
         }
 
@@ -109,7 +117,41 @@ class InstanceSegEvaluator(EvaluatorBase):
         img_id = img_id_tensor.item()
 
         start_time = time.time()
-        predictions, prototypes = self.session.run(image)
+
+        outputs = self.session.run(image)
+
+        # Handle different output formats
+        if len(outputs) == 2:
+            # Standard format: predictions, prototypes
+            predictions, prototypes = outputs
+            # Workaround for swapped outputs
+            if predictions.shape[1] == 32:
+                predictions, prototypes = prototypes, predictions
+        elif len(outputs) == 5:
+            # YOLACT format: boxes(1,49104,4), class_scores(1,49104,81),
+            #                mask_coeffs(1,49104,32), boxes_dup(49104,4), prototypes(1,128,128,32)
+            boxes, class_scores, mask_coeffs, _, prototypes = outputs
+
+            # prototypes: (1, 128, 128, 32) -> (1, 32, 128, 128) if needed
+            if len(prototypes.shape) == 4 and prototypes.shape[-1] == 32 and prototypes.shape[1] != 32:
+                prototypes = np.transpose(prototypes, (0, 3, 1, 2))
+
+            # Combine boxes, class_scores, mask_coeffs into predictions
+            # Expected format: (batch, num_anchors, 4 + 81 + 32) = (1, 49104, 117)
+            predictions = np.concatenate([boxes, class_scores, mask_coeffs], axis=-1)
+        elif len(outputs) == 4:
+            # YOLACT format: prototypes(1,128,128,32), mask_coeffs(1,49104,32),
+            #                class_scores(1,49104,81), boxes(1,49104,4)
+            prototypes, mask_coeffs, class_scores, boxes = outputs
+
+            # prototypes: (1, 128, 128, 32) -> (1, 32, 128, 128) if needed
+            if len(prototypes.shape) == 4 and prototypes.shape[-1] == 32 and prototypes.shape[1] != 32:
+                prototypes = np.transpose(prototypes, (0, 3, 1, 2))
+
+            # Combine boxes, class_scores, mask_coeffs into predictions
+            predictions = np.concatenate([boxes, class_scores, mask_coeffs], axis=-1)
+        else:
+            raise ValueError(f"Unexpected number of outputs: {len(outputs)}")
 
         # Workaround
         if predictions.shape[1] == 32:
@@ -132,7 +174,7 @@ class InstanceSegEvaluator(EvaluatorBase):
             proto,
             outputs[:, 6:],
             outputs[:, :4],
-            input_shape=[640, 640],
+            input_shape=image.shape[2:] if len(image.shape) == 4 and image.shape[1] == 3 else image.shape[1:3],
             original_shape=origin_shape,
         )
 
@@ -142,6 +184,154 @@ class InstanceSegEvaluator(EvaluatorBase):
             return ""
 
         return ",\n".join([json.dumps(det) for det in coco_formatted_dets])
+
+    def _eval_async(self) -> dict:
+        """Async evaluation for DX runtime using run_async/wait pattern."""
+        loader = self.make_loader()
+        total_len = len(loader)
+
+        # Shared state with locks
+        lock = threading.Lock()
+        file_lock = threading.Lock()
+        worker_error = None
+
+        # Queue for pending jobs: (job_id, origin_shape, img_id)
+        pending_queue = queue.Queue(maxsize=32)
+        done_event = threading.Event()
+
+        # Wall-clock time measurement
+        wall_start_time = time.time()
+
+        pbar = tqdm(total=total_len, desc="COCO")
+
+        with tempfile.NamedTemporaryFile(mode="w+", encoding="utf-8", suffix=".json", delete=False) as temp_f:
+            temp_file_path = temp_f.name
+            temp_f.write("[\n")
+            first_chunk_written = [False]  # Use list for mutability in closure
+
+            def result_worker():
+                """Worker thread that collects results and writes to JSON."""
+                nonlocal worker_error
+
+                while True:
+                    try:
+                        item = pending_queue.get(timeout=0.1)
+                    except queue.Empty:
+                        if done_event.is_set():
+                            break
+                        continue
+
+                    if item is None:  # Sentinel
+                        break
+
+                    job_id, origin_shape, img_id = item
+
+                    try:
+                        # Wait for NPU result
+                        predictions, prototypes = self.session.wait(job_id)
+
+                        # Workaround
+                        if predictions.shape[1] == 32:
+                            predictions, prototypes = prototypes, predictions
+
+                        # Postprocessing
+                        predictions = torch.from_numpy(predictions)
+                        prototypes = torch.from_numpy(prototypes)
+
+                        outputs = self.postprocessing(predictions)[0]
+                        proto = prototypes[0]
+
+                        json_chunk = ""
+                        if outputs is not None and len(outputs) > 0:
+                            final_masks = process_masks(
+                                proto,
+                                outputs[:, 6:],
+                                outputs[:, :4],
+                                input_shape=[640, 640],
+                                original_shape=origin_shape,
+                            )
+
+                            coco_formatted_dets = self._make_coco_format_seg(final_masks, outputs, img_id)
+
+                            if coco_formatted_dets:
+                                json_chunk = ",\n".join([json.dumps(det) for det in coco_formatted_dets])
+
+                        # Write to file (thread-safe)
+                        if json_chunk:
+                            with file_lock:
+                                if first_chunk_written[0]:
+                                    temp_f.write(",\n")
+                                temp_f.write(json_chunk)
+                                first_chunk_written[0] = True
+                                temp_f.flush()
+
+                        with lock:
+                            # Wall-clock based FPS
+                            elapsed = time.time() - wall_start_time
+                            processed_count = pbar.n + 1
+                            current_fps = processed_count / elapsed if elapsed > 0 else 0.0
+
+                            pbar.set_description(f"COCO | Current_FPS:{current_fps:.1f}")
+                            pbar.update(1)
+
+                    except Exception as e:
+                        with lock:
+                            worker_error = e
+                        break
+
+            # Start worker thread
+            worker_thread = threading.Thread(target=result_worker, daemon=True)
+            worker_thread.start()
+
+            try:
+                # Main thread: submit jobs
+                for batch in loader:
+                    with lock:
+                        if worker_error is not None:
+                            raise worker_error
+
+                    image, origin_shape_tensors, img_id_tensor = batch
+                    origin_shape = (origin_shape_tensors[0].item(), origin_shape_tensors[1].item())
+                    img_id = img_id_tensor.item()
+
+                    job_id = self.session.run_async(image)
+
+                    pending_queue.put((job_id, origin_shape, img_id))
+
+                # Signal completion and wait for worker
+                done_event.set()
+                pending_queue.put(None)  # Sentinel
+                worker_thread.join()
+
+                if worker_error is not None:
+                    raise worker_error
+
+            finally:
+                pbar.close()
+
+            temp_f.write("\n]\n")
+            temp_f.flush()
+
+            print("\n--- Segmentation Evaluation ---")
+            mAP, mAP50 = self._run_coco_eval(temp_file_path, self.dataset.coco_annotation)
+
+        # Clean up temp file
+        os.unlink(temp_file_path)
+
+        total_wall_time = time.time() - wall_start_time
+        avg_fps = total_len / total_wall_time if total_wall_time > 0 else 0
+
+        print("\n" + "=" * 30)
+        print("        Final Segmentation Results")
+        print("=" * 30)
+        print(f"mAP: {round(mAP*100, 3)} mAP50: {round(mAP50*100, 3)}")
+        print(f"Average Inference FPS: {avg_fps:.2f}")
+        logger.success(f"@JSON <mAP:{round(mAP*100, 3)}; mAP50:{round(mAP50*100, 3)}; Average FPS:{avg_fps:.2f}>")
+
+        return {
+            "performance": [mAP * 100, mAP50 * 100],
+            "fps": avg_fps,
+        }
 
     def _make_coco_format_seg(self, masks: np.ndarray, outputs: torch.Tensor, img_id: int) -> List[dict]:
         """Make COCO segmentation result format."""

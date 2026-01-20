@@ -53,7 +53,14 @@ class EvaluatorBase(ABC):
         Returns:
             DataLoader: dataloader.
         """
-        return DataLoader(self.dataset, batch_size=1, shuffle=False, num_workers=4)
+        return DataLoader(
+            self.dataset,
+            batch_size=1,
+            shuffle=False,
+            num_workers=4,
+            prefetch_factor=4,
+            pin_memory=True,
+        )
 
 
 __all__ = ["EvaluatorBase"]

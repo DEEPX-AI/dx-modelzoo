@@ -1,3 +1,5 @@
+import queue
+import threading
 import time
 from collections import deque
 
@@ -7,6 +9,7 @@ from loguru import logger
 from tqdm import tqdm
 
 from dx_modelzoo.dataset import DatasetBase
+from dx_modelzoo.enums import SessionType
 from dx_modelzoo.evaluator import EvaluatorBase
 from dx_modelzoo.session import SessionBase
 
@@ -17,30 +20,135 @@ class SegentationEvaluator(EvaluatorBase):
     def __init__(self, session: SessionBase, dataset: DatasetBase):
         super().__init__(session, dataset)
         self.num_class = self.dataset.num_class
-        self.total_inference_time = 0.0  
-        self.recent_inference_times = deque(maxlen=15) # total : 1449
+        self.total_inference_time = 0.0
+        self.recent_inference_times = deque(maxlen=15)  # total : 1449
 
     def eval(self) -> None:
+        # Use async evaluation for DX runtime
+        if self.session.type == SessionType.dxruntime:
+            return self._eval_async()
+
         loader = self.make_loader()
-        total_len= len(loader)       
+        total_len = len(loader)
         confusion_matrix = np.zeros([self.num_class, self.num_class])
         pbar = tqdm(loader, total=total_len)
         for batch in pbar:
             confusion_matrix = self._run_one_batch(*batch, confusion_matrix)
-            
+
             if len(self.recent_inference_times) > 0:
                 current_fps = len(self.recent_inference_times) / sum(self.recent_inference_times)
             else:
                 current_fps = 0.0
                 
             pbar.desc = (
-                f"Cityscapes | Current_FPS:{current_fps:.1f}"
+                f"{self.dataset.__class__.__name__} | Current_FPS:{current_fps:.1f}"
             )
 
         # Calculate final metrics
         miou = self.calculate_miou(confusion_matrix)
         avg_fps = total_len / self.total_inference_time if self.total_inference_time > 0 else 0.0
-        
+
+        print(f"mIoU: {round(miou * 100, 3)}")
+        print(f"Average FPS: {avg_fps:.2f}")
+        logger.success(f"@JSON <mIoU:{round(miou * 100, 3)}; Average FPS:{avg_fps:.2f}>")
+
+        return {
+            "performance": [miou * 100],
+            "fps": avg_fps,
+        }
+
+    def _eval_async(self) -> dict:
+        """Async evaluation for DX runtime using run_async/wait pattern."""
+        loader = self.make_loader()
+        total_len = len(loader)
+
+        # Shared state with lock
+        lock = threading.Lock()
+        confusion_matrix = np.zeros([self.num_class, self.num_class])
+        worker_error = None
+
+        # Queue for pending jobs: (job_id, label)
+        pending_queue = queue.Queue(maxsize=32)
+        done_event = threading.Event()
+
+        # Wall-clock time measurement
+        wall_start_time = time.time()
+
+        pbar = tqdm(total=total_len, desc="Cityscapes")
+
+        def result_worker():
+            """Worker thread that collects results and updates confusion matrix."""
+            nonlocal confusion_matrix, worker_error
+
+            while True:
+                try:
+                    item = pending_queue.get(timeout=0.1)
+                except queue.Empty:
+                    if done_event.is_set():
+                        break
+                    continue
+
+                if item is None:  # Sentinel
+                    break
+
+                job_id, label = item
+
+                try:
+                    # Wait for NPU result
+                    output = self.session.wait(job_id)
+
+                    # Postprocessing
+                    output = self.postprocessing(output)
+
+                    with lock:
+                        # Update confusion matrix
+                        confusion_matrix = self._update_confusion_matrix(output, label, confusion_matrix)
+
+                        # Wall-clock based FPS
+                        elapsed = time.time() - wall_start_time
+                        processed_count = pbar.n + 1
+                        current_fps = processed_count / elapsed if elapsed > 0 else 0.0
+
+                        pbar.set_description(f"Cityscapes | Current_FPS:{current_fps:.1f}")
+                        pbar.update(1)
+
+                except Exception as e:
+                    with lock:
+                        worker_error = e
+                    break
+
+        # Start worker thread
+        worker_thread = threading.Thread(target=result_worker, daemon=True)
+        worker_thread.start()
+
+        try:
+            # Main thread: submit jobs
+            for batch in loader:
+                with lock:
+                    if worker_error is not None:
+                        raise worker_error
+
+                image, label = batch
+                job_id = self.session.run_async(image)
+
+                pending_queue.put((job_id, label))
+
+            # Signal completion and wait for worker
+            done_event.set()
+            pending_queue.put(None)  # Sentinel
+            worker_thread.join()
+
+            if worker_error is not None:
+                raise worker_error
+
+        finally:
+            pbar.close()
+
+        # Calculate final metrics
+        total_wall_time = time.time() - wall_start_time
+        miou = self.calculate_miou(confusion_matrix)
+        avg_fps = total_len / total_wall_time if total_wall_time > 0 else 0.0
+
         print(f"mIoU: {round(miou * 100, 3)}")
         print(f"Average FPS: {avg_fps:.2f}")
         logger.success(f"@JSON <mIoU:{round(miou * 100, 3)}; Average FPS:{avg_fps:.2f}>")
@@ -54,8 +162,8 @@ class SegentationEvaluator(EvaluatorBase):
         start_time = time.time()
         output = self.session.run(image)
         inference_time = time.time() - start_time
-        
-        self.recent_inference_times.append(inference_time) 
+
+        self.recent_inference_times.append(inference_time)
         self.total_inference_time += inference_time
         output = self.postprocessing(output)
         confusion_matrix = self._update_confusion_matrix(output, label, confusion_matrix)

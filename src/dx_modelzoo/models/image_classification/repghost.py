@@ -11,15 +11,9 @@ from dx_modelzoo.preprocessing.resize import Resize
 from dx_modelzoo.preprocessing.transpose import Transpose
 
 
-def postprocess_inceptionv1(outputs):
-    outputs = outputs[0][:, 1:]
-
-    return topk_postprocessing([outputs])
-
-
-class InceptionV1(ModelBase):
+class RepGhost_1_0x(ModelBase):
     info = ModelInfo(
-        name="InceptionV1",
+        name="RepGhost_1_0x",
         dataset=DatasetType.imagenet,
         evaluation=EvaluationType.image_classification,
         raw_performance="",
@@ -32,44 +26,8 @@ class InceptionV1(ModelBase):
     def preprocessing(self):
         return Compose(
             [
-                Resize(mode="torchvision", size=256, interpolation="BILINEAR"),
-                CenterCrop(height=224, width=224),
-                ConvertColor("BGR2RGB"),
-                Div(255),
-                Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5]),
-                Transpose([2, 0, 1]),
-            ]
-        )
-
-    def npu_preprocessing(self):
-        return Compose(
-            [
-                Resize(mode="torchvision", size=256, interpolation="BILINEAR"),
-                CenterCrop(height=224, width=224),
-                ConvertColor("BGR2RGB"),
-            ]
-        )
-
-    def postprocessing(self):
-        return postprocess_inceptionv1
-
-class InceptionV3(ModelBase):
-    info = ModelInfo(
-        name="InceptionV3",
-        dataset=DatasetType.imagenet,
-        evaluation=EvaluationType.image_classification,
-        raw_performance="",
-        q_lite_performance="",
-    )
-
-    def __init__(self, evaluator):
-        super().__init__(evaluator)
-
-    def preprocessing(self):
-        return Compose(
-            [
-                Resize(mode="torchvision", size=342, interpolation="BILINEAR"),
-                CenterCrop(height=299, width=299),
+                Resize(mode="torchvision", size=224, interpolation="BILINEAR"),
+                CenterCrop(224, 224),
                 ConvertColor("BGR2RGB"),
                 Div(255),
                 Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
@@ -80,8 +38,8 @@ class InceptionV3(ModelBase):
     def npu_preprocessing(self):
         return Compose(
             [
-                Resize(mode="torchvision", size=342, interpolation="BILINEAR"),
-                CenterCrop(height=299, width=299),
+                Resize(mode="torchvision", size=224, interpolation="BILINEAR"),
+                CenterCrop(224, 224),
                 ConvertColor("BGR2RGB"),
             ]
         )
@@ -89,3 +47,39 @@ class InceptionV3(ModelBase):
     def postprocessing(self):
         return topk_postprocessing
 
+
+class RepGhost_2_0x(ModelBase):
+    info = ModelInfo(
+        name="RepGhost_2_0x",
+        dataset=DatasetType.imagenet,
+        evaluation=EvaluationType.image_classification,
+        raw_performance="",
+        q_lite_performance="",
+    )
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=224, interpolation="BILINEAR"),
+                CenterCrop(224, 224),
+                ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=224, interpolation="BILINEAR"),
+                CenterCrop(224, 224),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return topk_postprocessing
