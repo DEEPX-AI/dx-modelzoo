@@ -39,13 +39,13 @@ nav:
     - Dataset: 'docs/Dataset.md'
 plugins:
   - search
-  - with-pdf:
+  - to-pdf:
       author: DEEPX.ai
-      copyright: ⓒ Copyright 2025 DEEPX All Rights Reserved.
-      cover_subtitle: 2025/02/19
+      copyright: ⓒ Copyright 2026 DEEPX All Rights Reserved.
+      cover_subtitle: 2026/01/23 (v2.2.0)
       cover_logo: resources/deepx.png
       custom_template_path: docs/source/stylesheets
-      output_path: dx-modelzoo_v0.1.0.pdf
+      output_path: ../DEEPX_DX-MODELZOO_UM_v2.2.0_JAN_2026.pdf
 extra:
   generator: false
   social:
@@ -85,4 +85,4 @@ extra_javascript:
   - javascripts/mathjax.js
   - https://polyfill.io/v3/polyfill.min.js?features=es6
   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
-copyright: ⓒ Copyright 2025 <a href="http://deepx.ai">DEEPX</a>. All Rights Reserved.
+copyright: ⓒ Copyright 2026 <a href="http://deepx.ai">DEEPX</a>. All Rights Reserved.

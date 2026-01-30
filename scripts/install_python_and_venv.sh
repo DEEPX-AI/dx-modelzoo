@@ -416,7 +416,7 @@ ensure_python_dev_venv_packages() {
 # ---
 # Arguments:
 #   $1: TARGET_INSTALL_PY_VERSION (optional) - The specific Python version to install.
-#         If empty, the OS default Python 3 version will be installed for Ubuntu 20.04+ and Debian 11+.
+#         If empty, the OS default Python 3 version will be installed for Ubuntu 20.04+ and Debian 12+.
 #         For Ubuntu 18.04, MIN_PY_VERSION will be used if TARGET_INSTALL_PY_VERSION is empty.
 #   $2: OS_ID - The operating system ID (ubuntu, debian, etc.)
 #   $3: OS_VERSION - The current OS release version (e.g., "20.04" for Ubuntu, "12" for Debian)
@@ -482,7 +482,7 @@ install_python_and_dependencies() {
         
         # Unified installation process for all supported OS versions
         if { [ "$OS_ID" = "ubuntu" ] && { [ "$OS_VERSION" = "24.04" ] || [ "$OS_VERSION" = "22.04" ] || [ "$OS_VERSION" = "20.04" ] || [ "$OS_VERSION" = "18.04" ]; }; } || \
-           { [ "$OS_ID" = "debian" ] && { [ "$OS_VERSION" = "12" ] || [ "$OS_VERSION" = "11" ]; }; }; then
+           { [ "$OS_ID" = "debian" ] && { [ "$OS_VERSION" = "13" ] || [ "$OS_VERSION" = "12" ]; }; }; then
             
             # Step 1: Update apt cache
             echo -e "${TAG_INFO} Updating apt repositories..." >&2
@@ -688,9 +688,9 @@ setup_venv() {
     # For Ubuntu 24.04 - only upgrade setuptools
     if [ "$OS_ID" = "ubuntu" ] && [ "$OS_VERSION" = "24.04" ]; then
       if ! pip install --upgrade setuptools; then PIP_INSTALL_STATUS=1; fi
-    # For Ubuntu 22.04, 20.04, 18.04 and Debian 11 - upgrade pip, wheel, setuptools
+    # For Ubuntu 22.04, 20.04, 18.04 and Debian 12, 13 - upgrade pip, wheel, setuptools
     elif { [ "$OS_ID" = "ubuntu" ] && { [ "$OS_VERSION" = "22.04" ] || [ "$OS_VERSION" = "20.04" ] || [ "$OS_VERSION" = "18.04" ]; }; } || \
-         { [ "$OS_ID" = "debian" ] && { [ "$OS_VERSION" = "11" ] || [ "$OS_VERSION" = "12" ]; }; }; then
+         { [ "$OS_ID" = "debian" ] && { [ "$OS_VERSION" = "13" ] || [ "$OS_VERSION" = "12" ]; }; }; then
       if ! pip install --upgrade pip wheel setuptools; then PIP_INSTALL_STATUS=1; fi
     else
       echo -e "${TAG_WARN} Unsupported OS version for specific pip upgrade rules: ${OS_ID} ${OS_VERSION}" >&2
