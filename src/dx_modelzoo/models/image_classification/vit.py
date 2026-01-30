@@ -381,6 +381,9 @@ class BeitBasePatch16_224(ModelBase):
                 Resize(mode="torchvision", size=256, interpolation="BICUBIC"),
                 CenterCrop(224, 224),
                 ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5]),
+                Transpose([2, 0, 1]),
             ]
         )
 
@@ -416,6 +419,9 @@ class BeitBasePatch16_384(ModelBase):
                 Resize(mode="torchvision", size=512, interpolation="BICUBIC"),
                 CenterCrop(384, 384),
                 ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5]),
+                Transpose([2, 0, 1]),
             ]
         )
 
@@ -451,6 +457,9 @@ class BeitLargePatch16_224(ModelBase):
                 Resize(mode="torchvision", size=256, interpolation="BICUBIC"),
                 CenterCrop(224, 224),
                 ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5]),
+                Transpose([2, 0, 1]),
             ]
         )
 
@@ -486,6 +495,9 @@ class BeitLargePatch16_384(ModelBase):
                 Resize(mode="torchvision", size=512, interpolation="BICUBIC"),
                 CenterCrop(384, 384),
                 ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5]),
+                Transpose([2, 0, 1]),
             ]
         )
 

@@ -359,8 +359,8 @@ labels_info = [
 ]
 
 
-class CitySpaceDataset(DatasetBase):
-    """CityScpace Dataset Class.
+class CityScapesDataset(DatasetBase):
+    """CityScpaces Dataset Class.
 
     dataset_root's file tree should be like
         dataset_root/

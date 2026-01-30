@@ -1,16 +1,114 @@
-from typing import List
+import os
+from typing import List, Literal
 
 import numpy as np
 import torch
+import torchvision
 from torchvision.transforms import Compose
 
 from dx_modelzoo.enums import DatasetType, EvaluationType
 from dx_modelzoo.models import ModelBase, ModelInfo
-from dx_modelzoo.models.object_detection.nms import non_maximum_suppression, non_maximum_suppression2
+from dx_modelzoo.models.object_detection.nms import (
+    non_maximum_suppression,
+    non_maximum_suppression2,
+    non_maximum_suppression_iou,
+)
 from dx_modelzoo.preprocessing.convertcolor import ConvertColor
 from dx_modelzoo.preprocessing.div import Div
 from dx_modelzoo.preprocessing.resize import Resize
 from dx_modelzoo.preprocessing.transpose import Transpose
+
+
+def get_threshold_from_env(param_name: str, default_value: float) -> float:
+    """Get threshold value from environment variable or use default"""
+    env_value = os.environ.get(param_name)
+    if env_value is not None:
+        try:
+            return float(env_value)
+        except ValueError:
+            pass
+    return default_value
+
+
+def yolo_detection_postprocessing(outputs, anchors_type: Literal["x", "w6"] = "x"):
+    """
+    YOLOv7 Detect layer style postprocessing for outputs
+    """
+    anchors_map = {
+        "x": [
+            [[12, 16], [19, 36], [40, 28]],
+            [[36, 75], [76, 55], [72, 146]],
+            [[142, 110], [192, 243], [459, 401]],
+        ],
+        "w6": [
+            [[19, 27], [44, 40], [38, 94]],
+            [[96, 68], [86, 152], [180, 137]],
+            [[140, 301], [303, 264], [238, 542]],
+            [[436, 615], [739, 380], [925, 792]],
+        ],
+    }
+    anchors = anchors_map[anchors_type]
+    strides = [8, 16, 32, 64]
+
+    # Auto-detect number of scales
+    num_scales = len(outputs)
+    anchors = anchors[:num_scales]
+    strides = strides[:num_scales]
+
+    all_predictions = []
+
+    if len(outputs[0].shape) == 3 and outputs[0].shape[-1] == 85:
+        return non_maximum_suppression(outputs, multi_label=True)
+
+    for scale_idx, output in enumerate(outputs):
+
+        if isinstance(output, np.ndarray):
+            output = torch.from_numpy(output).float()
+
+        batch, num_anchors, h, w, num_props = output.shape
+
+        # Create grid (matches _make_grid)
+        grid_y, grid_x = torch.meshgrid(torch.arange(h), torch.arange(w), indexing="ij")
+        grid = torch.stack((grid_x, grid_y), dim=2).view(1, 1, h, w, 2).float()
+
+        stride = strides[scale_idx]
+        anchor_grid = torch.tensor(anchors[scale_idx]).float().view(1, num_anchors, 1, 1, 2)
+
+        # Apply sigmoid (as in: y = x[i].sigmoid())
+        y = torch.sigmoid(output)
+
+        # Decode using YOLOv7 ONNX export formula
+        xy = y[..., 0:2]
+        wh = y[..., 2:4]
+
+        # xy: xy * (2. * stride) + (stride * (grid - 0.5))
+        #   = (xy * 2. - 0.5 + grid) * stride  (mathematically equivalent)
+        xy_decoded = (xy * 2.0 - 0.5 + grid) * stride
+
+        # wh: wh ** 2 * (4 * anchor_grid)
+        #   = (wh * 2) ** 2 * anchor_grid  (mathematically equivalent)
+        wh_decoded = (wh * 2.0) ** 2 * anchor_grid
+
+        # Objectness and class scores (already sigmoid applied)
+        obj_conf = y[..., 4:5]
+        cls_conf = y[..., 5:]
+
+        # Combine: [cx, cy, w, h, obj_conf, cls_conf...]
+        pred = torch.cat([xy_decoded, wh_decoded, obj_conf, cls_conf], dim=-1)
+
+        # Reshape: (1, 3, h, w, 85) -> (1, 3*h*w, 85)
+        all_predictions.append(pred.view(batch, -1, num_props))
+
+    # Concatenate all scales
+    detections = torch.cat(all_predictions, dim=1)
+
+    return non_maximum_suppression_iou(
+        detections,
+        conf_thres=0.001,
+        iou_thres=0.7,
+        multi_label=True,
+        iou_type="iou",
+    )
 
 
 def yolo_postprocessing(outputs):
@@ -197,6 +295,40 @@ class YoloV5S(ModelBase):
         return yolo_postprocessing
 
 
+class YoloV5S_320(ModelBase):
+    info = ModelInfo(
+        name="YoloV5S_320",
+        dataset=DatasetType.coco,
+        evaluation=EvaluationType.coco,
+        raw_performance="",
+        q_lite_performance="",
+    )
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=320, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+                Div(255),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=320, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return yolo_postprocessing
+
+
 class YoloV5M(ModelBase):
     info = ModelInfo(
         name="YoloV5M",
@@ -328,7 +460,39 @@ class YoloV7(ModelBase):
         )
 
     def postprocessing(self):
-        return yolo_postprocessing
+        return lambda x: yolo_detection_postprocessing(x, anchors_type="x")
+
+
+class YoloV7_wo_decoding(ModelBase):
+    info = ModelInfo(
+        name="YoloV7_wo_decoding",
+        dataset=DatasetType.coco,
+        evaluation=EvaluationType.coco,
+    )
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                Div(255),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return lambda x: yolo_detection_postprocessing(x, anchors_type="x")
 
 
 class YoloV7E6(ModelBase):
@@ -363,6 +527,106 @@ class YoloV7E6(ModelBase):
 
     def postprocessing(self):
         return yolo_postprocessing
+
+
+class YoloV7_X(ModelBase):
+    info = ModelInfo(
+        name="YoloV7_X",
+        dataset=DatasetType.coco,
+        evaluation=EvaluationType.coco,
+        raw_performance="",
+        q_lite_performance="",
+    )
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+                Div(255),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return lambda x: yolo_detection_postprocessing(x, anchors_type="x")
+
+
+class YoloV7_W6(ModelBase):
+    info = ModelInfo(
+        name="YoloV7_W6",
+        dataset=DatasetType.coco,
+        evaluation=EvaluationType.coco,
+        raw_performance="",
+        q_lite_performance="",
+    )
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=1280, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+                Div(255),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=1280, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return lambda x: yolo_detection_postprocessing(x, anchors_type="w6")
+
+
+class YoloV7_W6_wo_decoding(ModelBase):
+    info = ModelInfo(
+        name="YoloV7_W6_wo_decoding",
+        dataset=DatasetType.coco,
+        evaluation=EvaluationType.coco,
+    )
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=1280, pad_location="edge", pad_value=[114, 114, 114]),
+                Div(255),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=1280, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return lambda x: yolo_detection_postprocessing(x, anchors_type="w6")
 
 
 class YoloV7Tiny(ModelBase):
@@ -1058,18 +1322,193 @@ class YoloV11(ModelBase):
         return yolov11_postprocessing
 
 
-def yolov10_postprocessing(outputs: List[np.ndarray]):
+def yolov10_postprocessing(outputs: List[np.ndarray]):    
     outputs = outputs[0]
     outputs = torch.from_numpy(outputs)
 
     return outputs[0]
 
-
-class YoloV10(ModelBase):
-    info = ModelInfo(name="YoloV10", dataset=DatasetType.coco, evaluation=EvaluationType.coco)
+class YoloV10B(ModelBase):
+    info = ModelInfo(name="YoloV10B", dataset=DatasetType.coco, evaluation=EvaluationType.coco)
 
     def __init__(self, evaluator):
         super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                Div(255),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return yolov10_postprocessing
+
+
+class YoloV10N(ModelBase):
+    info = ModelInfo(name="YoloV10N", dataset=DatasetType.coco, evaluation=EvaluationType.coco)
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                Div(255),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return yolov10_postprocessing
+
+
+class YoloV10S(ModelBase):
+    info = ModelInfo(name="YoloV10S", dataset=DatasetType.coco, evaluation=EvaluationType.coco)
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                Div(255),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return yolov10_postprocessing
+
+
+class YoloV10M(ModelBase):
+    info = ModelInfo(name="YoloV10M", dataset=DatasetType.coco, evaluation=EvaluationType.coco)
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                Div(255),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return yolov10_postprocessing
+
+
+class YoloV10L(ModelBase):
+    info = ModelInfo(name="YoloV10L", dataset=DatasetType.coco, evaluation=EvaluationType.coco)
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                Div(255),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return yolov10_postprocessing
+
+
+class YoloV10X(ModelBase):
+    info = ModelInfo(name="YoloV10X", dataset=DatasetType.coco, evaluation=EvaluationType.coco)
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                Div(255),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return yolov10_postprocessing
+
+
+class YoloV10N_PPU(ModelBase):
+    info = ModelInfo(
+        name="YoloV10N_PPU",
+        dataset=DatasetType.coco,
+        evaluation=EvaluationType.coco,
+        raw_performance="",
+        q_lite_performance="",
+    )
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+        self.evaluator.lazy_postprocessing = True
+        self.evaluator.use_ppu = True
 
     def preprocessing(self):
         return Compose(

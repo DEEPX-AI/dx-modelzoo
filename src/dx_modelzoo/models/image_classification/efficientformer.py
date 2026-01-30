@@ -152,6 +152,9 @@ class EfficientFormerV2_L(ModelBase):
                 Resize(mode="torchvision", size=256, interpolation="BICUBIC"),
                 CenterCrop(224, 224),
                 ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                Transpose([2, 0, 1]),
             ]
         )
 
@@ -189,6 +192,9 @@ class EfficientFormerV2_S0(ModelBase):
                 Resize(mode="torchvision", size=256, interpolation="BICUBIC"),
                 CenterCrop(224, 224),
                 ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                Transpose([2, 0, 1]),
             ]
         )
 
@@ -226,6 +232,9 @@ class EfficientFormerV2_S1(ModelBase):
                 Resize(mode="torchvision", size=256, interpolation="BICUBIC"),
                 CenterCrop(224, 224),
                 ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                Transpose([2, 0, 1]),
             ]
         )
 
@@ -263,10 +272,11 @@ class EfficientFormerV2_S2(ModelBase):
                 Resize(mode="torchvision", size=256, interpolation="BICUBIC"),
                 CenterCrop(224, 224),
                 ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                Transpose([2, 0, 1]),
             ]
         )
 
     def postprocessing(self):
         return topk_postprocessing
-
-

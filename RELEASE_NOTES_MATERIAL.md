@@ -1,3 +1,54 @@
+## PR 111
+### 1. Changed
+### 2. Fixed
+### 3. Added
+- **YOLO-PPU**: YoloV10N_PPU
+## PR 110 NOTHING NEW
+## PR 109 NOTHING NEW
+## PR 108 NOTHING NEW
+## PR 107
+### 1. Changed
+### 2. Fixed
+### 3. Added
+- **YOLO26-obb**: YOLO26n_OBB, YOLO26s_OBB, YOLO26m_OBB, YOLO26l_OBB, YOLO26x_OBB
+## PR 106
+### 1. Changed
+### 2. Fixed
+### 3. Added
+- **YoloV7 Series**: YoloV7_wo_decoding, YoloV7_W6_wo_decoding
+## PR 104 NOTHING NEW
+## PR 103 NOTHING NEW
+## PR 102 NOTHING NEW
+## PR 101
+### 1. Changed
+### 2. Fixed
+### 3. Added
+- **Yolo26 seg series**: Yolo26N_Seg, Yolo26S_Seg, Yolo26M_Seg, Yolo26L_Seg, Yolo26X_Seg
+## PR 100
+### 1. Changed
+### 2. Fixed
+### 3. Added
+- **YOLO26 pose series**: Yolo26N_Pose, Yolo26S_Pose, Yolo26M_Pose, Yolo26L_Pose, Yolo26X_Pose
+## PR 99 NOTHING NEW
+## PR 98
+### 1. Changed
+### 2. Fixed
+### 3. Added
+- **YoloV7 series**: YoloV7_X, YoloV7_W6
+## PR 97
+### 1. Changed
+### 2. Fixed
+### 3. Added
+- **YOLO26-cls series**: YOLO26n-cls, YOLO26s-cls, YOLO26m-cls, YOLO26l-cls, YOLO26x-cls
+## PR 96 NOTHING NEW
+## PR 95 NOTHING NEW
+## PR 94
+### 1. Changed
+### 2. Fixed
+### 3. Added
+- **Objection Detection**
+  - **YoloV5S_320**
+## PR 92 NOTHING NEW
 ## PR 83 NOTHING NEW
 ## PR 89
 ### 1. Changed

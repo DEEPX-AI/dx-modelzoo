@@ -19,6 +19,7 @@ class EvaluationType(StrEnum):
     instance_segmentation = "InstanceSegmentation"
     zeroshot_classification = "ZeroShotClassification"
     coco_pose = "PoseEstimation"
+    obb = "OrientedObjectDetection"
 
     def metric(self) -> str:
         if self.value in {EvaluationType.image_classification, EvaluationType.zeroshot_classification}:
@@ -39,6 +40,8 @@ class EvaluationType(StrEnum):
             return "mAP"
         elif self.value == EvaluationType.coco_pose:
             return "mAP, mAP50"
+        elif self.value == EvaluationType.obb:
+            return "mAP, mAP50"
         else:
             raise ValueError(f"Invalid Evaluation Type value. {self.value}")
 
@@ -50,7 +53,8 @@ class DatasetType(StrEnum):
     voc_od = "VOC2007Detection"
     bsd68 = "BSD68"
     bsd100 = "BSD100"
-    city = "CitySpace"
+    city = "CityScapes"
     widerface = "WiderFace"
     nyu = "NYU"
     coco_pose = "COCOPose"
+    dotav1 = "DOTAv1"
