@@ -1,3 +1,97 @@
+## PR 133
+### 1. Changed
+- YOLOXS_PPU preprocessing changed to letterbox (pad) mode
+### 2. Fixed
+- Fixed IndexError in YOLOXS_PPU PPU postprocessing caused by invalid layer_idx in hardware output
+### 3. Added
+- ResNet18_BRECQ, ResNeXt50_32x4d_imgclsmob, YoloV5M6_1, YoloV6N0_1_0, YoloV6N0_2_1, DamoYoloL, DamoYoloM, DamoYoloS, DamoYoloT, tinynas models
+## PR 130 NOTHING NEW
+## PR 128 NOTHING NEW
+## PR 127 NOTHING NEW
+## PR 126 NOTHING NEW
+## PR 125 NOTHING NEW
+## PR 124 NOTHING NEW
+## PR 123 NOTHING NEW
+## PR 122 NOTHING NEW
+## PR 121 NOTHING NEW
+## PR 120 NOTHING NEW
+## PR 119 NOTHING NEW
+## PR 118 NOTHING NEW
+## PR 117 NOTHING NEW
+## PR 116 NOTHING NEW
+## PR 115
+### 1. Changed
+### 2. Fixed
+### 3. Added
+- **CenterNet series**: CenterNet_ResNet18, CenterNet_ResNet50
+- **EfficientDet series**: EfficientDet_D0, EfficientDet_D2, EfficientDet_D3, EfficientDet_D4, EfficientDet_D5, EfficientDet_D6
+- **NanoDet series**: NanoDet_Plus, NanoDet_Plus_15
+- **YoloV3 series**: YoloV3_Gluon_416, YoloV3_Gluon_608
+- **YoloV4 series**: YoloV4_640, YoloV4_Leaky_512, YoloV4Tiny_416
+- **YoloV5 series**: YoloV5L_640, YoloV5M_640, YoloV5S_640, YoloV5X_640, YoloV5L6_1280, YoloV5M6_1280, YoloV5M6_61_1280, YoloV5N6_1280, YoloV5N6_61_1280, YoloV5S6_1280, YoloV5S6_61_1280, YoloV5X6_1280, YoloV5M_WoSpp_640, YoloV5S_WoSpp_640, YoloV5S_BboxDecoding_640, YoloV5S_C3tr_640, YoloV5XS_WoSpp_512
+- **YoloV6 series**: YoloV6L_640, YoloV6M_640, YoloV6S_640, YoloV6N6_1280, YoloV6S6_1280, YoloV6N_NmsCore_640
+- **YoloV7 series**: YoloV7D6_1280, YoloV7E6E_1280
+- **YoloV9 series**: YoloV9_GELAN_C, YoloV9M
+- **YoloX series**: YoloXL_640, YoloXM_640, YoloXN_416, YoloXTiny_416, YoloXX_640
+- **Etc**: SSDVGG16, YOLO_DeepX_640, YoloV8S_decoding
+## PR 114
+### 1. Changed
+### 2. Fixed
+### 3. Added
+- **YOLO-PPU series**: YOLOV3_416_PPU, YOLOV3_608_PPU, YOLOV3Tiny_PPU, YOLOV4_PPU, YOLOV5S_PPU, YOLOV7_PPU, YOLOV7X_PPU, YOLOV8N_PPU, YOLOV8S_PPU, YOLOV9T_PPU, YOLOV11N_PPU, YOLOV12N_PPU, YOLOXS_PPU
+## PR 113 NOTHING NEW
+## PR 105 NOTHING NEW
+## PR 111
+### 1. Changed
+### 2. Fixed
+### 3. Added
+- **YOLO-PPU**: YoloV10N_PPU
+## PR 110 NOTHING NEW
+## PR 109 NOTHING NEW
+## PR 108 NOTHING NEW
+## PR 107
+### 1. Changed
+### 2. Fixed
+### 3. Added
+- **YOLO26-obb**: YOLO26n_OBB, YOLO26s_OBB, YOLO26m_OBB, YOLO26l_OBB, YOLO26x_OBB
+## PR 106
+### 1. Changed
+### 2. Fixed
+### 3. Added
+- **YoloV7 Series**: YoloV7_wo_decoding, YoloV7_W6_wo_decoding
+## PR 104 NOTHING NEW
+## PR 103 NOTHING NEW
+## PR 102 NOTHING NEW
+## PR 101
+### 1. Changed
+### 2. Fixed
+### 3. Added
+- **Yolo26 seg series**: Yolo26N_Seg, Yolo26S_Seg, Yolo26M_Seg, Yolo26L_Seg, Yolo26X_Seg
+## PR 100
+### 1. Changed
+### 2. Fixed
+### 3. Added
+- **YOLO26 pose series**: Yolo26N_Pose, Yolo26S_Pose, Yolo26M_Pose, Yolo26L_Pose, Yolo26X_Pose
+## PR 99 NOTHING NEW
+## PR 98
+### 1. Changed
+### 2. Fixed
+### 3. Added
+- **YoloV7 series**: YoloV7_X, YoloV7_W6
+## PR 97
+### 1. Changed
+### 2. Fixed
+### 3. Added
+- **YOLO26-cls series**: YOLO26n-cls, YOLO26s-cls, YOLO26m-cls, YOLO26l-cls, YOLO26x-cls
+## PR 96 NOTHING NEW
+## PR 95 NOTHING NEW
+## PR 94
+### 1. Changed
+### 2. Fixed
+### 3. Added
+- **Objection Detection**
+  - **YoloV5S_320**
+## PR 92 NOTHING NEW
 ## PR 83 NOTHING NEW
 ## PR 89
 ### 1. Changed

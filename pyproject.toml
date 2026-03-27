@@ -1,0 +1,94 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dx-modelzoo"
+dynamic = ["version"]
+authors = [
+    { name = "Haejin Lee", email = "hjlee@deepx.ai" },
+]
+description = "DXMODELZOO Package"
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+license = { text = "License :: OSI Approved :: MIT License" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "prefect",
+    "h5py",
+    "requests",
+    "loguru",
+    "typer",
+    "pycocotools>=2.0.8",
+    "onnxruntime==1.18.0; platform_machine == 'aarch64'",
+    "onnxruntime-gpu==1.19.2; platform_machine == 'x86_64'",
+    "torch==2.4.0",
+    "torchvision==0.19.0",
+    "opencv-python>=4.10.0.84",
+    "scipy>=1.10.1,<=1.13.1",
+    "tqdm==4.66.4",
+]
+
+[project.optional-dependencies]
+runtime = [
+    "dx-engine @ file:///${PROJECT_ROOT}/../dx_rt/python_package",
+]
+test = [
+    "pytest>=7.0.0",
+    "pytest-mock>=3.10.0",
+    "pytest-datadir>=1.5.0",
+]
+dev = [
+    "dx-modelzoo[test]",
+    "dx-modelzoo[runtime]",
+    "pre-commit",
+    "onnx_tool",
+    "boto3",
+    "dx-com @ file:///${PROJECT_ROOT}/../dx_com",
+    "dx-simulator @ file:///${PROJECT_ROOT}/../dx_simulator",
+    "cibuildwheel",
+]
+prod = [
+    "dx-modelzoo[test]",
+    "dx-modelzoo[compile]",
+    "dx-modelzoo[runtime]",
+]
+
+[project.urls]
+Homepage = "https://github.com/DEEPX-AI/dx-modelzoo"
+Dashboard = "https://modelzoo-publish-api.devops.dpx.ai/publish/html"
+
+[project.scripts]
+dxmz = "dx_modelzoo.main:main"
+
+[tool.uv]
+override-dependencies = [
+    "torch==2.4.0",
+    "torchvision==0.19.0",
+    "onnxruntime-gpu==1.19.2; platform_machine == 'x86_64'",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+packages = {find = {where = ["src"]}}
+include-package-data = true
+
+[tool.setuptools.dynamic]
+version = {attr = "dx_modelzoo.version.__version__"}
+
+[tool.cibuildwheel]
+build = "*"
+skip = ""
+
+[tool.black]
+line-length = 120
+target-version = ["py311"]
+
+[tool.isort]
+profile = "black"
+filter_files = true
+line_length = 120

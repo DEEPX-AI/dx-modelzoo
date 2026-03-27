@@ -1,18 +1,13 @@
-import queue
-import threading
-import time
-from collections import deque
 from typing import Tuple
 
 import cv2
 import numpy as np
 import torch
 from loguru import logger
-from tqdm import tqdm
 
 from dx_modelzoo.dataset import DatasetBase
 from dx_modelzoo.evaluator import EvaluatorBase
-from dx_modelzoo.session import SessionBase, SessionType
+from dx_modelzoo.session import SessionBase
 from dx_modelzoo.utils import torch_to_numpy
 
 
@@ -116,83 +111,48 @@ class BSD100Evaluator(EvaluatorBase):
     def __init__(self, session: SessionBase, dataset: DatasetBase) -> None:
         super().__init__(session, dataset)
 
-        self.total_inference_time = 0.0
-        self.recent_inference_times = deque(maxlen=100)
-
         self.psnr_values = []
         self.ssim_values = []
 
         self.image_counter = 0
 
-    def eval(self) -> None:
-        """Evaluate super resolution model using PSNR and SSIM metrics."""
-        # Use async evaluation for DX runtime
-        if self.session.session_type == SessionType.dxruntime:
-            return self._eval_async()
+        self._upscale_factor = None
 
-        loader = self.make_loader()
-        total_len = len(loader)
+    @property
+    def upscale_factor(self) -> int:
+        if self._upscale_factor is None:
+            raise ValueError("upscale_factor property is not set.")
+        return self._upscale_factor
 
-        total_psnr = 0.0
-        total_ssim = 0.0
-        total_samples = 0
+    @upscale_factor.setter
+    def upscale_factor(self, upscale_factor):
+        self._upscale_factor = upscale_factor
+        self.dataset.data_dir = self.dataset.data_dir + f"/bicubic_{str(upscale_factor)}x"
 
-        pbar = tqdm(enumerate(loader), total=total_len, desc="Super Resolution Evaluation")
-
-        for batch_idx, (lr_images, hr_images) in pbar:
-            batch_size = lr_images.size(0)
-
-            batch_psnr, batch_ssim = self._run_one_batch(lr_images, hr_images)
-
-            total_psnr += batch_psnr
-            total_ssim += batch_ssim
-            total_samples += batch_size
-
-            avg_psnr = total_psnr / total_samples
-            avg_ssim = total_ssim / total_samples
-
-            if len(self.recent_inference_times) > 0:
-                current_fps = len(self.recent_inference_times) / sum(self.recent_inference_times)
-            else:
-                current_fps = 0.0
-
-            pbar.set_description(f"SR Eval | PSNR: {avg_psnr:.2f}dB | SSIM: {avg_ssim:.4f} | FPS: {current_fps:.1f}")
-
-        final_psnr = total_psnr / total_samples
-        final_ssim = total_ssim / total_samples
-        avg_fps = total_samples / self.total_inference_time if self.total_inference_time > 0 else 0.0
-
-        logger.info("Super Resolution Evaluation Results:")
-        logger.info(f"  Average PSNR: {final_psnr:.4f} dB")
-        logger.info(f"  Average SSIM: {final_ssim:.6f}")
-        logger.info(f"  Total samples: {total_samples}")
-
-        if self.total_inference_time > 0:
-            avg_inference_time = self.total_inference_time / total_samples
-            logger.info(f"  Average inference time: {avg_inference_time*1000:.2f} ms")
-
+    def init_metrics(self) -> dict:
+        """Initialize metrics state."""
         return {
-            "performance": [final_psnr, final_ssim],
-            "fps": avg_fps,
+            "total_psnr": 0.0,
+            "total_ssim": 0.0,
+            "total_samples": 0,
         }
 
-    def _run_one_batch(self, lr_images, hr_images) -> Tuple[float, float]:
-        """Run inference on one batch and calculate metrics.
+    def extract_inputs(self, batch_data: Tuple[torch.Tensor, torch.Tensor]) -> torch.Tensor:
+        """Extract LR image from batch data."""
+        lr_images, hr_images = batch_data
+        return lr_images
 
-        Args:
-            lr_images: Preprocessed LR input images (tensor)
-            hr_images: Preprocessed HR ground truth images (tensor)
-
-        Returns:
-            Tuple[float, float]: (batch_psnr_sum, batch_ssim_sum)
-        """
+    def process_batch_result(
+        self,
+        batch_data: Tuple[torch.Tensor, torch.Tensor],
+        output: torch.Tensor,
+        metrics_state: dict,
+    ) -> dict:
+        """Process batch result and update PSNR/SSIM metrics."""
+        lr_images, hr_images = batch_data
         batch_size = lr_images.size(0)
-        start_time = time.time()
-        sr_outputs = self.session.run(lr_images)[0]
-        inference_time = time.time() - start_time
 
-        self.total_inference_time += inference_time
-        self.recent_inference_times.append(inference_time)
+        sr_outputs = output[0]
 
         if isinstance(sr_outputs, torch.Tensor):
             sr_outputs = torch_to_numpy(sr_outputs)
@@ -231,188 +191,45 @@ class BSD100Evaluator(EvaluatorBase):
             self.psnr_values.append(psnr)
             self.ssim_values.append(ssim)
 
-        return batch_psnr_sum, batch_ssim_sum
+        metrics_state["total_psnr"] += batch_psnr_sum
+        metrics_state["total_ssim"] += batch_ssim_sum
+        metrics_state["total_samples"] += batch_size
 
-    def _eval_async(self) -> dict:
-        """Async evaluation for DX runtime using run_async/wait pattern."""
-        loader = self.make_loader()
-        total_len = len(loader)
+        return metrics_state
 
-        # Shared state with lock
-        lock = threading.Lock()
-        total_psnr = 0.0
-        total_ssim = 0.0
-        total_samples = 0
-        worker_error = None
+    def compute_final_metrics(self, metrics_state: dict) -> dict:
+        """Compute final PSNR and SSIM metrics."""
+        total_psnr = metrics_state["total_psnr"]
+        total_ssim = metrics_state["total_ssim"]
+        total_samples = metrics_state["total_samples"]
 
-        # Queue for pending jobs: (job_id, hr_images, batch_size, submit_time)
-        pending_queue = queue.Queue(maxsize=32)
-        done_event = threading.Event()
-
-        pbar = tqdm(total=total_len, desc="Super Resolution Evaluation (Async)")
-
-        def result_worker():
-            """Worker thread that collects results and calculates metrics."""
-            nonlocal total_psnr, total_ssim, total_samples, worker_error
-
-            while True:
-                try:
-                    item = pending_queue.get(timeout=0.1)
-                except queue.Empty:
-                    if done_event.is_set():
-                        break
-                    continue
-
-                if item is None:  # Sentinel
-                    break
-
-                job_id, hr_images, batch_size, submit_time = item
-
-                try:
-                    # Wait for NPU result
-                    sr_outputs = self.session.wait(job_id)[0]
-                    inference_time = time.time() - submit_time
-
-                    # Calculate metrics
-                    batch_psnr, batch_ssim = self._calculate_batch_metrics(sr_outputs, hr_images, batch_size)
-
-                    with lock:
-                        self.total_inference_time += inference_time
-                        self.recent_inference_times.append(inference_time)
-                        total_psnr += batch_psnr
-                        total_ssim += batch_ssim
-                        total_samples += batch_size
-
-                        avg_psnr = total_psnr / total_samples
-                        avg_ssim = total_ssim / total_samples
-
-                        if len(self.recent_inference_times) > 0:
-                            current_fps = len(self.recent_inference_times) / sum(self.recent_inference_times)
-                        else:
-                            current_fps = 0.0
-
-                        pbar.set_description(
-                            f"SR Eval | PSNR: {avg_psnr:.2f}dB | SSIM: {avg_ssim:.4f} | FPS: {current_fps:.1f}"
-                        )
-                        pbar.update(1)
-
-                except Exception as e:
-                    with lock:
-                        worker_error = e
-                    break
-
-        # Start worker thread
-        worker_thread = threading.Thread(target=result_worker, daemon=True)
-        worker_thread.start()
-
-        try:
-            # Main thread: submit jobs
-            for batch_idx, (lr_images, hr_images) in enumerate(loader):
-                with lock:
-                    if worker_error is not None:
-                        raise worker_error
-
-                batch_size = lr_images.size(0)
-                submit_time = time.time()
-
-                # Submit async job
-                job_id = self.session.run_async(lr_images)
-
-                # Queue for worker to process
-                pending_queue.put((job_id, hr_images, batch_size, submit_time))
-
-            # Signal completion and wait for worker
-            done_event.set()
-            pending_queue.put(None)  # Sentinel
-            worker_thread.join()
-
-            if worker_error is not None:
-                raise worker_error
-
-        finally:
-            pbar.close()
-
-        return self._finalize_results(total_psnr, total_ssim, total_samples)
-
-    def _calculate_batch_metrics(self, sr_outputs, hr_images, batch_size) -> Tuple[float, float]:
-        """Calculate PSNR and SSIM metrics for a batch.
-
-        Args:
-            sr_outputs: Super-resolved outputs from model
-            hr_images: Ground truth HR images
-            batch_size: Number of images in batch
-
-        Returns:
-            Tuple[float, float]: (batch_psnr_sum, batch_ssim_sum)
-        """
-        if isinstance(sr_outputs, torch.Tensor):
-            sr_outputs = torch_to_numpy(sr_outputs)
-
-        hr_numpy = torch_to_numpy(hr_images)
-
-        batch_psnr_sum = 0.0
-        batch_ssim_sum = 0.0
-
-        for i in range(batch_size):
-            sr_img = sr_outputs[i]
-            hr_img = hr_numpy[i]
-
-            sr_shape = sr_img.shape
-            hr_shape = hr_img.shape
-
-            if len(sr_shape) >= 2 and len(hr_shape) >= 2:
-                sr_h, sr_w = sr_shape[-2], sr_shape[-1]
-                hr_h, hr_w = hr_shape[-2], hr_shape[-1]
-
-                if sr_h != hr_h or sr_w != hr_w:
-                    if len(hr_shape) == 3:
-                        hr_resized = np.zeros((hr_shape[0], sr_h, sr_w), dtype=hr_img.dtype)
-                        for c in range(hr_shape[0]):
-                            hr_resized[c] = cv2.resize(hr_img[c], (sr_w, sr_h), interpolation=cv2.INTER_LINEAR)
-                        hr_img = hr_resized
-                    else:
-                        hr_img = cv2.resize(hr_img, (sr_w, sr_h), interpolation=cv2.INTER_LINEAR)
-
-            psnr = calculate_psnr(sr_img, hr_img)
-            ssim = calculate_ssim(sr_img, hr_img)
-
-            batch_psnr_sum += psnr
-            batch_ssim_sum += ssim
-
-            self.psnr_values.append(psnr)
-            self.ssim_values.append(ssim)
-
-        return batch_psnr_sum, batch_ssim_sum
-
-    def _finalize_results(self, total_psnr: float, total_ssim: float, total_samples: int) -> dict:
-        """Finalize and log evaluation results.
-
-        Args:
-            total_psnr: Sum of all PSNR values
-            total_ssim: Sum of all SSIM values
-            total_samples: Total number of samples evaluated
-
-        Returns:
-            dict: Final evaluation results
-        """
         final_psnr = total_psnr / total_samples if total_samples > 0 else 0.0
         final_ssim = total_ssim / total_samples if total_samples > 0 else 0.0
         avg_fps = total_samples / self.total_inference_time if self.total_inference_time > 0 else 0.0
 
-        logger.info("Super Resolution Evaluation Results:")
-        logger.info(f"  Average PSNR: {final_psnr:.4f} dB")
-        logger.info(f"  Average SSIM: {final_ssim:.6f}")
-        logger.info(f"  Total samples: {total_samples}")
-
-        if self.total_inference_time > 0:
-            avg_inference_time = self.total_inference_time / total_samples
-            logger.info(f"  Average inference time: {avg_inference_time*1000:.2f} ms")
-            logger.info(f"  Average FPS: {avg_fps:.2f}")
+        print(f"Upscale Factor: {self._upscale_factor}")
+        print(f"Average PSNR, Average SSIM: {final_psnr:.4f}, {final_ssim:.6f}")
+        print(f"Average FPS: {avg_fps:.2f}")
+        logger.success(f"@JSON <PSNR:{final_psnr:.4f}; SSIM:{final_ssim:.6f}; Average FPS:{avg_fps:.2f}>")
 
         return {
             "performance": [final_psnr, final_ssim],
             "fps": avg_fps,
         }
+
+    def format_progress_desc(self, metrics_state: dict, current_fps: float) -> str:
+        """Format progress bar description."""
+        total_psnr = metrics_state["total_psnr"]
+        total_ssim = metrics_state["total_ssim"]
+        total_samples = metrics_state["total_samples"]
+
+        if total_samples == 0:
+            return "SR Eval | Initializing..."
+
+        avg_psnr = total_psnr / total_samples
+        avg_ssim = total_ssim / total_samples
+
+        return f"SR Eval | PSNR: {avg_psnr:.2f}dB | SSIM: {avg_ssim:.4f} | Current_FPS: {current_fps:.1f}"
 
     def get_detailed_results(self) -> dict:
         """Get detailed evaluation results.

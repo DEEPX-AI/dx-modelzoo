@@ -1,16 +1,14 @@
 import os
-import queue
 import shutil
-import threading
-import time
-from collections import deque
+from typing import Tuple
 
 import numpy as np
 from loguru import logger
 from tqdm import tqdm
 
-from dx_modelzoo.enums import SessionType
+from dx_modelzoo.dataset import DatasetBase
 from dx_modelzoo.evaluator import EvaluatorBase
+from dx_modelzoo.session import SessionBase
 
 
 class WiderFaceEvaluator(EvaluatorBase):
@@ -21,68 +19,66 @@ class WiderFaceEvaluator(EvaluatorBase):
         dataset: COCO dataset.
     """
 
-    def __init__(self, session, dataset):
-        super().__init__(session, dataset)
+    def __init__(self, session: SessionBase, dataset: DatasetBase):
+        super().__init__(session, dataset, workers=12)
+        self.lazy_postprocessing = True
 
         self.save_folder = os.path.expanduser("~/.cache/wider_txt/")
         if not os.path.isdir(self.save_folder):
             os.makedirs(self.save_folder)
 
-    def eval(self):
-        # Use async evaluation for DX runtime
-        if self.session.type == SessionType.dxruntime:
-            return self._eval_async()
+    def init_metrics(self) -> dict:
+        """Initialize metrics state."""
+        return {}
 
-        loader = self.make_loader()
-        total_len = len(loader)
-        total_inference_time = 0.0
-        recent_inference_times = deque(maxlen=30)  # total: 3226
+    def extract_inputs(self, batch_data: Tuple) -> tuple:
+        """Extract image from batch data and return batch_data for custom handling."""
+        image, origin_shape, path = batch_data
+        return image
 
-        pbar = tqdm(loader, total=total_len)
-        for image, origin_shape, path in pbar:
-            path = path[0]
-            origin_shape = [int(value[0]) for value in origin_shape]
-            h, w, _ = origin_shape
-            start_time = time.time()
-            outputs = self.session.run(image)
-            inference_time = time.time() - start_time
+    def process_batch_result(
+        self,
+        batch_data: Tuple,
+        output: np.ndarray,
+        metrics_state: dict,
+    ) -> dict:
+        """Process batch result and save detections to file."""
+        image, origin_shape, path = batch_data
+        path = path[0]
+        origin_shape = [int(value[0]) for value in origin_shape]
 
-            recent_inference_times.append(inference_time)
-            total_inference_time += inference_time
+        # WiderFace needs special postprocessing with image shape and origin shape
+        # Override the base class's postprocessing call here
+        outputs = self.postprocessing(output, image.shape, origin_shape, self.session)
 
-            # # Note: Temporary workaround for the mismatch in output tensor order between the
-            # original ONNX model and DXNN.
-            # #       The _wrapper function will be removed once the issue is properly fixed.
-            # outputs = self.postprocessing(outputs, image.shape, origin_shape, self.session)
-            outputs = self.postprocessing(outputs, image.shape, origin_shape, self.session)
-            boxes = []
-            for output in outputs:
-                box = [float(output[i]) for i in range(5)]
-                boxes.append(box)
-            pict_folder = path.split(os.path.sep)[-2]
-            image_name = os.path.basename(path)
-            txt_name = os.path.splitext(image_name)[0] + ".txt"
-            save_name = os.path.join(self.save_folder, pict_folder, txt_name)
-            dirname = os.path.dirname(save_name)
-            if not os.path.isdir(dirname):
-                os.makedirs(dirname)
-            with open(save_name, "w") as fd:
-                file_name = os.path.basename(save_name)[:-4] + "\n"
-                bboxs_num = str(len(boxes)) + "\n"
-                fd.write(file_name)
-                fd.write(bboxs_num)
-                for box in boxes:
-                    fd.write(
-                        "%d %d %d %d %.03f" % (box[0], box[1], box[2], box[3], box[4] if box[4] <= 1 else 1) + "\n"
-                    )
-            if len(recent_inference_times) > 0:
-                current_fps = len(recent_inference_times) / sum(recent_inference_times)
-            else:
-                current_fps = 0.0
+        boxes = []
+        for out in outputs:
+            box = [float(out[i]) for i in range(5)]
+            boxes.append(box)
 
-            pbar.desc = f"WiderFace | Current_FPS:{current_fps:.1f} "
+        pict_folder = path.split(os.path.sep)[-2]
+        image_name = os.path.basename(path)
+        txt_name = os.path.splitext(image_name)[0] + ".txt"
+        save_name = os.path.join(self.save_folder, pict_folder, txt_name)
+        dirname = os.path.dirname(save_name)
 
-        avg_fps = total_len / total_inference_time if total_inference_time > 0 else 0.0
+        if not os.path.isdir(dirname):
+            os.makedirs(dirname)
+
+        with open(save_name, "w") as fd:
+            file_name = os.path.basename(save_name)[:-4] + "\n"
+            bboxs_num = str(len(boxes)) + "\n"
+            fd.write(file_name)
+            fd.write(bboxs_num)
+            for box in boxes:
+                fd.write("%d %d %d %d %.03f" % (box[0], box[1], box[2], box[3], box[4] if box[4] <= 1 else 1) + "\n")
+
+        return metrics_state
+
+    def compute_final_metrics(self, metrics_state: dict) -> dict:
+        """Compute final WiderFace AP metrics."""
+        total_len = len(self.dataset)
+        avg_fps = total_len / self.total_inference_time if self.total_inference_time > 0 else 0.0
 
         print("Finish saving results")
         aps = self.evaluation(pred=self.save_folder)
@@ -101,141 +97,9 @@ class WiderFaceEvaluator(EvaluatorBase):
             "fps": avg_fps,
         }
 
-    def _eval_async(self):
-        """Async evaluation for DX runtime using run_async/wait pattern."""
-        loader = self.make_loader()
-        total_len = len(loader)
-
-        # Shared state with lock
-        lock = threading.Lock()
-        dir_lock = threading.Lock()  # For directory creation
-        total_inference_time = 0.0
-        recent_inference_times = deque(maxlen=30)
-        worker_error = None
-
-        # Queue for pending jobs: (job_id, image_shape, origin_shape, path, submit_time)
-        pending_queue = queue.Queue(maxsize=32)
-        done_event = threading.Event()
-
-        pbar = tqdm(total=total_len, desc="WiderFace (Async)")
-
-        def result_worker():
-            """Worker thread that collects results and writes to files."""
-            nonlocal total_inference_time, worker_error
-
-            while True:
-                try:
-                    item = pending_queue.get(timeout=0.1)
-                except queue.Empty:
-                    if done_event.is_set():
-                        break
-                    continue
-
-                if item is None:  # Sentinel
-                    break
-
-                job_id, image_shape, origin_shape, path, submit_time = item
-
-                try:
-                    # Wait for NPU result
-                    outputs = self.session.wait(job_id)
-                    inference_time = time.time() - submit_time
-
-                    # Postprocessing
-                    outputs = self.postprocessing(outputs, image_shape, origin_shape, self.session)
-                    boxes = []
-                    for output in outputs:
-                        box = [float(output[i]) for i in range(5)]
-                        boxes.append(box)
-
-                    # Write to file (each image has unique file, but need lock for mkdir)
-                    pict_folder = path.split(os.path.sep)[-2]
-                    image_name = os.path.basename(path)
-                    txt_name = os.path.splitext(image_name)[0] + ".txt"
-                    save_name = os.path.join(self.save_folder, pict_folder, txt_name)
-                    dirname = os.path.dirname(save_name)
-
-                    with dir_lock:
-                        if not os.path.isdir(dirname):
-                            os.makedirs(dirname)
-
-                    with open(save_name, "w") as fd:
-                        file_name = os.path.basename(save_name)[:-4] + "\n"
-                        bboxs_num = str(len(boxes)) + "\n"
-                        fd.write(file_name)
-                        fd.write(bboxs_num)
-                        for box in boxes:
-                            fd.write(
-                                "%d %d %d %d %.03f" % (box[0], box[1], box[2], box[3], box[4] if box[4] <= 1 else 1)
-                                + "\n"
-                            )
-
-                    with lock:
-                        recent_inference_times.append(inference_time)
-                        total_inference_time += inference_time
-
-                        if len(recent_inference_times) > 0:
-                            current_fps = len(recent_inference_times) / sum(recent_inference_times)
-                        else:
-                            current_fps = 0.0
-
-                        pbar.set_description(f"WiderFace | FPS: {current_fps:.1f}")
-                        pbar.update(1)
-
-                except Exception as e:
-                    with lock:
-                        worker_error = e
-                    break
-
-        # Start worker thread
-        worker_thread = threading.Thread(target=result_worker, daemon=True)
-        worker_thread.start()
-
-        try:
-            # Main thread: submit jobs
-            for image, origin_shape, path in loader:
-                with lock:
-                    if worker_error is not None:
-                        raise worker_error
-
-                path_str = path[0]
-                origin_shape_list = [int(value[0]) for value in origin_shape]
-                image_shape = image.shape
-
-                submit_time = time.time()
-                job_id = self.session.run_async(image)
-
-                pending_queue.put((job_id, image_shape, origin_shape_list, path_str, submit_time))
-
-            # Signal completion and wait for worker
-            done_event.set()
-            pending_queue.put(None)  # Sentinel
-            worker_thread.join()
-
-            if worker_error is not None:
-                raise worker_error
-
-        finally:
-            pbar.close()
-
-        avg_fps = total_len / total_inference_time if total_inference_time > 0 else 0.0
-
-        print("Finish saving results")
-        aps = self.evaluation(pred=self.save_folder)
-        print(f"Easy   Val AP: {round(aps[0] * 100, 3)}")
-        print(f"Medium Val AP: {round(aps[1] * 100, 3)}")
-        print(f"Hard   Val AP: {round(aps[2] * 100, 3)}")
-        print(f"Average FPS: {avg_fps:.2f}")
-        logger.success(
-            f"@JSON <Easy Val AP:{round(aps[0] * 100, 3)}; Medium Val AP:{round(aps[1] * 100, 3)}; "
-            f"Hard Val AP:{round(aps[2] * 100, 3)}; Average FPS:{avg_fps:.2f}>"
-        )
-        self.remove_cache()
-
-        return {
-            "performance": [aps[0] * 100, aps[1] * 100, aps[2] * 100],
-            "fps": avg_fps,
-        }
+    def format_progress_desc(self, metrics_state: dict, current_fps: float) -> str:
+        """Format progress bar description."""
+        return f"WiderFace | Current_FPS:{current_fps:.1f}"
 
     def evaluation(self, pred, iou_thresh=0.5):
         pred = self.get_preds(pred)

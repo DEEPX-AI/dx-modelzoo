@@ -2,9 +2,7 @@ from torchvision.transforms import Compose
 
 from dx_modelzoo.enums import DatasetType, EvaluationType
 from dx_modelzoo.models import ModelBase, ModelInfo
-
-# from dx_modelzoo.models.object_detection.nms import ssd_nms_wrapper
-from dx_modelzoo.models.object_detection.nms import ssd_nms, ssd_nms_wrapper
+from dx_modelzoo.models.object_detection.nms import ssd_nms, ssd_vgg16_postprocessing
 from dx_modelzoo.preprocessing.convertcolor import ConvertColor
 from dx_modelzoo.preprocessing.normalize import Normalize
 from dx_modelzoo.preprocessing.resize import Resize
@@ -42,7 +40,6 @@ class SSDMV1(ModelBase):
         # return ssd_nms_wrapper
 
 
-
 class SSDMV2Lite(ModelBase):
     info = ModelInfo(name="SSDMV2Lite", dataset=DatasetType.voc_od, evaluation=EvaluationType.voc)
 
@@ -72,3 +69,37 @@ class SSDMV2Lite(ModelBase):
         # # Note: Temporary workaround for the mismatch in output tensor order between the original ONNX model and DXNN.
         # #       The _wrapper function will be removed once the issue is properly fixed.
         # return ssd_nms_wrapper
+
+
+class SSDVGG16(ModelBase):
+    """SSD with VGG16 backbone for VOC detection (21 classes including background)."""
+
+    info = ModelInfo(
+        name="SSDVGG16",
+        dataset=DatasetType.voc_od,
+        evaluation=EvaluationType.voc,
+    )
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                ConvertColor("BGR2RGB"),
+                Resize(width=300, height=300),
+                Normalize([123.68, 116.779, 103.939], [1.0, 1.0, 1.0]),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                ConvertColor("BGR2RGB"),
+                Resize(width=300, height=300),
+            ]
+        )
+
+    def postprocessing(self):
+        return ssd_vgg16_postprocessing
