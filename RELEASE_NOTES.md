@@ -1,5 +1,47 @@
 # RELEASE_NOTES
 
+## v0.9.0 / 2026-03-30
+
+### 1. Changed
+- YOLOXS_PPU preprocessing changed to letterbox (pad) mode
+
+### 2. Fixed
+- Fixed IndexError in YOLOXS_PPU PPU postprocessing caused by invalid layer_idx in hardware output
+- **MobileViT**, **FastViT**, **ViT**, **EfficientNet**
+
+### 3. Added
+- **Detection**:
+  - CenterNet: CenterNet_ResNet18, CenterNet_ResNet50
+  - DamoYolo: DamoYoloL
+  - EfficientDet: EfficientDet_D0, EfficientDet_D2, EfficientDet_D3, EfficientDet_D4, EfficientDet_D5, EfficientDet_D6
+  - NanoDet: NanoDet_Plus, NanoDet_Plus_15
+  - YoloV3: YoloV3_Gluon_416, YoloV3_Gluon_608, YOLOV3_416_PPU, YOLOV3_608_PPU, YOLOV3Tiny_PPU
+  - YoloV4: YOLOV4_PPU
+  - YoloV5: YoloV5L_640, YoloV5L6_1280, YoloV5M_640, YoloV5M6_1280, YoloV5M6_1, YoloV5M6_61_1280, YoloV5M_WoSpp_640, YoloV5N6_1280, YoloV5N6_61_1280, YoloV5S_320, YoloV5S_640, YoloV5S6_1280, YoloV5S6_61_1280, YoloV5S_BboxDecoding_640, YoloV5S_C3tr_640, YoloV5S_WoSpp_640, YoloV5XS_WoSpp_512, YoloV5X_640, YoloV5X6_1280, YOLOV5S_PPU
+  - YoloV6: YoloV6L_640, YoloV6M_640, YoloV6N0_1_0, YoloV6N0_2_1, YoloV6N6_1280, YoloV6N_NmsCore_640, YoloV6S_640, YoloV6S6_1280
+  - YoloV7: YoloV7D6_1280, YoloV7E6E_1280, YoloV7_W6, YoloV7_W6_wo_decoding, YoloV7_wo_decoding, YoloV7_X, YOLOV7_PPU, YOLOV7X_PPU
+  - YoloV8: YoloV8S_decoding, YOLOV8N_PPU, YOLOV8S_PPU
+  - YoloV9: YoloV9_GELAN_C, YoloV9M, YOLOV9T_PPU
+  - YoloV10: YoloV10N_PPU
+  - YoloX: YoloXL_640, YoloXM_640, YoloXN_416, YoloXTiny_416, YoloXX_640, YOLOXS_PPU
+  - Yolo26:
+  -   OBB: YOLO26n_OBB, YOLO26s_OBB, YOLO26m_OBB, YOLO26l_OBB, YOLO26x_OBB
+  -   Seg: Yolo26N_Seg, Yolo26S_Seg, Yolo26M_Seg, Yolo26L_Seg, Yolo26X_Seg
+  -   Pose: Yolo26N_Pose, Yolo26S_Pose, Yolo26M_Pose, Yolo26L_Pose, Yolo26X_Pose
+  - tinynas: tinynas
+  - Others: SSDVGG16, YOLO_DeepX_640, ResNet18_BRECQ, ResNeXt50_32x4d_imgclsmob
+
+- **Classification**:
+  - FastViT: FastViT
+  - RepGhost: RepGhost
+  - Yolo26-cls: YOLO26n-cls, YOLO26s-cls, YOLO26m-cls, YOLO26l-cls, YOLO26x-cls
+
+- **Segmentation**:
+  - Yolo26: Yolo26N_Seg, Yolo26S_Seg, Yolo26M_Seg, Yolo26L_Seg, Yolo26X_Seg
+
+- **Pose**:
+  - Yolo26: Yolo26N_Pose, Yolo26S_Pose, Yolo26M_Pose, Yolo26L_Pose, Yolo26X_Pose
+
 ## DX-MODELZOO v0.7.0 / 2026-01-20
 
 ### 1. Changed

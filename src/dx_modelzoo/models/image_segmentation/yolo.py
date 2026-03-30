@@ -24,7 +24,7 @@ def xywh2xyxy(x):
 
 
 def yolov_non_max_suppression(
-    prediction: torch.Tensor, conf_thres=0.001, iou_thres=0.45, max_det=300, nm=32
+    prediction: torch.Tensor, conf_thres=0.001, iou_thres=0.7, max_det=300, nm=32
 ) -> List[torch.Tensor]:
     nc = prediction.shape[2] - nm - 5
     xc = prediction[..., 4] > conf_thres
@@ -177,7 +177,7 @@ class YoloV5S_Seg(ModelBase):
         return yolov5_postprocessing
 
 
-def yolov8_postprocessing(prediction, conf_thres=0.001, iou_thres=0.45, max_det=300):
+def yolov8_postprocessing(prediction, conf_thres=0.001, iou_thres=0.7, max_det=300):
     """prediction: (batch_size, num_classes + 4 + num_masks, num_proposals)"""
     # (batch, channels, proposals) -> (batch, proposals, channels)
     prediction = prediction.permute(0, 2, 1)
@@ -296,3 +296,152 @@ class YoloV8S_Seg(ModelBase):
 
     def postprocessing(self):
         return yolov8_postprocessing
+
+
+def yolo26_postprocessing(outputs: List[np.ndarray]):
+    return outputs
+
+
+class Yolo26N_Seg(ModelBase):
+    info = ModelInfo("Yolo26N_Seg", dataset=DatasetType.coco, evaluation=EvaluationType.instance_segmentation)
+
+    def __init__(self, evaluator: EvaluatorBase) -> None:
+        super().__init__(evaluator)
+        self.use_class_90 = True
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                Div(255),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return yolo26_postprocessing
+
+
+class Yolo26S_Seg(ModelBase):
+    info = ModelInfo("Yolo26S_Seg", dataset=DatasetType.coco, evaluation=EvaluationType.instance_segmentation)
+
+    def __init__(self, evaluator: EvaluatorBase) -> None:
+        super().__init__(evaluator)
+        self.use_class_90 = True
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                Div(255),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return yolo26_postprocessing
+
+
+class Yolo26M_Seg(ModelBase):
+    info = ModelInfo("Yolo26M_Seg", dataset=DatasetType.coco, evaluation=EvaluationType.instance_segmentation)
+
+    def __init__(self, evaluator: EvaluatorBase) -> None:
+        super().__init__(evaluator)
+        self.use_class_90 = True
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                Div(255),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return yolo26_postprocessing
+
+
+class Yolo26L_Seg(ModelBase):
+    info = ModelInfo("Yolo26L_Seg", dataset=DatasetType.coco, evaluation=EvaluationType.instance_segmentation)
+
+    def __init__(self, evaluator: EvaluatorBase) -> None:
+        super().__init__(evaluator)
+        self.use_class_90 = True
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                Div(255),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return yolo26_postprocessing
+
+
+class Yolo26X_Seg(ModelBase):
+    info = ModelInfo("Yolo26X_Seg", dataset=DatasetType.coco, evaluation=EvaluationType.instance_segmentation)
+
+    def __init__(self, evaluator: EvaluatorBase) -> None:
+        super().__init__(evaluator)
+        self.use_class_90 = True
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                Div(255),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return yolo26_postprocessing

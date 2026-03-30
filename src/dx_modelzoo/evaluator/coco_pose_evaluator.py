@@ -1,17 +1,11 @@
 import json
-import os
-import queue
 import tempfile
-import threading
-import time
-from collections import deque
 from typing import List, Tuple
 
 import torch
 from loguru import logger
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
-from tqdm import tqdm
 
 from dx_modelzoo.dataset.coco_pose import COCOPoseDataset
 from dx_modelzoo.enums import SessionType
@@ -31,208 +25,69 @@ class COCOPoseEvaluator(EvaluatorBase):
     """
 
     def __init__(self, session: SessionBase, dataset: COCOPoseDataset):
-        super().__init__(session, dataset)
+        super().__init__(session, dataset, workers=12)
         self.dataset: COCOPoseDataset
-        self.total_inference_time = 0.0  # Total time spent on inference
-        self.recent_inference_times = deque(maxlen=50)  # total: 5000
+        self.temp_file = None
+        self.first_chunk_written = False
 
-    def eval(self) -> None:
-        """evaluation OD model with COCO dataset."""
-        # Use async evaluation for DX runtime
-        if self.session.type == SessionType.dxruntime:
-            return self._eval_async()
+    def init_metrics(self) -> dict:
+        """Initialize temporary file for COCO pose detections."""
+        self.temp_file = tempfile.NamedTemporaryFile(mode="w+", encoding="utf-8", suffix=".json", delete=False)
+        self.temp_file.write("[\n")
+        self.first_chunk_written = False
+        return {"detections_count": 0}
 
-        loader = self.make_loader()
-        total_len = len(loader)
+    def extract_inputs(self, batch_data) -> torch.Tensor:
+        """Extract image from batch."""
+        image, origin_shape, img_id = batch_data
+        return image
 
-        pbar = tqdm(loader, total=total_len)
-        with tempfile.NamedTemporaryFile(mode="w+", encoding="utf-8", suffix=".json") as temp_f:
-            temp_f.write("[\n")
-
-            first_chunk_written = False
-            for batch in pbar:
-                json_chunk = self._run_one_batch(batch)
-
-                if json_chunk:
-                    if first_chunk_written:
-                        temp_f.write(",\n")
-                    temp_f.write(json_chunk)
-                    first_chunk_written = True
-
-                if len(self.recent_inference_times) > 0:
-                    current_fps = len(self.recent_inference_times) / sum(self.recent_inference_times)
-                else:
-                    current_fps = 0.0
-
-                pbar.desc = f"COCO | Current_FPS:{current_fps:.1f}"
-            temp_f.write("\n]\n")
-            temp_f.flush()
-            mAP, mAP50 = self._run_coco_eval(temp_f.name, self.dataset.coco_annotation)
-
-        avg_fps = total_len / self.total_inference_time if self.total_inference_time > 0 else 0
-
-        print(f"mAP: {round(mAP*100, 3)} mAP50: {round(mAP50*100, 3)}")
-        print(f"Average Inference FPS: {avg_fps:.2f}")
-        logger.success(f"@JSON <mAP:{round(mAP*100, 3)}; mAP50:{round(mAP50*100, 3)}; Average FPS:{avg_fps:.2f}>")
-
-        return {
-            "performance": [mAP * 100, mAP50 * 100],
-            "fps": avg_fps,
-        }
-
-    def _run_one_batch(self, batch: Tuple[torch.Tensor, List[torch.Tensor], torch.Tensor]) -> str:
-        image, origin_shape, img_id = batch
+    def process_batch_result(
+        self, batch_data: Tuple[torch.Tensor, List[torch.Tensor], torch.Tensor], output, metrics_state: dict
+    ) -> dict:
+        """Process batch result and write pose detections to file."""
+        image, origin_shape, img_id = batch_data
         origin_shape = [value[0] for value in origin_shape]
 
-        start_time = time.time()
-        model_output = self.session.run(image)  # np.ndarray
-        inference_time = time.time() - start_time
+        boxes, scores, class_ids, keypoints = output
 
-        self.recent_inference_times.append(inference_time)
-        self.total_inference_time += inference_time
+        if len(scores) > 0:
+            if self.session.type == SessionType.dxruntime:
+                image = image.permute(0, 3, 1, 2)
 
-        boxes, scores, class_ids, keypoints = self.postprocessing(model_output)
+            scaled_boxes, scaled_keypoints = self._change_scales_to_origin(image, origin_shape, boxes, keypoints)
+            scaled_boxes = convert_xyxy_2_cxcywh(scaled_boxes)
+            coco_formatted_dets = self._make_coco_format_pose(scaled_boxes, scores, class_ids, scaled_keypoints, img_id)
 
-        if len(scores) == 0:
-            return ""
-        if self.session.type == SessionType.dxruntime:
-            image = image.permute(0, 3, 1, 2)
+            if coco_formatted_dets:
+                json_chunk = ",\n".join([json.dumps(det) for det in coco_formatted_dets])
+                if self.first_chunk_written:
+                    self.temp_file.write(",\n")
+                self.temp_file.write(json_chunk)
+                self.first_chunk_written = True
+                metrics_state["detections_count"] += len(coco_formatted_dets)
 
-        scaled_boxes, scaled_keypoints = self._change_scales_to_origin(image, origin_shape, boxes, keypoints)
-        scaled_boxes = convert_xyxy_2_cxcywh(scaled_boxes)
-        coco_formatted_dets = self._make_coco_format_pose(scaled_boxes, scores, class_ids, scaled_keypoints, img_id)
+        return metrics_state
 
-        if not coco_formatted_dets:
-            return ""
+    def compute_final_metrics(self, metrics_state: dict) -> dict:
+        """Compute final COCO pose metrics."""
+        # Finalize JSON file
+        self.temp_file.write("\n]\n")
+        self.temp_file.flush()
+        self.temp_file.close()
 
-        return ",\n".join([json.dumps(det) for det in coco_formatted_dets])
+        # Run COCO evaluation
+        mAP, mAP50 = self._run_coco_eval(self.temp_file.name, self.dataset.coco_annotation)
 
-    def _eval_async(self) -> dict:
-        """Async evaluation for DX runtime using run_async/wait pattern."""
-        loader = self.make_loader()
-        total_len = len(loader)
+        # Clean up
+        import os
 
-        # Shared state with locks
-        lock = threading.Lock()
-        file_lock = threading.Lock()
-        worker_error = None
+        os.unlink(self.temp_file.name)
 
-        # Queue for pending jobs: (job_id, image, origin_shape, img_id)
-        pending_queue = queue.Queue(maxsize=32)
-        done_event = threading.Event()
-
-        # Wall-clock time measurement
-        wall_start_time = time.time()
-
-        pbar = tqdm(total=total_len, desc="COCO")
-
-        with tempfile.NamedTemporaryFile(mode="w+", encoding="utf-8", suffix=".json", delete=False) as temp_f:
-            temp_file_path = temp_f.name
-            temp_f.write("[\n")
-            first_chunk_written = [False]  # Use list for mutability in closure
-
-            def result_worker():
-                """Worker thread that collects results and writes to JSON."""
-                nonlocal worker_error
-
-                while True:
-                    try:
-                        item = pending_queue.get(timeout=0.1)
-                    except queue.Empty:
-                        if done_event.is_set():
-                            break
-                        continue
-
-                    if item is None:  # Sentinel
-                        break
-
-                    job_id, image, origin_shape, img_id = item
-
-                    try:
-                        # Wait for NPU result
-                        model_output = self.session.wait(job_id)
-
-                        # Postprocessing
-                        boxes, scores, class_ids, keypoints = self.postprocessing(model_output)
-
-                        json_chunk = ""
-                        if len(scores) > 0:
-                            # For dxruntime, image is already NHWC, need to permute for scale calculation
-                            image_for_scale = image.permute(0, 3, 1, 2)
-
-                            scaled_boxes, scaled_keypoints = self._change_scales_to_origin(
-                                image_for_scale, origin_shape, boxes, keypoints
-                            )
-                            scaled_boxes = convert_xyxy_2_cxcywh(scaled_boxes)
-                            coco_formatted_dets = self._make_coco_format_pose(
-                                scaled_boxes, scores, class_ids, scaled_keypoints, img_id
-                            )
-
-                            if coco_formatted_dets:
-                                json_chunk = ",\n".join([json.dumps(det) for det in coco_formatted_dets])
-
-                        # Write to file (thread-safe)
-                        if json_chunk:
-                            with file_lock:
-                                if first_chunk_written[0]:
-                                    temp_f.write(",\n")
-                                temp_f.write(json_chunk)
-                                first_chunk_written[0] = True
-                                temp_f.flush()
-
-                        with lock:
-                            # Wall-clock based FPS
-                            elapsed = time.time() - wall_start_time
-                            processed_count = pbar.n + 1
-                            current_fps = processed_count / elapsed if elapsed > 0 else 0.0
-
-                            pbar.set_description(f"COCO | Current_FPS:{current_fps:.1f}")
-                            pbar.update(1)
-
-                    except Exception as e:
-                        with lock:
-                            worker_error = e
-                        break
-
-            # Start worker thread
-            worker_thread = threading.Thread(target=result_worker, daemon=True)
-            worker_thread.start()
-
-            try:
-                # Main thread: submit jobs
-                for batch in loader:
-                    with lock:
-                        if worker_error is not None:
-                            raise worker_error
-
-                    image, origin_shape, img_id = batch
-                    origin_shape_processed = [value[0] for value in origin_shape]
-
-                    job_id = self.session.run_async(image)
-
-                    pending_queue.put((job_id, image, origin_shape_processed, img_id))
-
-                # Signal completion and wait for worker
-                done_event.set()
-                pending_queue.put(None)  # Sentinel
-                worker_thread.join()
-
-                if worker_error is not None:
-                    raise worker_error
-
-            finally:
-                pbar.close()
-
-            temp_f.write("\n]\n")
-            temp_f.flush()
-
-            mAP, mAP50 = self._run_coco_eval(temp_file_path, self.dataset.coco_annotation)
-
-        # Clean up temp file
-        os.unlink(temp_file_path)
-
-        total_wall_time = time.time() - wall_start_time
-        avg_fps = total_len / total_wall_time if total_wall_time > 0 else 0
+        # Calculate FPS
+        avg_fps = (
+            metrics_state["detections_count"] / self.total_inference_time if self.total_inference_time > 0 else 0.0
+        )
 
         print(f"mAP: {round(mAP*100, 3)} mAP50: {round(mAP50*100, 3)}")
         print(f"Average Inference FPS: {avg_fps:.2f}")
@@ -242,6 +97,11 @@ class COCOPoseEvaluator(EvaluatorBase):
             "performance": [mAP * 100, mAP50 * 100],
             "fps": avg_fps,
         }
+
+    def format_progress_desc(self, metrics_state: dict, current_fps: float) -> str:
+        """Format progress bar."""
+        det_count = metrics_state.get("detections_count", 0)
+        return f"COCO | Dets:{det_count} Current_FPS:{current_fps:.1f}"
 
     def _change_scales_to_origin(
         self, image: torch.Tensor, origin_shape: List[torch.Tensor], boxes: torch.Tensor, keypoints: torch.Tensor

@@ -4,7 +4,6 @@ from torchvision.transforms import Compose
 
 from dx_modelzoo.enums import DatasetType, EvaluationType
 from dx_modelzoo.models import ModelBase, ModelInfo
-from dx_modelzoo.preprocessing.centercrop import CenterCrop
 from dx_modelzoo.preprocessing.convertcolor import ConvertColor
 from dx_modelzoo.preprocessing.div import Div
 from dx_modelzoo.preprocessing.normalize import Normalize
@@ -34,6 +33,41 @@ def segformer_postprocessing(outputs, target_size=(1024, 2048)):
 class SegFormer_b0_512x1024(ModelBase):
     info = ModelInfo(
         name="SegFormer_b0_512x1024",
+        dataset=DatasetType.city,
+        evaluation=EvaluationType.segmentation,
+    )
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                ConvertColor("BGR2RGB"),
+                Resize(width=1024, height=512),
+                Div(255),
+                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                ConvertColor("BGR2RGB"),
+                Resize(width=1024, height=512),
+            ]
+        )
+
+    def postprocessing(self):
+        return segformer_postprocessing
+
+
+class SegFormer_b0_512x1024_H(ModelBase):
+    """SegFormer-b0 H variant. Output is already argmax'd at full resolution."""
+
+    info = ModelInfo(
+        name="SegFormer_b0_512x1024_H",
         dataset=DatasetType.city,
         evaluation=EvaluationType.segmentation,
     )
