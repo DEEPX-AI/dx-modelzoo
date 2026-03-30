@@ -1,166 +1,68 @@
 import math
-import queue
-import threading
-import time
-from collections import deque
+from typing import Tuple
 
+import numpy as np
 import torch
 from loguru import logger
-from tqdm import tqdm
 
-from dx_modelzoo.enums import SessionType
+from dx_modelzoo.dataset import DatasetBase
 from dx_modelzoo.evaluator import EvaluatorBase
+from dx_modelzoo.session import SessionBase
 
 
 class DepthEstimationEvaluator(EvaluatorBase):
-    def __init__(self, session, dataset) -> None:
-        super().__init__(session, dataset)
+    def __init__(self, session: SessionBase, dataset: DatasetBase) -> None:
+        super().__init__(session, dataset, workers=12)
+        self.use_median_scaling = False
 
-    def eval(self):
-        # Use async evaluation for DX runtime
-        if self.session.type == SessionType.dxruntime:
-            return self._eval_async()
-
-        loader = self.make_loader()
-        total_len = len(loader)
-        total_inference_time = 0.0
-        recent_inference_times = deque(maxlen=50)  # total
-
-        rmse_sum = 0
-        pbar = tqdm(loader, total=total_len)
-        for images, depth in pbar:
-            start_time = time.time()
-            output = self.session.run(images)
-            inference_time = time.time() - start_time
-
-            recent_inference_times.append(inference_time)
-            total_inference_time += inference_time
-
-            output = self.postprocessing(output)
-
-            if len(recent_inference_times) > 0:
-                current_fps = len(recent_inference_times) / sum(recent_inference_times)
-            else:
-                current_fps = 0.0
-
-            pbar.desc = f"Cuurent_FPS:{current_fps:.1f}"
-            output = torch.from_numpy(output)
-            valid_mask = ((depth > 0) + (output > 0)) > 0
-            output = output[valid_mask]
-            depth = depth[valid_mask]
-            abs_diff = (output - depth).abs()
-
-            mse = float((torch.pow(abs_diff, 2)).mean())
-            rmse_sum += math.sqrt(mse)
-        avg_fps = total_len / total_inference_time if total_inference_time > 0 else 0.0
-        print(f"RMSE: {round(rmse_sum / total_len, 3)}")
-        print(f"Average FPS: {avg_fps:.2f}")
-        logger.success(f"@JSON <RMSE:{round(rmse_sum / total_len, 3)}; Average FPS:{avg_fps:.2f}>")
-
+    def init_metrics(self) -> dict:
+        """Initialize metrics state."""
         return {
-            "performance": [rmse_sum / total_len],
-            "fps": avg_fps,
+            "rmse_sum": 0.0,
+            "count": 0,
         }
 
-    def _eval_async(self):
-        """Async evaluation for DX runtime using run_async/wait pattern."""
-        loader = self.make_loader()
-        total_len = len(loader)
+    def extract_inputs(self, batch_data: Tuple[torch.Tensor, torch.Tensor]) -> torch.Tensor:
+        """Extract images from batch data."""
+        images, depth = batch_data
+        return images
 
-        # Shared state with lock
-        lock = threading.Lock()
-        total_inference_time = 0.0
-        recent_inference_times = deque(maxlen=50)
-        rmse_sum = 0.0
-        worker_error = None
+    def process_batch_result(
+        self,
+        batch_data: Tuple[torch.Tensor, torch.Tensor],
+        output: np.ndarray,
+        metrics_state: dict,
+    ) -> dict:
+        """Process batch result and update RMSE."""
+        images, depth = batch_data
 
-        # Queue for pending jobs: (job_id, depth, submit_time)
-        pending_queue = queue.Queue(maxsize=32)
-        done_event = threading.Event()
+        output = torch.from_numpy(output)
 
-        pbar = tqdm(total=total_len, desc="Depth Estimation (Async)")
+        if self.use_median_scaling:
+            gt_valid_mask = depth > 0
+            scale = torch.median(depth[gt_valid_mask]) / torch.median(output[gt_valid_mask])
+            output = output * scale
 
-        def result_worker():
-            """Worker thread that collects results and calculates RMSE."""
-            nonlocal total_inference_time, rmse_sum, worker_error
+        valid_mask = ((depth > 0) + (output > 0)) > 0
+        output_masked = output[valid_mask]
+        depth_masked = depth[valid_mask]
+        abs_diff = (output_masked - depth_masked).abs()
 
-            while True:
-                try:
-                    item = pending_queue.get(timeout=0.1)
-                except queue.Empty:
-                    if done_event.is_set():
-                        break
-                    continue
+        mse = float((torch.pow(abs_diff, 2)).mean())
+        rmse = math.sqrt(mse)
 
-                if item is None:  # Sentinel
-                    break
+        metrics_state["rmse_sum"] += rmse
+        metrics_state["count"] += 1
 
-                job_id, depth, submit_time = item
+        return metrics_state
 
-                try:
-                    # Wait for NPU result
-                    output = self.session.wait(job_id)
-                    inference_time = time.time() - submit_time
+    def compute_final_metrics(self, metrics_state: dict) -> dict:
+        """Compute final RMSE metric."""
+        rmse_sum = metrics_state["rmse_sum"]
+        count = metrics_state["count"]
 
-                    # Postprocessing
-                    output = self.postprocessing(output)
-                    output = torch.from_numpy(output)
-
-                    # Calculate RMSE
-                    valid_mask = ((depth > 0) + (output > 0)) > 0
-                    output_masked = output[valid_mask]
-                    depth_masked = depth[valid_mask]
-                    abs_diff = (output_masked - depth_masked).abs()
-                    mse = float((torch.pow(abs_diff, 2)).mean())
-                    rmse = math.sqrt(mse)
-
-                    with lock:
-                        recent_inference_times.append(inference_time)
-                        total_inference_time += inference_time
-                        rmse_sum += rmse
-
-                        if len(recent_inference_times) > 0:
-                            current_fps = len(recent_inference_times) / sum(recent_inference_times)
-                        else:
-                            current_fps = 0.0
-
-                        pbar.set_description(f"Depth | FPS: {current_fps:.1f}")
-                        pbar.update(1)
-
-                except Exception as e:
-                    with lock:
-                        worker_error = e
-                    break
-
-        # Start worker thread
-        worker_thread = threading.Thread(target=result_worker, daemon=True)
-        worker_thread.start()
-
-        try:
-            # Main thread: submit jobs
-            for images, depth in loader:
-                with lock:
-                    if worker_error is not None:
-                        raise worker_error
-
-                submit_time = time.time()
-                job_id = self.session.run_async(images)
-
-                pending_queue.put((job_id, depth, submit_time))
-
-            # Signal completion and wait for worker
-            done_event.set()
-            pending_queue.put(None)  # Sentinel
-            worker_thread.join()
-
-            if worker_error is not None:
-                raise worker_error
-
-        finally:
-            pbar.close()
-
-        avg_fps = total_len / total_inference_time if total_inference_time > 0 else 0.0
-        avg_rmse = rmse_sum / total_len
+        avg_rmse = rmse_sum / count if count > 0 else 0.0
+        avg_fps = count / self.total_inference_time if self.total_inference_time > 0 else 0.0
 
         print(f"RMSE: {round(avg_rmse, 3)}")
         print(f"Average FPS: {avg_fps:.2f}")
@@ -170,3 +72,7 @@ class DepthEstimationEvaluator(EvaluatorBase):
             "performance": [avg_rmse],
             "fps": avg_fps,
         }
+
+    def format_progress_desc(self, metrics_state: dict, current_fps: float) -> str:
+        """Format progress bar description."""
+        return f"Depth | Current_FPS:{current_fps:.1f}"

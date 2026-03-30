@@ -49,6 +49,43 @@ class ResNet18(ModelBase):
 
     def postprocessing(self) -> Callable:
         return topk_postprocessing
+    
+
+class ResNet18_BRECQ(ModelBase):
+    info = ModelInfo(
+        name="ResNet18_BRECQ",
+        dataset=DatasetType.imagenet,
+        evaluation=EvaluationType.image_classification,
+        raw_performance="69.75 89.08",
+        q_lite_performance="69.57 88.97",
+    )
+
+    def __init__(self, evaluator: ICEvaluator) -> None:
+        super().__init__(evaluator)
+
+    def preprocessing(self) -> Compose:
+        return Compose(
+            [
+                Resize(mode="torchvision", size=[256, 256], interpolation="BILINEAR"),
+                CenterCrop(224, 224),
+                ConvertColor("BGR2RGB"),
+                Div(x=255),
+                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                Transpose(axis=[2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=[256, 256], interpolation="BILINEAR"),
+                CenterCrop(224, 224),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self) -> Callable:
+        return topk_postprocessing
 
 
 class ResNet34(ModelBase):

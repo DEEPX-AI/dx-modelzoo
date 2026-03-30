@@ -17,6 +17,41 @@ def postprocess_tpu(outputs):
     return topk_postprocessing([outputs])
 
 
+class EfficientNetB0(ModelBase):
+    info = ModelInfo(
+        name="EfficientNetB0",
+        dataset=DatasetType.imagenet,
+        evaluation=EvaluationType.image_classification,
+    )
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=256, interpolation="BICUBIC"),
+                CenterCrop(224, 224),
+                ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=256, interpolation="BICUBIC"),
+                CenterCrop(224, 224),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return topk_postprocessing
+
+
 class EfficientNetB1(ModelBase):
     info = ModelInfo(
         name="EfficientNetB1",
@@ -83,6 +118,181 @@ class EfficientNetB2(ModelBase):
             [
                 Resize(mode="torchvision", size=288, interpolation="BICUBIC"),
                 CenterCrop(288, 288),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return topk_postprocessing
+
+
+class EfficientNetB3(ModelBase):
+    info = ModelInfo(
+        name="EfficientNetB3",
+        dataset=DatasetType.imagenet,
+        evaluation=EvaluationType.image_classification,
+    )
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=320, interpolation="BICUBIC"),
+                CenterCrop(300, 300),
+                ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=320, interpolation="BICUBIC"),
+                CenterCrop(300, 300),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return topk_postprocessing
+
+
+class EfficientNetB4(ModelBase):
+    info = ModelInfo(
+        name="EfficientNetB4",
+        dataset=DatasetType.imagenet,
+        evaluation=EvaluationType.image_classification,
+    )
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=384, interpolation="BICUBIC"),
+                CenterCrop(380, 380),
+                ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=384, interpolation="BICUBIC"),
+                CenterCrop(380, 380),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return topk_postprocessing
+
+
+class EfficientNetB5(ModelBase):
+    info = ModelInfo(
+        name="EfficientNetB5",
+        dataset=DatasetType.imagenet,
+        evaluation=EvaluationType.image_classification,
+    )
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=456, interpolation="BICUBIC"),
+                CenterCrop(456, 456),
+                ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=456, interpolation="BICUBIC"),
+                CenterCrop(456, 456),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return topk_postprocessing
+
+
+class EfficientNetB6(ModelBase):
+    info = ModelInfo(
+        name="EfficientNetB6",
+        dataset=DatasetType.imagenet,
+        evaluation=EvaluationType.image_classification,
+    )
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=528, interpolation="BICUBIC"),
+                CenterCrop(528, 528),
+                ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=528, interpolation="BICUBIC"),
+                CenterCrop(528, 528),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return topk_postprocessing
+
+
+class EfficientNetB7(ModelBase):
+    info = ModelInfo(
+        name="EfficientNetB7",
+        dataset=DatasetType.imagenet,
+        evaluation=EvaluationType.image_classification,
+    )
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=600, interpolation="BICUBIC"),
+                CenterCrop(600, 600),
+                ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                Transpose([2, 0, 1]),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="torchvision", size=600, interpolation="BICUBIC"),
+                CenterCrop(600, 600),
                 ConvertColor("BGR2RGB"),
             ]
         )

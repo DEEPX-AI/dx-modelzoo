@@ -678,8 +678,11 @@ setup_venv() {
     
     if [ -f /etc/os-release ]; then
         OS_ID=$(grep "^ID=" /etc/os-release | sed 's/^ID=//' | tr -d '"')
+        OS_VERSION=$(grep "^VERSION_ID=" /etc/os-release | sed 's/^VERSION_ID=//' | tr -d '"')
     fi
-    OS_VERSION=$(lsb_release -rs)
+    if [ -z "$OS_VERSION" ] && command -v lsb_release &>/dev/null; then
+        OS_VERSION=$(lsb_release -rs)
+    fi
     
     echo -e "${TAG_INFO} *** OS: ${OS_ID} ${OS_VERSION} ***"
 
@@ -711,6 +714,55 @@ setup_venv() {
 }
 
 # ---
+## Install HDF5 from source (GitHub release)
+# Returns 0 on success, 1 on failure
+# ---
+install_hdf5_from_source() {
+    local HDF5_VERSION="1.14.6"
+    local HDF5_TAG="hdf5_${HDF5_VERSION}"
+    local HDF5_INSTALL_PREFIX="/usr/local"
+
+    # Check if already installed
+    if [ -f "${HDF5_INSTALL_PREFIX}/lib/libhdf5.so" ]; then
+        echo -e "${TAG_SKIP} HDF5 already installed at ${HDF5_INSTALL_PREFIX}/lib/libhdf5.so" >&2
+        return 0
+    fi
+
+    echo -e "${TAG_INFO} Installing HDF5 ${HDF5_VERSION} from source..." >&2
+
+    sudo apt-get update >/dev/null 2>&1
+
+    # Install build dependencies
+    if ! sudo apt-get install -y --no-install-recommends \
+            build-essential cmake zlib1g-dev curl 2>&1 | tee /tmp/hdf5_build_deps.log >&2; then
+        echo -e "${TAG_ERROR} Failed to install HDF5 build dependencies" >&2
+        return 1
+    fi
+
+    local BUILD_DIR="/tmp/hdf5_build_$$"
+    mkdir -p "${BUILD_DIR}"
+
+    if ! (cd "${BUILD_DIR}" && \
+        curl -L "https://github.com/HDFGroup/hdf5/archive/refs/tags/${HDF5_TAG}.tar.gz" | tar xz && \
+        cd "hdf5-${HDF5_TAG}" && \
+        ./configure --prefix=/usr/local && \
+        make -j$(nproc) && \
+        sudo make install) 2>&1 | tee /tmp/hdf5_source_build.log >&2; then
+        echo -e "${TAG_ERROR} HDF5 source build failed" >&2
+        sudo rm -rf "${BUILD_DIR}"
+        return 1
+    fi
+
+    sudo rm -rf "${BUILD_DIR}"
+    # /usr/local/lib is already in the default ldconfig search path;
+    # just refresh the cache to pick up the newly installed libhdf5.so
+    sudo ldconfig
+    echo -e "${TAG_INFO} HDF5 ${HDF5_VERSION} installed successfully at ${HDF5_INSTALL_PREFIX}" >&2
+    sudo rm -f /tmp/hdf5_build_deps.log /tmp/hdf5_source_build.log
+    return 0
+}
+
+# ---
 ## Main Function
 # ---
 main() {
@@ -732,8 +784,10 @@ main() {
         OS_ID=$(grep "^ID=" /etc/os-release | sed 's/^ID=//' | tr -d '"')
     fi
     
-    # Get OS version using lsb_release
-    OS_VERSION=$(lsb_release -rs)
+    # Get OS version from /etc/os-release
+    if [ -f /etc/os-release ]; then
+        OS_VERSION=$(grep "^VERSION_ID=" /etc/os-release | sed 's/^VERSION_ID=//' | tr -d '"')
+    fi
     
     echo -e "${TAG_INFO} Detected OS: ${OS_ID} ${OS_VERSION}"
 
@@ -837,6 +891,14 @@ main() {
         done
     fi
 
+    # Install HDF5 from source on Ubuntu 18.04 (required for h5py, system libhdf5 1.10.0 is too old)
+    if [ "$OS_ID" = "ubuntu" ] && [ "$OS_VERSION" = "18.04" ]; then
+        echo -e "${TAG_INFO} Ubuntu 18.04 detected: building HDF5 1.14.6 from source..."
+        if ! install_hdf5_from_source; then
+            echo -e "${TAG_WARN} HDF5 source build failed. h5py may fail to install." >&2
+        fi
+    fi
+
     echo -e "${TAG_INFO} Starting Python installation and environment setup..."
     echo -e "${TAG_INFO} Requested Python Version: ${PYTHON_VERSION:-OS Default/Min (${MIN_PY_VERSION})}"
 
@@ -865,6 +927,7 @@ main() {
             print_colored "Virtual environment setup failed. Exiting." "ERROR" >&2
             exit 1
         fi
+
         echo -e "${TAG_SUCC} Script execution completed successfully."
         if [ -n "${VENV_SYMLINK_TARGET_PATH}" ]; then
             echo -e "${TAG_INFO} Virtual environment created at: ${VENV_SYMLINK_TARGET_PATH}"

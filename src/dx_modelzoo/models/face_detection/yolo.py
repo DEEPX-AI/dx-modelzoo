@@ -46,7 +46,10 @@ def make_xywh(x):
 # def find_non_onnx_slice_index(data):
 #     indices = [i for i, item in enumerate(data) if 'onnx::Slice' not in item['name']]
 #     if indices.__len__() != 1:
-#         raise Exception(f"Expected exactly one output tensor, but found a different number, num of output tensor: {indices.__len__()}")
+#         raise Exception(
+#               f"Expected exactly one output tensor, but found a different number, "
+#               f"num of output tensor: {indices.__len__()}"
+#         )
 #     else:
 #         return indices[0]
 
@@ -156,7 +159,10 @@ class YOLOv5m_Face(ModelBase):
 # def find_non_onnx_slice_index(data):
 #     indices = [i for i, item in enumerate(data) if 'onnx::Slice' not in item['name']]
 #     if indices.__len__() != 1:
-#         raise Exception(f"Expected exactly one output tensor, but found a different number, num of output tensor: {indices.__len__()}")
+#         raise Exception(
+#             f"Expected exactly one output tensor, but found a different number, "
+#             f"num of output tensor: {indices.__len__()}"
+#         )
 #     else:
 #         return indices[0]
 
@@ -373,3 +379,31 @@ class YOLOv7_W6_TTA_Face(ModelBase):
         # # Note: Temporary workaround for the mismatch in output tensor order between the original ONNX model and DXNN.
         # #       The _wrapper function will be removed once the issue is properly fixed.
         # return yolov7_face_postprocessing_wrapper
+
+
+class YOLOv5N_Face(ModelBase):
+    info = ModelInfo(name="YOLOv5N_Face", dataset=DatasetType.widerface, evaluation=EvaluationType.widerface)
+
+    def __init__(self, evaluator):
+        super().__init__(evaluator)
+
+    def preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+                Transpose([2, 0, 1]),
+                Div(255),
+            ]
+        )
+
+    def npu_preprocessing(self):
+        return Compose(
+            [
+                Resize(mode="pad", size=640, pad_location="edge", pad_value=[114, 114, 114]),
+                ConvertColor("BGR2RGB"),
+            ]
+        )
+
+    def postprocessing(self):
+        return yolov5_face_postprocessing

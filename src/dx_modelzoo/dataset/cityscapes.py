@@ -359,8 +359,8 @@ labels_info = [
 ]
 
 
-class CitySpaceDataset(DatasetBase):
-    """CityScpace Dataset Class.
+class CityScapesDataset(DatasetBase):
+    """CityScpaces Dataset Class.
 
     dataset_root's file tree should be like
         dataset_root/
@@ -405,7 +405,9 @@ class CitySpaceDataset(DatasetBase):
         self.lb_ignore = 255
         self.lb_map = np.arange(256).astype(np.uint8)
         for el in labels_info:
-            self.lb_map[el["id"]] = el["trainId"]
+            tid = el["trainId"] if el["trainId"] >= 0 else self.lb_ignore
+            eid = el["id"] if el["id"] >= 0 else (256 + el["id"])  # -1 -> 255
+            self.lb_map[eid] = tid
 
     def __len__(self):
         return self.len

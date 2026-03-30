@@ -221,6 +221,18 @@ install_dx_engine(){
 install_pip_packages(){
     echo -e "=== install_pip_packages() ${TAG_START:-[START]} ==="
 
+    # Set HDF5_DIR on Ubuntu 18.04 (HDF5 built from source into /usr/local)
+    local _OS_ID=""
+    local _OS_VERSION=""
+    if [ -f /etc/os-release ]; then
+        _OS_ID=$(grep "^ID=" /etc/os-release | sed 's/^ID=//' | tr -d '"')
+        _OS_VERSION=$(grep "^VERSION_ID=" /etc/os-release | sed 's/^VERSION_ID=//' | tr -d '"')
+    fi
+    if [ "$_OS_ID" = "ubuntu" ] && [ "$_OS_VERSION" = "18.04" ]; then
+        export HDF5_DIR=/usr/local
+        echo -e "${TAG_INFO:-[INFO]} Ubuntu 18.04: HDF5_DIR set to ${HDF5_DIR}"
+    fi
+
     #### Install pip packages
     pip install -e ${PROJECT_ROOT}/.
     # failed check

@@ -381,6 +381,9 @@ class BeitBasePatch16_224(ModelBase):
                 Resize(mode="torchvision", size=256, interpolation="BICUBIC"),
                 CenterCrop(224, 224),
                 ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5]),
+                Transpose([2, 0, 1]),
             ]
         )
 
@@ -413,9 +416,12 @@ class BeitBasePatch16_384(ModelBase):
     def npu_preprocessing(self):
         return Compose(
             [
-                Resize(mode="torchvision", size=512, interpolation="BICUBIC"),
+                Resize(mode="torchvision", size=384, interpolation="BICUBIC"),
                 CenterCrop(384, 384),
                 ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5]),
+                Transpose([2, 0, 1]),
             ]
         )
 
@@ -451,6 +457,9 @@ class BeitLargePatch16_224(ModelBase):
                 Resize(mode="torchvision", size=256, interpolation="BICUBIC"),
                 CenterCrop(224, 224),
                 ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5]),
+                Transpose([2, 0, 1]),
             ]
         )
 
@@ -486,6 +495,9 @@ class BeitLargePatch16_384(ModelBase):
                 Resize(mode="torchvision", size=512, interpolation="BICUBIC"),
                 CenterCrop(384, 384),
                 ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5]),
+                Transpose([2, 0, 1]),
             ]
         )
 
@@ -588,9 +600,12 @@ class DeiTBase_384(ModelBase):
     def npu_preprocessing(self):
         return Compose(
             [
-                Resize(mode="torchvision", size=512, interpolation="BICUBIC"),
+                Resize(mode="torchvision", size=384, interpolation="BICUBIC"),
                 CenterCrop(384, 384),
                 ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                Transpose([2, 0, 1]),
             ]
         )
 
@@ -626,6 +641,9 @@ class DeiTBaseDistilled_384(ModelBase):
                 Resize(mode="torchvision", size=438, interpolation="BICUBIC"),
                 CenterCrop(384, 384),
                 ConvertColor("BGR2RGB"),
+                Div(255),
+                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                Transpose([2, 0, 1]),
             ]
         )
 
