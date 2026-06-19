@@ -1,0 +1,84 @@
+name: yolov7-w6-face_960x960
+display_name: YOLOv7-w6-face
+task: face_detection
+reference: https://github.com/derronqi/yolov7-face
+description: >-
+  YOLOv7-Face detector on a 960x960 RGB input that predicts face bounding boxes (with
+  landmarks) and confidences. Postprocessing (yolov7_face_decode) decodes anchors/priors
+  and applies NMS. Evaluated on the WiderFace benchmark reporting Average Precision
+  (AP).
+macs: 100.22 GMACs
+params: 69.90 M
+inputs:
+- name: input
+  shape:
+  - 1
+  - 3
+  - 960
+  - 960
+  dtype: float32
+  layout: NCHW
+preprocessing:
+- type: resize
+  mode: pad
+  size: 960
+  pad_location: edge
+  pad_value:
+  - 114
+  - 114
+  - 114
+- type: convertcolor
+  form: BGR2RGB
+- type: transpose
+  axis:
+  - 2
+  - 0
+  - 1
+- type: div
+  x: 255
+- type: expanddim
+  axis: 0
+postprocessing:
+- type: yolov7_face_decode
+  variant: yolov7_face
+  conf_thres: 0.01
+  iou_thres: 0.5
+dataset:
+  type: WiderFace
+  eval_path: ${DATA_ROOT}/widerface
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      quantization:
+        pro:
+          num_samples: 1024
+          method: ema
+    runtime:
+      device: 0

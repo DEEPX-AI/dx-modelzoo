@@ -1,0 +1,98 @@
+name: yolov3-gluon_608x608
+display_name: YOLOv3
+task: object_detection
+reference: https://github.com/dmlc/gluon-cv
+description: >-
+  GluonCV YOLOv3 object detector taking a 608x608 RGB image (NHWC) and producing dense
+  box/class predictions. Postprocessing (yolov3_gluon_decode, nms) decodes the raw
+  outputs into boxes and applies non-maximum suppression. Evaluated on the COCO
+  detection benchmark reporting mean Average Precision (mAP@0.5:0.95).
+macs: 70.62 GMACs
+params: 61.92 M
+inputs:
+- name: input
+  shape:
+  - 1
+  - 608
+  - 608
+  - 3
+  dtype: float32
+  layout: NHWC
+preprocessing:
+- type: resize
+  mode: pad
+  size: 608
+  pad_location: edge
+  pad_value:
+  - 114
+  - 114
+  - 114
+- type: div
+  x: 255
+- type: convertcolor
+  form: BGR2RGB
+postprocessing:
+- type: yolov3_gluon_decode
+  anchors:
+  - - - 116
+      - 90
+    - - 156
+      - 198
+    - - 373
+      - 326
+  - - - 30
+      - 61
+    - - 62
+      - 45
+    - - 59
+      - 119
+  - - - 10
+      - 13
+    - - 16
+      - 30
+    - - 33
+      - 23
+  strides:
+  - 32
+  - 16
+  - 8
+- type: nms
+dataset:
+  type: COCO
+  eval_path: ${DATA_ROOT}/COCO
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      quantization:
+        pro:
+          num_samples: 1024
+          method: ema
+    runtime:
+      device: 0

@@ -1,0 +1,85 @@
+name: bisenetv1_1024x2048
+display_name: BiSeNetV1
+task: semantic_segmentation
+reference: https://github.com/CoinCheung/BiSeNet
+description: >-
+  BiSeNet-V1 bilateral segmentation network for semantic segmentation on a 1024x2048 RGB
+  input, producing per-pixel class logits. Postprocessing applies a per-pixel argmax to
+  yield the segmentation map. Evaluated on the Cityscapes segmentation benchmark
+  reporting mean Intersection-over-Union (mIoU).
+macs: 118.98 GMACs
+params: 13.27 M
+inputs:
+- name: input
+  shape:
+  - 1
+  - 3
+  - 1024
+  - 2048
+  dtype: float32
+  layout: NCHW
+preprocessing:
+- type: convertcolor
+  form: BGR2RGB
+- type: resize
+  width: 2048
+  height: 1024
+- type: transpose
+  axis:
+  - 2
+  - 0
+  - 1
+- type: div
+  x: 255
+- type: normalize
+  mean:
+  - 0.3257
+  - 0.369
+  - 0.3223
+  std:
+  - 0.2112
+  - 0.2148
+  - 0.2115
+- type: expanddim
+  axis: 0
+postprocessing:
+- type: segmentation_argmax
+dataset:
+  type: Cityscapes
+  eval_path: ${DATA_ROOT}/cityscapes
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      quantization:
+        pro:
+          num_samples: 1024
+          method: ema
+    runtime:
+      device: 0

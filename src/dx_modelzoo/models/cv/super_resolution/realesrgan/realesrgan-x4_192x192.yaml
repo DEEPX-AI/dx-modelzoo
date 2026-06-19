@@ -1,0 +1,84 @@
+name: realesrgan-x4_192x192
+display_name: Real-ESRGAN-x4
+task: super_resolution
+reference: https://github.com/xinntao/Real-ESRGAN
+description: >-
+  Real-ESRGAN x4 single-image super-resolution model based on an RRDB (Residual-in-
+  Residual Dense Block) generator, taking a fixed 192x192 RGB low-resolution input
+  (NCHW) and reconstructing a 4x upscaled high-resolution image. Postprocessing
+  (sr_postprocessing) clamps and converts the network output back to an image. Evaluated
+  on the BSD100 benchmark reporting PSNR and SSIM.
+macs: 662.69 GMACs
+params: 16.70 M
+inputs:
+  - name: x
+    shape: [1, 3, 192, 192]
+    dtype: float32
+    layout: NCHW
+preprocessing:
+  - type: resize
+    mode: default
+    width: 192
+    height: 192
+  - type: convertcolor
+    form: BGR2RGB
+  - type: div
+    x: 255
+  - type: transpose
+    axis: [2, 0, 1]
+  - type: expanddim
+    axis: 0
+postprocessing:
+  - type: sr_postprocessing
+    upscale_factor: 4
+dataset:
+  type: BSD100
+  eval_path: ${DATA_ROOT}/BSD100/bicubic_4x
+appendix:
+  upscale_factor: 4
+  hr_preprocessing:
+    - type: convertcolor
+      form: BGR2RGB
+    - type: div
+      x: 255
+    - type: transpose
+      axis: [2, 0, 1]
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      buffer_count: 1
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      buffer_count: 1
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      quantization:
+        pro:
+          num_samples: 1024
+          method: ema
+    runtime:
+      buffer_count: 1
+      device: 0

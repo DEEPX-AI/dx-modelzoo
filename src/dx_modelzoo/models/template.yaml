@@ -1,0 +1,93 @@
+name: template-model
+task: image_classification
+reference: http://reference-url
+description: 'A brief description of the model, which can be multiple lines.
+
+  '
+inputs:
+- name: input
+  shape:
+  - 1
+  - 3
+  - 224
+  - 224
+  dtype: float32
+  layout: NCHW
+preprocessing:
+- type: resize
+  mode: torchvision
+  size: 256
+  interpolation: BILINEAR
+- type: centercrop
+  height: 224
+  width: 224
+- type: convertcolor
+  form: BGR2RGB
+- type: div
+  x: 255
+- type: normalize
+  mean:
+  - 0.485
+  - 0.456
+  - 0.406
+  std:
+  - 0.229
+  - 0.224
+  - 0.225
+- type: transpose
+  axis:
+  - 2
+  - 0
+  - 1
+- type: expanddim
+  axis: 0
+postprocessing:
+- type: topk
+  k:
+  - 1
+  - 5
+dataset:
+  type: ILSVRC2012
+  eval_path: ${DATA_ROOT}/ILSVRC2012/val
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+      batch_size: 1
+      async: true
+  q-lite:
+    target: dxnn
+    compile:
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+      batch_size: 1
+      async: true
+  q-pro:
+    target: dxnn
+    compile:
+      quantization:
+        pro:
+          num_samples: 1024
+          method: ema
+    runtime:
+      device: 0
+      batch_size: 1
+      async: true

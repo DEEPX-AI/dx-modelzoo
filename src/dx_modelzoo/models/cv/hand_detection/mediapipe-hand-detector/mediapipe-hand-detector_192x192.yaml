@@ -1,0 +1,79 @@
+name: mediapipe-hand-detector_192x192
+display_name: MediaPipe Hand (Palm) Detector
+task: hand_detection
+reference: https://google.github.io/mediapipe/solutions/hands
+description: >-
+  MediaPipe Hands palm detector, a lightweight single-shot (SSD-style) detector on a
+  192x192 RGB input (NHWC) that predicts palm bounding boxes and hand-orientation
+  keypoints over a fixed 2016-anchor prior grid. Postprocessing (mediapipe_palm_decode)
+  decodes the anchors into oriented palm boxes and applies non-maximum suppression.
+  Evaluated on the hand keypoints detection dataset reporting detection accuracy.
+macs: null
+params: null
+inputs:
+- name: input_1
+  shape:
+  - 1
+  - 192
+  - 192
+  - 3
+  dtype: float32
+  layout: NHWC
+preprocessing:
+- type: resize
+  mode: default
+  size:
+  - 192
+  - 192
+- type: convertcolor
+  form: BGR2RGB
+- type: div
+  x: 255.0
+- type: expanddim
+  axis: 0
+postprocessing:
+- type: mediapipe_palm_decode
+  input_size: 192
+  conf_thres: 0.5
+  iou_thres: 0.3
+  box_scale: 2.0
+  box_shift: 0.3
+dataset:
+  type: HandKeypointsDetection
+  eval_path: ${DATA_ROOT}/hand-keypoints
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      quantization:
+        pro:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0

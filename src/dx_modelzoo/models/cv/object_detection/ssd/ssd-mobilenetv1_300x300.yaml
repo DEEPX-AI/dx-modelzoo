@@ -1,0 +1,84 @@
+name: ssd-mobilenetv1_300x300
+display_name: SSD (MobileNetV1)
+task: object_detection
+reference: https://github.com/qfgaohao/pytorch-ssd
+description: >-
+  SSD single-shot object detector taking a 300x300 RGB image (NCHW) and producing dense
+  box/class predictions. Postprocessing (ssd_postprocess) decodes the raw outputs into
+  boxes and applies non-maximum suppression. Evaluated on the PascalVOC2007 detection
+  benchmark reporting mean Average Precision (mAP).
+macs: 1.55 GMACs
+params: 9.46 M
+inputs:
+- name: input
+  shape:
+  - 1
+  - 3
+  - 300
+  - 300
+  dtype: float32
+  layout: NCHW
+preprocessing:
+- type: convertcolor
+  form: BGR2RGB
+- type: resize
+  width: 300
+  height: 300
+- type: normalize
+  mean:
+  - 127.0
+  - 127.0
+  - 127.0
+  std:
+  - 128.0
+  - 128.0
+  - 128.0
+- type: transpose
+  axis:
+  - 2
+  - 0
+  - 1
+- type: expanddim
+  axis: 0
+postprocessing:
+- type: ssd_postprocess
+  variant: ssd
+dataset:
+  type: PascalVOC2007
+  eval_path: ${DATA_ROOT}/PascalVOC/VOCdevkit/VOC2007
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      quantization:
+        pro:
+          num_samples: 1024
+          method: ema
+    runtime:
+      device: 0

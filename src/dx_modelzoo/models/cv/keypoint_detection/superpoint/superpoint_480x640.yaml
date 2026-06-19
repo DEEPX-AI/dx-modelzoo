@@ -1,0 +1,69 @@
+name: superpoint_480x640
+display_name: SuperPoint
+task: keypoint_detection
+reference: https://github.com/magicleap/SuperPointPretrainedNetwork
+description: |
+  SuperPoint self-supervised keypoint detection + descriptor extraction.
+  Grayscale input [1,1,480,640]. Outputs semi[1,65,60,80] heatmap + desc[1,256,60,80].
+  Metric: HEA (Homography Estimation Accuracy) + M.Score on HPatches sequences.
+macs: 26.20 GMACs
+params: 1.30 M
+inputs:
+- name: image
+  shape: [1, 1, 480, 640]
+  dtype: float32
+  layout: NCHW
+preprocessing:
+- type: resize
+  width: 640
+  height: 480
+- type: convertcolor
+  form: BGR2GRAY
+- type: div
+  x: 255
+- type: transpose
+  axis: [2, 0, 1]
+- type: expanddim
+  axis: 0
+postprocessing:
+- type: superpoint_decode   # custom_ops.py: 65-ch heatmap + descriptor map -> (kpts, descs)
+dataset:
+  type: HPatches
+  eval_path: ${DATA_ROOT}/hpatches/hpatches-sequences-release
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      quantization:
+        lite:
+          num_samples: 100
+          method: ema
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      quantization:
+        lite:
+          num_samples: 100
+          method: ema
+    runtime:
+      device: 0
+
+  q-pro:
+    target: dxnn
+    compile:
+      quantization:
+        pro:
+          num_samples: 1024
+          method: ema
+    runtime:
+      device: 0

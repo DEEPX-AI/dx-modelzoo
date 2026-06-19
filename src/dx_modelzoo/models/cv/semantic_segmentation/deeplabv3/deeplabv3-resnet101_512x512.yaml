@@ -1,0 +1,92 @@
+name: deeplabv3-resnet101_512x512
+display_name: DeepLabV3 (ResNet-101)
+task: semantic_segmentation
+reference: https://github.com/pytorch/vision
+description: >-
+  DeepLabV3 atrous segmentation network for semantic segmentation on a 512x512 RGB
+  input, producing per-pixel class logits. Postprocessing applies a per-pixel argmax to
+  yield the segmentation map. Evaluated on the PascalVOC2012 segmentation benchmark
+  reporting mean Intersection-over-Union (mIoU).
+macs: 68.06 GMACs
+params: 58.58 M
+
+inputs:
+  - name: input
+    shape: [1, 3, 512, 512]
+    dtype: float32
+    layout: NCHW
+
+preprocessing:
+  - type: convertcolor
+    form: BGR2RGB
+  - type: resize
+    mode: torchvision
+    size: 512
+    interpolation: BILINEAR
+  - type: centercrop
+    height: 512
+    width: 512
+  - type: div
+    x: 255
+  - type: normalize
+    mean: [0.485, 0.456, 0.406]
+    std: [0.229, 0.224, 0.225]
+  - type: transpose
+    axis: [2, 0, 1]
+  - type: expanddim
+    axis: 0
+
+postprocessing:
+  - type: segmentation_argmax
+
+dataset:
+  type: PascalVOC2012
+  eval_path: ${DATA_ROOT}/PascalVOC/VOCdevkit/VOC2012
+
+appendix:
+  label_preprocessing:
+    - type: resize
+      mode: torchvision
+      size: 512
+      interpolation: NEAREST
+    - type: centercrop
+      height: 512
+      width: 512
+
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      quantization:
+        lite:
+          num_samples: 100
+          method: ema
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      quantization:
+        lite:
+          num_samples: 100
+          method: ema
+    runtime:
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      quantization:
+        pro:
+          num_samples: 1024
+          method: ema
+    runtime:
+      device: 0

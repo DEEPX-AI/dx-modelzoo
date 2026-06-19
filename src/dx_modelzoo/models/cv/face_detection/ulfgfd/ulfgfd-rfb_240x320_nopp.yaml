@@ -1,0 +1,86 @@
+name: ulfgfd-rfb_240x320_nopp
+display_name: ULFGFD-RFB (no-PP)
+task: face_detection
+reference: https://github.com/Linzaer/Ultra-Light-Fast-Generic-Face-Detector-1MB
+description: >-
+  Ultra-Light-Fast-Generic face detector on a 240x320 RGB input that predicts face
+  bounding boxes (with landmarks) and confidences. Postprocessing (ulfgfd_decode)
+  decodes anchors/priors and applies NMS. Evaluated on the WiderFace benchmark reporting
+  Average Precision (AP).
+macs: 192.78 MMACs
+params: 281.10 K
+inputs:
+- name: input
+  shape:
+  - 1
+  - 3
+  - 240
+  - 320
+  dtype: float32
+  layout: NCHW
+preprocessing:
+- type: resize
+  mode: default
+  size:
+  - 240
+  - 320
+- type: normalize
+  mean:
+  - 127.0
+  - 127.0
+  - 127.0
+  std:
+  - 128.0
+  - 128.0
+  - 128.0
+- type: transpose
+  axis:
+  - 2
+  - 0
+  - 1
+- type: expanddim
+  axis: 0
+postprocessing:
+- type: ulfgfd_decode
+  variant: ulfgfd_raw
+  conf_thres: 0.5
+  iou_thres: 0.3
+dataset:
+  type: WiderFace
+  eval_path: ${DATA_ROOT}/widerface
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      quantization:
+        pro:
+          num_samples: 1024
+          method: ema
+    runtime:
+      device: 0

@@ -1,0 +1,78 @@
+name: dncnn-gray_512x512
+display_name: DnCNN-gray
+task: image_denoising
+reference: https://github.com/cszn/DnCNN
+description: >-
+  DnCNN residual-learning denoising CNN on a 512x512 grayscale input that predicts the
+  residual noise to recover a clean image (postprocessing is identity). Evaluated on the
+  BSD68 benchmark reporting PSNR and SSIM.
+macs: 174.89 GMACs
+params: 665.92 K
+inputs:
+- name: input
+  shape:
+  - 1
+  - 1
+  - 512
+  - 512
+  dtype: float32
+  layout: NCHW
+preprocessing:
+- type: resize
+  width: 512
+  height: 512
+  interpolation: BILINEAR
+- type: convertcolor
+  form: BGR2GRAY
+- type: div
+  x: 255
+- type: transpose
+  axis:
+  - 2
+  - 0
+  - 1
+- type: expanddim
+  axis: 0
+postprocessing:
+- type: identity
+dataset:
+  type: BSD68
+  eval_path: ${DATA_ROOT}/BSD68
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+appendix:
+  noise_level: 15
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      quantization:
+        pro:
+          num_samples: 1024
+          method: ema
+    runtime:
+      device: 0
