@@ -1,6 +1,52 @@
 # RELEASE_NOTES
 
-## v0.9.0 / 2026-03-30
+## DX-MODELZOO v0.10.0 / 2026-06-16
+
+### 1. Changed
+- Migrated model definitions from Python classes to a **YAML-driven model registry** architecture
+- Renamed YOLO11 models `yolov11-*` → `yolo11-*` to follow Ultralytics official naming
+- Restructured model YAML profiles: `quantization` is now a nested dict
+- `q-pro` profile now uses dx_com's automatic Q-PRO pipeline via the new `pro` quantization mode
+  - Behavior change: per-model quantization accuracy may shift; calibration defaults to `num_samples: 100`, `method: ema`
+- Removed redundant `evaluator` type field from model YAML configs (now inferred from `task`)
+- Replaced `pycocotools` with `faster_coco_eval` for faster evaluation
+
+### 2. Fixed
+- Fixed YOLACT evaluation hang caused by postprocessing mismatch
+- Use stable sort in NMS for deterministic results
+- ONNX runtime provider now supports list and int device inputs
+- Prevent `np.exp` numeric overflow in SSD Box Decoder and ULFGFD Face Detection
+- Fixed division-by-zero in face recognition and segmentation evaluators
+- Fixed evaluator accuracy bugs in ESPCN, YOLOv3-tiny, and hand landmark models
+- Added missing c-lite / q-pro profiles in several model configs
+- Fixed grayscale output shape in preprocessing, image denoising, and super-resolution paths
+
+### 3. Added
+
+#### New Features
+- **Custom model workflow**: `dxmz create` command and CLI for model/dataset preparation
+- **`pro` quantization mode** in model YAML profiles (dx_com automatic Q-PRO pipeline)
+- **PPU compile configuration** support (type 0/1/2 with YAML validation)
+- `KeypointDetectionEvaluator` for keypoint detection tasks (e.g. SuperPoint)
+- New preprocessing transforms (`add`, `mul`, `subtract`, `totensor`) and YAML → torchvision Compose conversion
+- `--seed` option for reproducible evaluation
+- New datasets: **BDD100K**, **HOPE**, **HPatches**
+
+#### New Models
+- **Instance Segmentation**: YOLOv5-Seg, YOLOv8-Seg (FastSAM postprocessing)
+- **Zero-shot Classification (OpenCLIP)**: RN50x16, ViT-B-32, ViT-L-14 (datacomp-xl, quickgelu-dfn2b)
+- **Image Classification**: BeiT, CAS-ViT, FastViT, GhostNet, RepGhost, RepVGG, ResMLP
+- **Hand Detection**: MediaPipe Hand Detector
+- **Pose Estimation**: YOLOv5-Pose, ViTPose, CenterPose
+- **Object Pose Estimation (6-DoF)**: DOPE (HOPE Ketchup)
+- **Keypoint Detection**: SuperPoint
+- **Semantic Segmentation**: STDC-Seg, CAS-ViT, PIDNet-S
+- **Panoptic Driving Perception**: YOLOPv2 (BDD100K drivable area)
+- **Depth Estimation**: SCDepthV3, Depth-Anything-V2 (ViT-B/L/S)
+- **Super Resolution**: Real-ESRGAN (x4/x8), ESPCN-x2
+- **Low-light Enhancement**: Zero-DCE++
+
+## DX-MODELZOO v0.9.0 / 2026-03-30
 
 ### 1. Changed
 - YOLOXS_PPU preprocessing changed to letterbox (pad) mode

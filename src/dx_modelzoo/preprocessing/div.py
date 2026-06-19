@@ -1,24 +1,16 @@
+from __future__ import annotations
+
 import numpy as np
 
+from dx_modelzoo.preprocessing import PREPROCESSING_REGISTRY
 
+
+@PREPROCESSING_REGISTRY.register("div")
 class Div:
-    """Divide the input value by x.
+    """Divide inputs by a constant."""
 
-    Args:
-        x (float): divisor value.
-    """
-
-    def __init__(self, x: float | int) -> None:
-        self.x = float(x)
+    def __init__(self, x: float) -> None:
+        self.x = x
 
     def __call__(self, inputs: np.ndarray) -> np.ndarray:
-        """Divide the input value.
-
-        Args:
-            inputs (np.ndarray): input value.
-
-        Returns:
-            np.ndarray: divided value.
-        """
-        inputs = inputs.astype(np.float32)
-        return inputs / self.x
+        return (inputs / self.x).astype(np.float32)

@@ -1,0 +1,77 @@
+name: yolov5-x-seg_640x640
+display_name: Ultralytics YOLOv5-x-seg
+task: instance_segmentation
+reference: https://github.com/ultralytics/yolov5
+description: >-
+  YOLOv5 instance segmentation model on a 640x640 RGB input that predicts object boxes,
+  classes and per-instance mask coefficients/prototypes. Postprocessing (yolov5_seg_decode)
+  assembles per-instance masks and applies NMS. Evaluated on the COCO instance
+  segmentation benchmark reporting mask mean Average Precision (mAP).
+macs: 137.00 GMACs
+params: 88.88 M
+inputs:
+  - name: input
+    shape: [1, 3, 640, 640]
+    dtype: float32
+    layout: NCHW
+
+preprocessing:
+  - type: resize
+    mode: pad
+    size: 640
+    pad_location: edge
+    pad_value: [114, 114, 114]
+  - type: div
+    x: 255
+  - type: convertcolor
+    form: BGR2RGB
+  - type: transpose
+    axis: [2, 0, 1]
+  - type: expanddim
+    axis: 0
+
+postprocessing:
+  - type: yolov5_seg_decode
+    has_objectness: true
+
+dataset:
+  type: COCO
+  eval_path: ${DATA_ROOT}/COCO
+
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      quantization:
+        lite:
+          num_samples: 100
+          method: ema
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      quantization:
+        lite:
+          num_samples: 100
+          method: ema
+    runtime:
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      quantization:
+        pro:
+          num_samples: 1024
+          method: ema
+    runtime:
+      device: 0

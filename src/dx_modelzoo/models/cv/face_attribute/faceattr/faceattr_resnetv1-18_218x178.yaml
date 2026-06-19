@@ -1,0 +1,89 @@
+name: faceattr_resnetv1-18_218x178
+display_name: FaceAttr ResNet-18
+task: face_attribute
+reference: https://github.com/d-li14/face-attribute-prediction
+description: >-
+  Face attribute recognition with a ResNet-V1-18 backbone on a 218x178 aligned
+  face image (CelebA native crop size, NCHW, ImageNet mean/std normalization).
+  The network is a multi-label classifier emitting one logit per CelebA facial
+  attribute (sigmoid per attribute); postprocessing is identity. Evaluated on
+  the CelebA dataset with the face_attribute evaluator (average per-attribute
+  accuracy).
+macs: 1.50 GMACs
+params: 11.74 M
+inputs:
+- name: input
+  shape:
+  - 1
+  - 3
+  - 218
+  - 178
+  dtype: float32
+  layout: NCHW
+preprocessing:
+- type: resize
+  mode: default
+  size:
+  - 218
+  - 178
+- type: convertcolor
+  form: BGR2RGB
+- type: div
+  x: 255
+- type: normalize
+  mean:
+  - 0.485
+  - 0.456
+  - 0.406
+  std:
+  - 0.229
+  - 0.224
+  - 0.225
+- type: transpose
+  axis:
+  - 2
+  - 0
+  - 1
+- type: expanddim
+  axis: 0
+postprocessing:
+- type: identity
+dataset:
+  type: CelebA
+  eval_path: ${DATA_ROOT}/CelebA
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      quantization:
+        pro:
+          num_samples: 1024
+          method: ema
+    runtime:
+      device: 0

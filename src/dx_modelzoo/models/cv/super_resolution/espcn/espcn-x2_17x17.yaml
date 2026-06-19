@@ -1,0 +1,88 @@
+name: espcn-x2_17x17
+display_name: ESPCN-x2
+task: super_resolution
+reference: https://github.com/Lornatang/ESPCN-PyTorch
+description: >-
+  ESPCN efficient sub-pixel CNN for x2 single-image super-resolution, taking a 17x17
+  low-resolution luminance (Y) patch and reconstructing the high-resolution output via a
+  sub-pixel (pixel-shuffle) layer. Evaluated on the BSD100 benchmark reporting PSNR and
+  SSIM.
+macs: 8.26 MMACs
+params: 21.28 K
+inputs:
+- name: input
+  shape:
+  - 1
+  - 1
+  - 17
+  - 17
+  dtype: float32
+  layout: NCHW
+preprocessing:
+- type: centercrop
+  height: 17
+  width: 17
+- type: bgr_to_y_channel_uint8
+- type: div
+  x: 255
+- type: transpose
+  axis:
+  - 2
+  - 0
+  - 1
+- type: expanddim
+  axis: 0
+postprocessing:
+- type: sr_postprocessing
+  upscale_factor: 2
+dataset:
+  type: BSD100
+  eval_path: ${DATA_ROOT}/BSD100/bicubic_2x
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+appendix:
+  upscale_factor: 2
+  hr_preprocessing:
+  - type: centercrop
+    height: 34
+    width: 34
+  - type: bgr_to_y_channel
+  - type: transpose
+    axis:
+    - 2
+    - 0
+    - 1
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      quantization:
+        lite:
+          method: minmax
+          num_samples: 100
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      quantization:
+        lite:
+          method: minmax
+          num_samples: 100
+    runtime:
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      quantization:
+        pro:
+          num_samples: 1024
+          method: minmax
+    runtime:
+      device: 0

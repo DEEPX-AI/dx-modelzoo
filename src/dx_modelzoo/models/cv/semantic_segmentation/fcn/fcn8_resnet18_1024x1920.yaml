@@ -1,0 +1,82 @@
+name: fcn8_resnet18_1024x1920
+display_name: FCN-8s (ResNet-18)
+task: semantic_segmentation
+reference: https://github.com/pytorch/vision
+description: >-
+  FCN-8s fully convolutional network for semantic segmentation on a 1024x1920 RGB input,
+  producing per-pixel class logits. Postprocessing applies a per-pixel argmax to yield
+  the segmentation map. Evaluated on the Cityscapes segmentation benchmark reporting
+  mean Intersection-over-Union (mIoU).
+macs: 71.88 GMACs
+params: 11.20 M
+
+evaluator:
+  type: semantic_segmentation
+
+inputs:
+  - name: input
+    shape: [1, 3, 1024, 1920]
+    dtype: float32
+    layout: NCHW
+
+preprocessing:
+  - type: convertcolor
+    form: BGR2RGB
+  - type: resize
+    width: 1920
+    height: 1024
+  - type: div
+    x: 255
+  - type: normalize
+    mean: [0.485, 0.456, 0.406]
+    std: [0.229, 0.224, 0.225]
+  - type: transpose
+    axis: [2, 0, 1]
+  - type: expanddim
+    axis: 0
+
+postprocessing:
+  - type: segmentation_argmax
+    target_size: [1024, 2048]
+
+dataset:
+  type: Cityscapes
+  eval_path: ${DATA_ROOT}/cityscapes
+
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      quantization:
+        lite:
+          num_samples: 100
+          method: ema
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      quantization:
+        lite:
+          num_samples: 100
+          method: ema
+    runtime:
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      quantization:
+        pro:
+          num_samples: 1024
+          method: ema
+    runtime:
+      device: 0

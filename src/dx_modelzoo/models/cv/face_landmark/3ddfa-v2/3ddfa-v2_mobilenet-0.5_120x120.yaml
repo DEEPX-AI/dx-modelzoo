@@ -1,0 +1,81 @@
+name: 3ddfa-v2_mobilenet-0.5_120x120
+display_name: 3DDFA-V2 (MobileNet-0.5)
+task: face_landmark
+reference: https://github.com/cleardusk/3DDFA_V2
+description: >-
+  3DDFA_V2 dense 3D face alignment with a slimmed MobileNet-V1 (width 0.5)
+  backbone on a 120x120 RGB face crop (NCHW, scaled by 1/255). The network
+  regresses 62 3DMM parameters (12 pose + 40 shape + 10 expression) of the Basel
+  Face Model; the tddfa_decode op reconstructs the dense 3D face and extracts
+  the 68 sparse landmarks using the BFM data under AFLW20003D/Code. Evaluated on
+  AFLW2000-3D with the face_landmark evaluator (normalized mean error, NME).
+macs: 70.46 MMACs
+params: 861.34 K
+inputs:
+- name: input
+  shape:
+  - 1
+  - 3
+  - 120
+  - 120
+  dtype: float32
+  layout: NCHW
+preprocessing:
+- type: resize
+  mode: default
+  size:
+  - 120
+  - 120
+- type: convertcolor
+  form: BGR2RGB
+- type: div
+  x: 255
+- type: transpose
+  axis:
+  - 2
+  - 0
+  - 1
+- type: expanddim
+  axis: 0
+postprocessing:
+- type: tddfa_decode
+  bfm_dir: ${DATA_ROOT}/AFLW20003D/Code
+dataset:
+  type: AFLW20003D
+  eval_path: ${DATA_ROOT}/AFLW20003D
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      quantization:
+        pro:
+          num_samples: 1024
+          method: ema
+    runtime:
+      device: 0

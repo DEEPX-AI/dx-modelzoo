@@ -1,0 +1,80 @@
+name: mediapipe-hands-lite_224x224
+display_name: MediaPipe Hands (Lite)
+task: hand_landmark
+reference: https://github.com/google-ai-edge/mediapipe
+description: >-
+  MediaPipe Hands landmark regressor (lite). Operates on a 224x224 RGB hand crop
+  (NCHW, scaled by 1/255) and regresses 21 hand keypoints in 2.5D (x, y in image
+  space plus a relative depth per point) together with hand-presence and
+  handedness scores. Postprocessing is identity (raw landmark tensor is consumed
+  directly). Evaluated on the HandKeypoints dataset with the hand_landmark
+  evaluator (mean normalized absolute error, MNAE).
+macs: 158.29 MMACs
+params: 1.01 M
+inputs:
+- name: input_1
+  shape:
+  - 1
+  - 3
+  - 224
+  - 224
+  dtype: float32
+  layout: NCHW
+preprocessing:
+- type: resize
+  mode: default
+  size:
+  - 224
+  - 224
+- type: convertcolor
+  form: BGR2RGB
+- type: div
+  x: 255
+- type: transpose
+  axis:
+  - 2
+  - 0
+  - 1
+- type: expanddim
+  axis: 0
+postprocessing:
+- type: identity
+dataset:
+  type: HandKeypoints
+  eval_path: ${DATA_ROOT}/hand-keypoints
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      quantization:
+        pro:
+          num_samples: 1024
+          method: ema
+    runtime:
+      device: 0

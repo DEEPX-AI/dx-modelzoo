@@ -1,0 +1,78 @@
+name: unet_mobilenetv2_256x256
+display_name: U-Net (MobileNetV2)
+task: semantic_segmentation
+reference: https://github.com/tensorflow/examples
+description: >-
+  U-Net encoder-decoder segmentation network for semantic segmentation on a 256x256 RGB
+  input, producing per-pixel class logits. Postprocessing applies a per-pixel argmax to
+  yield the segmentation map. Evaluated on the OxfordIIITPet segmentation benchmark
+  reporting mean Intersection-over-Union (mIoU).
+macs: 4.70 GMACs
+params: 10.08 M
+inputs:
+- name: input
+  shape:
+  - 1
+  - 256
+  - 256
+  - 3
+  dtype: float32
+  layout: NHWC
+preprocessing:
+- type: resize
+  width: 256
+  height: 256
+- type: convertcolor
+  form: BGR2RGB
+- type: div
+  x: 255
+- type: expanddim
+  axis: 0
+postprocessing:
+- type: segmentation_argmax
+  layout: nhwc
+dataset:
+  type: OxfordIIITPet
+  eval_path: ${DATA_ROOT}/Oxford-IIIT_Pet
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+appendix:
+  label_preprocessing:
+  - type: resize
+    width: 256
+    height: 256
+    interpolation: NEAREST
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      quantization:
+        pro:
+          num_samples: 1024
+          method: ema
+    runtime:
+      device: 0

@@ -1,0 +1,98 @@
+name: fastdepth_224x224
+display_name: FastDepth
+task: depth_estimation
+reference: https://github.com/dwofk/fast-depth
+description: >-
+  FastDepth efficient encoder-decoder monocular depth estimation model on a 224x224 RGB
+  input, regressing a dense per-pixel depth map (postprocessing is identity). Evaluated
+  on the NYU Depth v2 benchmark reporting Root-Mean-Square Error (RMSE).
+macs: 547.19 MMACs
+params: 1.38 M
+inputs:
+- name: input
+  shape:
+  - 1
+  - 3
+  - 224
+  - 224
+  dtype: float32
+  layout: NCHW
+preprocessing:
+- type: resize
+  mode: torchvision
+  size: 0.520833
+- type: centercrop
+  height: 228
+  width: 304
+- type: resize
+  mode: torchvision
+  size:
+  - 224
+  - 224
+  align_side: both
+- type: div
+  x: 255
+- type: transpose
+  axis:
+  - 2
+  - 0
+  - 1
+- type: expanddim
+  axis: 0
+postprocessing:
+- type: identity
+appendix:
+  label_preprocessing:
+  - type: resize
+    mode: torchvision
+    size: 0.520833
+  - type: centercrop
+    height: 228
+    width: 304
+  - type: resize
+    mode: torchvision
+    size:
+    - 224
+    - 224
+    align_side: both
+  - type: expanddim
+    axis: 0
+dataset:
+  type: NYUDepthv2
+  eval_path: ${DATA_ROOT}/nyudepthv2
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      quantization:
+        pro:
+          num_samples: 1024
+          method: ema
+    runtime:
+      device: 0

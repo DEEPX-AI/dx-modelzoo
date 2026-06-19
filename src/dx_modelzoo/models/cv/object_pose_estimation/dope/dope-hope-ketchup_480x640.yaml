@@ -1,0 +1,86 @@
+name: dope-hope-ketchup_480x640
+display_name: DOPE (HOPE Ketchup)
+task: object_pose_estimation
+reference: https://github.com/NVlabs/Deep_Object_Pose
+description: >-
+  NVIDIA Isaac ROS DOPE (Deep Object Pose Estimation) — single-object 6-DoF pose for
+  the HOPE 'Ketchup' class. The network emits one [1,25,50,50] tensor (input
+  480x640, stride 8): 9 belief maps (8 cuboid corners + centroid) + 16 affinity
+  fields. The dope_decode op extracts the 9 belief-map peaks (argmax + 3x3
+  sub-pixel refinement) into one normalised cuboid detection and recovers the
+  6-DoF pose via PnP (DOPE's official 2D->3D conversion). Real GT eval is against
+  the HOPE-Image valid split (per-frame 4x4 pose + camera intrinsics). The shared
+  object_pose_estimation evaluator (single variant) reports one 3D pose metric
+  (ADD / ADD-S, cm) and one 2D cuboid-keypoint metric (kp_acc@0.1) against the
+  projected GT cuboid keypoints; the 2D metric is emitted only when keypoints
+  exist. HOPE cuboid dimensions and the DOPE->HOPE frame alignment live in
+  dx_modelzoo/dataset/hope.py.
+macs: 298.84 GMACs
+params: 50.27 M
+inputs:
+- name: input
+  shape: [1, 3, 480, 640]
+  dtype: float32
+  layout: NCHW
+preprocessing:
+- type: resize
+  width: 640
+  height: 480
+- type: convertcolor
+  form: BGR2RGB
+- type: div
+  x: 255.0
+- type: normalize
+  mean: [0.485, 0.456, 0.406]
+  std: [0.229, 0.224, 0.225]
+- type: transpose
+  axis: [2, 0, 1]
+- type: expanddim
+  axis: 0
+postprocessing:
+- type: dope_decode
+dataset:
+  type: HOPE
+  eval_path: ${DATA_ROOT}/hope_image
+  object_class: Ketchup
+  split: valid
+evaluator:
+  options:
+    type: single
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      quantization:
+        lite:
+          num_samples: 100
+          method: ema
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+
+  q-pro:
+    target: dxnn
+    compile:
+      quantization:
+        pro:
+          num_samples: 1024
+          method: ema
+    runtime:
+      device: 0

@@ -1,23 +1,16 @@
+from __future__ import annotations
+
 import numpy as np
 
+from dx_modelzoo.preprocessing import PREPROCESSING_REGISTRY
 
+
+@PREPROCESSING_REGISTRY.register("expanddim")
 class ExpandDim:
-    """Expand the dimensions of the inputs by inserting a new axis based on the input axis.
-
-    Args:
-        axis (int): position that new axis is inserted.
-    """
+    """Expand dimensions by inserting a new axis."""
 
     def __init__(self, axis: int) -> None:
         self.axis = axis
 
     def __call__(self, inputs: np.ndarray) -> np.ndarray:
-        """Expand dimension of the inputs.
-
-        Args:
-            inputs (np.ndarray): inputs.
-
-        Returns:
-            np.ndarray: inputs that expanded dimension.
-        """
         return np.expand_dims(inputs, axis=self.axis)

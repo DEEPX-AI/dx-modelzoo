@@ -1,0 +1,92 @@
+name: clip-img_vit-l14_224x224_datacomp-xl-s13b-b90k
+display_name: CLIP ViT-L/14 (DataComp-XL)
+task: zero_shot_image_classification
+reference: https://github.com/mlfoundations/open_clip
+description: >-
+  CLIP image-encoder branch with a ViT-L/14 image encoder (DataComp-XL weights) on a
+  224x224 RGB input, producing an image embedding aligned to CLIP text embeddings. Zero-
+  shot classification scores the image against text-prompt class embeddings. Evaluated
+  on the ImageNet (ILSVRC2012) validation set reporting zero-shot Top-1 accuracy.
+macs: 82.28 GMACs
+params: 303.97 M
+inputs:
+- name: input
+  shape:
+  - 1
+  - 3
+  - 224
+  - 224
+  dtype: float32
+  layout: NCHW
+preprocessing:
+- type: resize
+  width: 224
+  height: 224
+- type: centercrop
+  height: 224
+  width: 224
+- type: convertcolor
+  form: BGR2RGB
+- type: div
+  x: 255
+- type: normalize
+  mean:
+  - 0.48145466
+  - 0.4578275
+  - 0.40821073
+  std:
+  - 0.26862954
+  - 0.26130258
+  - 0.27577711
+- type: transpose
+  axis:
+  - 2
+  - 0
+  - 1
+- type: expanddim
+  axis: 0
+postprocessing:
+- type: clip_zero_shot
+appendix:
+  clip_model_name: ViT-L-14
+  clip_pretrained: datacomp_xl_s13b_b90k
+  npu_skip_arithmetic: false
+dataset:
+  type: ILSVRC2012
+  eval_path: ${DATA_ROOT}/ILSVRC2012/val
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      quantization:
+        pro:
+          num_samples: 1024
+          method: ema
+    runtime:
+      device: 0

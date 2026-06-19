@@ -1,52 +1,26 @@
-from copy import deepcopy
+from __future__ import annotations
+
 from typing import List
 
 import numpy as np
 
+from dx_modelzoo.preprocessing import PREPROCESSING_REGISTRY
 
+
+@PREPROCESSING_REGISTRY.register("normalize")
 class Normalize:
-    """Normalize the image with mean and standard deviation.
-
-    Args:
-        mean (List[float]): mean values.
-        std (List[float]): standard deviation values.
-    """
+    """Normalize inputs with mean and std."""
 
     def __init__(self, mean: List[float], std: List[float]) -> None:
-        self.mean = mean
-        self.std = std
+        self.mean = np.array(mean)
+        self.std = np.array(std)
 
     def __call__(self, inputs: np.ndarray) -> np.ndarray:
-        """Normalize input image.
-
-        Args:
-            inputs (np.ndarray): input image.
-
-        Returns:
-            np.ndarray: normalized image.
-        """
-        inputs = deepcopy(inputs)
-        inputs = inputs.astype(np.float32)
-        img_shapes = inputs.shape
-        unsqueeze_dims = []
-        for i, shape in enumerate(img_shapes):
-            if shape != 3 or len(unsqueeze_dims) != i:
-                unsqueeze_dims.append(i)
-
-        if inputs.shape[-1] == 3:
-            inputs[..., 0] -= self.mean[0]
-            inputs[..., 1] -= self.mean[1]
-            inputs[..., 2] -= self.mean[2]
-            inputs[..., 0] /= self.std[0]
-            inputs[..., 1] /= self.std[1]
-            inputs[..., 2] /= self.std[2]
-        else:
-            if 3 in img_shapes:
-                mean = np.expand_dims(self.mean, unsqueeze_dims)
-                std = np.expand_dims(self.std, unsqueeze_dims)
-            else:
-                mean = self.mean
-                std = self.std
-            inputs -= mean
-            inputs /= std
-        return inputs
+        mean, std = self.mean, self.std
+        # If inputs are channel-first (C,H,W) or (N,C,H,W), reshape for broadcasting
+        if inputs.ndim >= 3 and inputs.shape[-1] != len(mean):
+            shape = [1] * inputs.ndim
+            shape[-3] = len(mean)
+            mean = mean.reshape(shape)
+            std = std.reshape(shape)
+        return (inputs - mean) / std

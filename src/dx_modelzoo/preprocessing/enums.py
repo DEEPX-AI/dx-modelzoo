@@ -1,11 +1,19 @@
-from enum import IntEnum, StrEnum, auto
+from enum import IntEnum
+
+try:
+    from enum import StrEnum
+except ImportError:
+    from enum import Enum
+
+    class StrEnum(str, Enum):
+        pass
 
 
 class ResizeMode(StrEnum):
-    torchvision = auto()
-    default = auto()
-    pad = auto()
-    pycls = auto()
+    torchvision = "torchvision"
+    default = "default"
+    pad = "pad"
+    pycls = "pycls"
 
     @classmethod
     def has_value(cls, value: str) -> bool:
@@ -13,29 +21,29 @@ class ResizeMode(StrEnum):
 
 
 class ResizeArgEnum(StrEnum):
-    size = auto()
-    interpolation = auto()
-    backend = auto()
-    align_side = auto()
-    scale_method = auto()
-    pad_location = auto()
-    pad_value = auto()
+    size = "size"
+    interpolation = "interpolation"
+    backend = "backend"
+    align_side = "align_side"
+    scale_method = "scale_method"
+    pad_location = "pad_location"
+    pad_value = "pad_value"
 
 
 class BackendEnum(StrEnum):
-    cv2 = auto()
-    pil = auto()
+    cv2 = "cv2"
+    pil = "pil"
 
 
 class AlignSideEnum(StrEnum):
-    both = auto()
-    long = auto()
-    short = auto()
+    both = "both"
+    long = "long"
+    short = "short"
 
 
 class ScaleMethodEnum(StrEnum):
-    scale_up = auto()
-    scale_down = auto()
+    scale_up = "scale_up"
+    scale_down = "scale_down"
 
 
 class InterpolationEnum(StrEnum):
@@ -57,9 +65,6 @@ class PILResizeInterpolationEnum(IntEnum):
     BICUBIC = 3
     BOX = 4
     HAMMING = 5
-
-    def __repr__(self) -> str:
-        return self.name
 
 
 class CVResizeInterpolationEnum(IntEnum):

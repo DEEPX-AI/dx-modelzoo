@@ -1,0 +1,96 @@
+name: nanodet_224x224
+display_name: NanoDet
+task: object_detection
+reference: https://github.com/RangiLyu/nanodet
+description: >-
+  NanoDet anchor-free object detector taking a 224x224 RGB image (NHWC) and producing
+  dense box/class predictions. Postprocessing (nanodet_decode) decodes the raw outputs
+  into boxes and applies non-maximum suppression. Evaluated on the COCO detection
+  benchmark reporting mean Average Precision (mAP@0.5:0.95).
+macs: 5.66 GMACs
+params: 6.74 M
+inputs:
+- name: input
+  shape:
+  - 1
+  - 224
+  - 224
+  - 3
+  dtype: float32
+  layout: NHWC
+preprocessing:
+- type: resize
+  mode: pad
+  size:
+  - 416
+  - 416
+  pad_location: edge
+  pad_value:
+  - 114
+  - 114
+  - 114
+- type: convertcolor
+  form: BGR2RGB
+- type: normalize
+  mean:
+  - 103.53
+  - 116.28
+  - 123.675
+  std:
+  - 57.375
+  - 57.12
+  - 58.395
+- type: transpose
+  axis:
+  - 2
+  - 0
+  - 1
+- type: expanddim
+  axis: 0
+postprocessing:
+- type: nanodet_decode
+  num_class: 80
+  reg_max: 10
+  strides:
+  - 8
+  - 16
+  - 32
+dataset:
+  type: COCO
+  eval_path: ${DATA_ROOT}/COCO
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      quantization:
+        pro:
+          num_samples: 1024
+          method: ema
+    runtime:
+      device: 0

@@ -1,0 +1,83 @@
+name: casvit-t-fpn-resnet50_512x512
+display_name: CAS-ViT-T FPN (ResNet-50)
+task: semantic_segmentation
+reference: https://github.com/Tianfang-Zhang/CAS-ViT
+description: >-
+  CAS-ViT-T (tiny) backbone with a Semantic FPN decode head (ResNet-50-style
+  channel layout) for semantic segmentation. CAS-ViT replaces full self-attention
+  with a lightweight convolutional additive token mixer for efficient mobile/edge
+  inference. Input is a 512x512 RGB tensor (NCHW, ImageNet mean/std in 0-255).
+  The segmentation_argmax op takes the per-pixel class logits and emits the
+  dense label map. Evaluated on ADE20K SceneParse150 (150 classes) with the
+  semantic_segmentation evaluator (mIoU).
+macs: 41.48 GMACs
+params: 24.99 M
+
+inputs:
+  - name: input
+    shape: [1, 3, 512, 512]
+    dtype: float32
+    layout: NCHW
+
+preprocessing:
+  - type: convertcolor
+    form: BGR2RGB
+  - type: resize
+    width: 512
+    height: 512
+  - type: normalize
+    mean: [123.675, 116.28, 103.53]
+    std: [58.395, 57.12, 57.375]
+  - type: transpose
+    axis: [2, 0, 1]
+  - type: expanddim
+    axis: 0
+
+postprocessing:
+  - type: segmentation_argmax
+
+evaluator:
+  type: semantic_segmentation
+
+dataset:
+  type: ADE20K
+  eval_path: ${DATA_ROOT}/ade20k-sceneparse150
+
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      quantization:
+        lite:
+          num_samples: 100
+          method: ema
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      quantization:
+        lite:
+          num_samples: 100
+          method: ema
+    runtime:
+      device: 0
+
+  q-pro:
+    target: dxnn
+    compile:
+      quantization:
+        pro:
+          num_samples: 1024
+          method: ema
+    runtime:
+      device: 0

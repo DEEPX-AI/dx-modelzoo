@@ -1,0 +1,83 @@
+name: arcface_mobilefacenet_112x112
+display_name: ArcFace MobileFaceNet
+task: face_recognition
+reference: https://github.com/deepinsight/insightface
+description: >-
+  ArcFace face recognition model with a MobileFaceNet backbone on a 112x112 aligned face
+  crop, producing a 512-dimensional embedding (postprocessing is identity). Embeddings
+  are compared by cosine similarity. Evaluated on the LFW verification benchmark
+  reporting face verification accuracy.
+macs: 445.48 MMACs
+params: 2.04 M
+inputs:
+- name: input
+  shape:
+  - 1
+  - 3
+  - 112
+  - 112
+  dtype: float32
+  layout: NCHW
+preprocessing:
+- type: centercrop
+  height: 112
+  width: 112
+- type: convertcolor
+  form: BGR2RGB
+- type: normalize
+  mean:
+  - 127.5
+  - 127.5
+  - 127.5
+  std:
+  - 128.0
+  - 128.0
+  - 128.0
+- type: transpose
+  axis:
+  - 2
+  - 0
+  - 1
+- type: expanddim
+  axis: 0
+postprocessing:
+- type: identity
+dataset:
+  type: LFW
+  eval_path: ${DATA_ROOT}/LFW
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      quantization:
+        pro:
+          num_samples: 1024
+          method: ema
+    runtime:
+      device: 0

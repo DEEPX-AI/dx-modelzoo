@@ -1,0 +1,93 @@
+name: alexnet_224x224
+display_name: AlexNet
+task: image_classification
+reference: https://github.com/pytorch/vision
+description: >-
+  AlexNet image classification model that ingests a 224x224 RGB image (NCHW, ImageNet
+  mean/std normalization) and outputs a 1000-way logit vector over the ImageNet-1k
+  categories. Postprocessing applies top-k selection on the class logits. Evaluated on
+  the ImageNet (ILSVRC2012) validation set reporting Top-1 and Top-5 classification
+  accuracy.
+macs: 715.98 MMACs
+params: 61.10 M
+inputs:
+- name: input
+  shape:
+  - 1
+  - 3
+  - 224
+  - 224
+  dtype: float32
+  layout: NCHW
+preprocessing:
+- type: resize
+  mode: torchvision
+  size: 256
+  interpolation: BILINEAR
+- type: centercrop
+  height: 224
+  width: 224
+- type: convertcolor
+  form: BGR2RGB
+- type: div
+  x: 255
+- type: normalize
+  mean:
+  - 0.485
+  - 0.456
+  - 0.406
+  std:
+  - 0.229
+  - 0.224
+  - 0.225
+- type: transpose
+  axis:
+  - 2
+  - 0
+  - 1
+- type: expanddim
+  axis: 0
+postprocessing:
+- type: topk
+  k:
+  - 1
+  - 5
+dataset:
+  type: ILSVRC2012
+  eval_path: ${DATA_ROOT}/ILSVRC2012/val
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      quantization:
+        pro:
+          num_samples: 1024
+          method: ema
+    runtime:
+      device: 0

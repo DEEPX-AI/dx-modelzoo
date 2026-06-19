@@ -1,0 +1,79 @@
+name: dncnn-color_512x512
+display_name: DnCNN-color
+task: image_denoising
+reference: https://github.com/cszn/DnCNN
+description: >-
+  DnCNN residual-learning denoising CNN on a 512x512 color (RGB) input that predicts the
+  residual noise to recover a clean image (postprocessing is identity). Evaluated on the
+  CBSD68 benchmark reporting PSNR and SSIM.
+macs: 175.49 GMACs
+params: 668.23 K
+inputs:
+- name: input
+  shape:
+  - 1
+  - 3
+  - 512
+  - 512
+  dtype: float32
+  layout: NCHW
+preprocessing:
+- type: resize
+  width: 512
+  height: 512
+  interpolation: BILINEAR
+- type: convertcolor
+  form: BGR2RGB
+- type: div
+  x: 255
+- type: transpose
+  axis:
+  - 2
+  - 0
+  - 1
+- type: expanddim
+  axis: 0
+postprocessing:
+- type: identity
+dataset:
+  type: CBSD68
+  eval_path: ${DATA_ROOT}/CBSD68
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+appendix:
+  noise_level: 15
+  use_color: true
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      quantization:
+        pro:
+          num_samples: 1024
+          method: ema
+    runtime:
+      device: 0

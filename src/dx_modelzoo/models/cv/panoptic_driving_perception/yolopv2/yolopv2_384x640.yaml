@@ -1,0 +1,89 @@
+name: yolopv2_384x640
+display_name: YOLOPv2
+task: panoptic_driving_perception
+reference: https://github.com/hustvl/YOLOP
+description: 'YOLOPv2: Multi-task model for autonomous driving.
+macs: 39.78 GMACs
+params: 38.96 M
+
+  Performs detection, drivable area segmentation, and lane segmentation simultaneously.
+
+  Evaluation reports vehicle detection mAP@0.5/Recall, drivable area mIoU, and
+  lane line Accuracy/IoU together (BDD100K).
+
+  '
+inputs:
+- name: input
+  shape:
+  - 1
+  - 3
+  - 384
+  - 640
+  dtype: float32
+  layout: NCHW
+preprocessing:
+- type: convertcolor
+  form: BGR2RGB
+- type: resize
+  mode: pad
+  size: [384, 640]
+  pad_location: edge
+  pad_value:
+  - 114
+  - 114
+  - 114
+- type: div
+  x: 255
+- type: transpose
+  axis:
+  - 2
+  - 0
+  - 1
+- type: expanddim
+  axis: 0
+postprocessing:
+- type: yolopv2_panoptic_decode
+  vehicle_class_index: 3
+  conf_thres: 0.001
+  iou_thres: 0.6
+  max_det: 300
+  input_size: [384, 640]
+dataset:
+  type: BDD100K
+  eval_path: ${DATA_ROOT}/bdd100k
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      quantization:
+        pro:
+          num_samples: 1024
+          method: ema
+    runtime:
+      device: 0

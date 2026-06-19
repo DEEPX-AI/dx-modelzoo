@@ -1,0 +1,79 @@
+name: retinaface_mobilenetv1_736x1280
+display_name: RetinaFace (MobileNetV1)
+task: face_detection
+reference: https://github.com/deepinsight/insightface
+description: >-
+  RetinaFace single-stage face detector on a 736x1280 RGB input that predicts face
+  bounding boxes (with landmarks) and confidences. Postprocessing (retinaface_decode)
+  decodes anchors/priors and applies NMS. Evaluated on the WiderFace benchmark reporting
+  Average Precision (AP).
+macs: 12.76 GMACs
+params: 3.49 M
+inputs:
+- name: input
+  shape:
+  - 1
+  - 736
+  - 1280
+  - 3
+  dtype: float32
+  layout: NHWC
+preprocessing:
+- type: resize
+  mode: default
+  size:
+  - 736
+  - 1280
+- type: normalize
+  mean:
+  - 104.0
+  - 117.0
+  - 123.0
+  std:
+  - 1.0
+  - 1.0
+  - 1.0
+- type: expanddim
+  axis: 0
+postprocessing:
+- type: retinaface_decode
+  variant: retinaface_v1
+dataset:
+  type: WiderFace
+  eval_path: ${DATA_ROOT}/widerface
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      quantization:
+        pro:
+          num_samples: 1024
+          method: ema
+    runtime:
+      device: 0
