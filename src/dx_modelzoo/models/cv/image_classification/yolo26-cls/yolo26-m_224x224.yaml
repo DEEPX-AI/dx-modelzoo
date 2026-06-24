@@ -1,5 +1,5 @@
 name: yolo26-m_224x224
-display_name: Ultralytics YOLO26-m
+display_name: Ultralytics YOLO26-m-cls
 task: image_classification
 reference: https://github.com/ultralytics/ultralytics
 description: >-

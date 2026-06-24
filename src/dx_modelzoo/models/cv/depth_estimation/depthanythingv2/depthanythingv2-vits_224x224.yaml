@@ -2,13 +2,10 @@ name: depthanythingv2-vits_224x224
 display_name: Depth-Anything-V2-ViT-S
 task: depth_estimation
 reference: https://github.com/DepthAnything/Depth-Anything-V2
-description: 'Depth Anything V2 with ViT-Small backbone.
+description: >-
+  Depth Anything V2 with ViT-Small backbone. Monocular depth estimation model (relative/inverse depth).
 macs: 8.60 GMACs
 params: 24.71 M
-
-  Monocular depth estimation model (relative/inverse depth).
-
-  '
 inputs:
 - name: input
   shape:

@@ -1,5 +1,5 @@
 name: yolov3_416x416
-display_name: YOLOv3
+display_name: YOLOv3 Darknet (416x416)
 task: object_detection
 reference: https://github.com/AlexeyAB/darknet
 description: >-

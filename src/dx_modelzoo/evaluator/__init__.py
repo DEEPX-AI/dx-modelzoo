@@ -34,6 +34,7 @@ class EvaluatorBase(ABC):
         self.session = session
         self.dataset = dataset
         self._postprocessing = None
+        self.model_spec = {}
         self.batch_size = batch_size
         self.workers = min(workers, os.cpu_count() or 1)
         self.async_queue_size = workers * getattr(session, "device_count", 1) * 2
@@ -127,8 +128,7 @@ class EvaluatorBase(ABC):
         loader = self.make_loader()
         total_len = len(loader)
         if total_len == 0:
-            logger.warning("Dataset is empty — returning initial metrics")
-            return self.compute_final_metrics(self.init_metrics())
+            raise ValueError("Dataset is empty. Cannot perform evaluation.")
         metrics_state = self.init_metrics()
 
         total_load_time = 0.0
@@ -192,6 +192,8 @@ class EvaluatorBase(ABC):
         from concurrent.futures import ThreadPoolExecutor
 
         total = len(self.dataset)
+        if total == 0:
+            raise ValueError("Dataset is empty. Cannot perform evaluation.")
         metrics_state = self.init_metrics()
         device_count = getattr(self.session, "device_count", 1)
         max_inflight = min(device_count * 4, total)
@@ -315,7 +317,11 @@ class EvaluatorBase(ABC):
         """Build standardized result dict."""
         result = {
             "model": self.model_name,
+            "operations": self.model_spec.get("operations", None),
+            "parameters": self.model_spec.get("parameters", None),
+            "license": self.model_spec.get("license", None),
             "task": self.task_name,
+            "input_resolution": self.model_spec.get("input_resolution", None),
             "dataset": self.dataset_name,
             "metrics": metrics,
             "fps": round(float(fps), 2),
@@ -382,6 +388,7 @@ from dx_modelzoo.evaluator import image_denoising_evaluator  # noqa: F401, E402
 from dx_modelzoo.evaluator import instance_segmentation_evaluator  # noqa: F401, E402
 from dx_modelzoo.evaluator import keypoint_detection_evaluator  # noqa: F401, E402
 from dx_modelzoo.evaluator import low_light_enhancement_evaluator  # noqa: F401, E402
+from dx_modelzoo.evaluator import object_detection_3d_evaluator  # noqa: F401, E402
 from dx_modelzoo.evaluator import object_detection_evaluator  # noqa: F401, E402
 from dx_modelzoo.evaluator import object_pose_estimation_evaluator  # noqa: F401, E402
 from dx_modelzoo.evaluator import oriented_object_detection_evaluator  # noqa: F401, E402

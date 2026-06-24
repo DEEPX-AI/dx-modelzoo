@@ -1,5 +1,5 @@
 name: deit-b_224x224_distilled
-display_name: DeiT-Base (distilled)
+display_name: DeiT-Base (distilled, 224x224)
 task: image_classification
 reference: https://github.com/facebookresearch/deit
 description: >-

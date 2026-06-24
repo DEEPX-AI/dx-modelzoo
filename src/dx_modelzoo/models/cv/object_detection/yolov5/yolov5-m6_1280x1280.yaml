@@ -1,5 +1,5 @@
 name: yolov5-m6_1280x1280
-display_name: Ultralytics YOLOv5-m6
+display_name: Ultralytics YOLOv5-m6 (1280x1280)
 task: object_detection
 reference: https://github.com/ultralytics/yolov5
 description: >-

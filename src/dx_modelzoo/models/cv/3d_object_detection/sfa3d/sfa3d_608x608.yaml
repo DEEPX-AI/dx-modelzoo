@@ -1,0 +1,84 @@
+name: sfa3d_608x608
+display_name: SFA3D
+task: 3d_object_detection
+reference: https://github.com/maudzung/SFA3D
+description: >
+  Super Fast and Accurate 3D Object Detection on KITTI BEV.
+  Input is a Bird's Eye View (BEV) map [height, intensity, density]
+  generated from LiDAR point cloud. BEV range: x(-50,50), y(-50,50),
+  z(-3,1), voxel 0.1m. 3 classes: Car, Pedestrian, Cyclist.
+
+macs: 31.97 GMACs
+params: 12.74 M
+evaluator:
+  type: 3d_object_detection
+
+inputs:
+  - name: input
+    shape: [1, 3, 608, 608]
+    dtype: float32
+    layout: NCHW
+
+preprocessing:
+  - type: resize
+    width: 608
+    height: 608
+  - type: div
+    x: 255
+  - type: transpose
+    axis: [2, 0, 1]
+  - type: expanddim
+    axis: 0
+
+postprocessing:
+  - type: sfa3d_decode
+    input_size: 608
+    num_classes: 3
+    topk: 50
+    conf_thres: 0.3
+    down_ratio: 4
+
+dataset:
+  type: KITTI
+  eval_path: ${DATA_ROOT}/KITTI
+
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      quantization:
+        lite:
+          num_samples: 100
+          method: ema
+    runtime:
+      device: 0
+      async: true
+  q-lite:
+    target: dxnn
+    compile:
+      quantization:
+        lite:
+          num_samples: 100
+          method: ema
+    runtime:
+      device: 0
+      async: true
+  q-pro:
+    target: dxnn
+    compile:
+      quantization:
+        pro:
+          num_samples: 100
+          method: ema
+    runtime:
+      device: 0
+      async: true

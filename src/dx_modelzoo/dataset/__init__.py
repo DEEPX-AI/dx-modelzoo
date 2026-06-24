@@ -18,6 +18,7 @@ from dx_modelzoo.dataset import hand_keypoints  # noqa: F401, E402
 from dx_modelzoo.dataset import hope  # noqa: F401, E402
 from dx_modelzoo.dataset import hpatches  # noqa: F401, E402
 from dx_modelzoo.dataset import imagenet  # noqa: F401, E402
+from dx_modelzoo.dataset import kitti  # noqa: F401, E402
 from dx_modelzoo.dataset import lfw  # noqa: F401, E402
 from dx_modelzoo.dataset import lol  # noqa: F401, E402
 from dx_modelzoo.dataset import market1501  # noqa: F401, E402

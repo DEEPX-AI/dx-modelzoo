@@ -2,10 +2,10 @@ name: stdc2-seg50_512x1024
 display_name: STDC2-Seg50
 task: semantic_segmentation
 reference: https://github.com/MichaelFan01/STDC-Seg
-description: 'STDC2-Seg50: STDC2 backbone semantic segmentation model evaluated at 0.5
+description: >-
+  STDC2-Seg50: STDC2 backbone semantic segmentation model evaluated at 0.5 scale (seg50) on Cityscapes. Input resized to 512x1024.
 macs: 24.44 GMACs
 params: 12.45 M
-  scale (seg50) on Cityscapes. Input resized to 512x1024.'
 inputs:
 - name: x
   shape:

@@ -1,5 +1,5 @@
 name: yolov3-gluon_416x416
-display_name: YOLOv3
+display_name: YOLOv3 GluonCV (416x416)
 task: object_detection
 reference: https://github.com/dmlc/gluon-cv
 description: >-

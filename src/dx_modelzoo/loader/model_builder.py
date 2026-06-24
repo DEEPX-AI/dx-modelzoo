@@ -330,6 +330,21 @@ class ModelBuilder:
 
         evaluator = evaluator_cls(session, dataset, batch_size=batch_size)
 
+        # Set model spec for evaluator (macs, params, input_resolution, license)
+        input_shape = self.config.get("inputs")[0].get("shape")
+        if len(input_shape) == 4:
+            input_resolution = tuple(input_shape[2:] + input_shape[1:2])  # H, W, C
+        elif len(input_shape) < 4:
+            input_resolution = tuple(input_shape[1:])  # H, W / C
+        else:
+            input_resolution = tuple(input_shape)  # Fallback for unexpected shapes
+        evaluator.model_spec = {
+            "operations": self.config.get("macs"),
+            "parameters": self.config.get("params"),
+            "input_resolution": input_resolution,
+            "license": self.config.get("license", None),
+        }
+
         # Apply appendix properties to evaluator (by attribute name)
         for key, value in self.appendix.items():
             if hasattr(type(evaluator), key) or hasattr(evaluator, key):

@@ -1,5 +1,5 @@
 name: yolov3_416x416_ppu
-display_name: YOLOv3 (PPU)
+display_name: YOLOv3 (PPU, 416x416)
 task: object_detection
 reference: https://github.com/AlexeyAB/darknet
 description: >-

@@ -1,5 +1,5 @@
 name: ulfgfd-rfb_480x640
-display_name: ULFGFD-RFB
+display_name: ULFGFD-RFB (480x640)
 task: face_detection
 reference: https://github.com/Linzaer/Ultra-Light-Fast-Generic-Face-Detector-1MB
 description: >-
