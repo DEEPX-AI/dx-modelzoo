@@ -2,16 +2,14 @@ name: yolopv2_384x640
 display_name: YOLOPv2
 task: panoptic_driving_perception
 reference: https://github.com/hustvl/YOLOP
-description: 'YOLOPv2: Multi-task model for autonomous driving.
-macs: 39.78 GMACs
-params: 38.96 M
-
+description: >
+  YOLOPv2: Multi-task model for autonomous driving.
   Performs detection, drivable area segmentation, and lane segmentation simultaneously.
 
   Evaluation reports vehicle detection mAP@0.5/Recall, drivable area mIoU, and
   lane line Accuracy/IoU together (BDD100K).
-
-  '
+macs: 39.78 GMACs
+params: 38.96 M
 inputs:
 - name: input
   shape:

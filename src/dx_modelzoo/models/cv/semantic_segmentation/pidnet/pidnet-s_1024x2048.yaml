@@ -2,11 +2,10 @@ name: pidnet-s_1024x2048
 display_name: PIDNet-S
 task: semantic_segmentation
 reference: https://github.com/XuJiacong/PIDNet
-description: 'PIDNet-S: real-time semantic segmentation model evaluated at full 1024x2048
+description: >-
+  PIDNet-S: real-time semantic segmentation model evaluated at full 1024x2048 resolution on Cityscapes. Output logits (1/8 scale) are upsampled to the label resolution for evaluation.
 macs: 47.86 GMACs
 params: 7.62 M
-  resolution on Cityscapes. Output logits (1/8 scale) are upsampled to the label
-  resolution for evaluation.'
 inputs:
 - name: input
   shape:

@@ -197,7 +197,11 @@ def eval(
             fname = result_dir / f"eval_{builder.name}_{profile}.json"
             with open(fname, "w") as f:
                 json.dump(result, f, indent=2, ensure_ascii=False)
-            logger.success(f"Saved to {fname}")
+            logger.info(f"Saved to {fname}")
+
+        # Exit with code 1 if any model evaluation failed (error in result)
+        if result.get("error", None) is not None:
+            raise typer.Exit(code=1)
 
 
 @app.command()
@@ -383,6 +387,7 @@ def info(
 ) -> None:
     """Show model information."""
     builder = resolve_model_target(model)
+    typer.echo(f"Model YAML: {builder.yaml_path}")
     typer.echo(f"Name: {builder.name}")
     typer.echo(f"Inputs: {builder.inputs}")
     typer.echo(f"Profiles: {list(builder.config['profiles'].keys())}")
