@@ -18,12 +18,12 @@ DX-ModelZoo is a unified framework for managing model preprocessing, postprocess
 - **Python**: 3.8+
 - **DeepX Components**:
   - [DeepX Runtime (DX-RT)](https://github.com/DEEPX-AI/dx-rt) ≥ 2.7.0 (compiled with `USE_ORT=ON`)
-  - [DeepX Compiler (DX-COM)](https://github.com/DEEPX-AI/dx-com) ≥ 1.45.0
+  - [DeepX Compiler (DX-Compiler)](https://github.com/DEEPX-AI/dx-compiler) ≥ 1.45.0
 - **GPU** (optional):
   - NVIDIA GPU (Pascal/Turing/Ampere architecture)
   - NVIDIA Driver ≥ 535.230.02, CUDA 12.2, cuDNN 9.1
 
-> Refer to the official DX-RT and DX-COM installation guides for detailed setup instructions.
+> Refer to the official DX-RT and DX-Compiler installation guides for detailed setup instructions.
 
 ## Installation
 
@@ -33,7 +33,7 @@ DX-ModelZoo is a unified framework for managing model preprocessing, postprocess
 # Install DX-RT python package
 pip install dx_engine-*.whl
 
-# Install DX-COM python package
+# Install DX-Compiler python package
 pip install dx_com-*.whl
 ```
 
