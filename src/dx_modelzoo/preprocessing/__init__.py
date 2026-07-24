@@ -1,131 +1,101 @@
-from typing import Callable, Dict, List
+from __future__ import annotations
+
+from typing import Any, Dict, List, Union
 
 import numpy as np
 from torchvision.transforms import Compose
 
-from dx_modelzoo.preprocessing.centercrop import CenterCrop
-from dx_modelzoo.preprocessing.convertcolor import ConvertColor
-from dx_modelzoo.preprocessing.div import Div
-from dx_modelzoo.preprocessing.expanddim import ExpandDim
-from dx_modelzoo.preprocessing.normalize import Normalize
-from dx_modelzoo.preprocessing.resize import Resize
-from dx_modelzoo.preprocessing.transpose import Transpose
+from dx_modelzoo.common.registry import Registry
 
-PREPROCESSING = Dict[str, Dict[str, str | int | float | List[int | float]]]
+__all__ = ["PREPROCESSING_REGISTRY", "PreprocessingPipeline"]
+
+PREPROCESSING_REGISTRY = Registry("preprocessing")
+NPU_SKIP_DEFAULT = {"div", "normalize", "transpose", "expanddim", "mul", "add", "subtract"}
 
 
-PREPROCESSING_MAP = {
-    "resize": Resize,
-    "centercrop": CenterCrop,
-    "convertColor": ConvertColor,
-    "normalize": Normalize,
-    "div": Div,
-    "transpose": Transpose,
-    "expandDim": ExpandDim,
-}
+class PreprocessingPipeline(Compose):
+    """Ordered pipeline of preprocessing operations, built from YAML config.
 
+    Inherits from ``torchvision.transforms.Compose`` so that dx_com's
+    auto-extraction (``_is_compose()``) recognizes it directly.
+    The ``.transforms`` attribute contains the fusable ops (ToTensor, Normalize)
+    for preprocessing fusion.  The pipeline itself executes numpy-based steps
+    via ``__call__``.
 
-def parse_ort_preprocessing_ops(preprocessings: List[PREPROCESSING]) -> List[Callable]:
-    """parse onnx runtime preprocessings.
-    if expandDim preprocessing in preprocessing appear just one time, it removed.
+    When npu_mode=True, arithmetic/normalization ops (div, normalize, transpose,
+    expanddim, mul, add, subtract) are skipped because the NPU handles them
+    internally (uint8 input models). For float32 input NPU models, npu_mode
+    should be False so all ops are kept.
 
-    Args:
-        preprocessings (List[PREPROCESSING]): preprocessing list.
-
-    Returns:
-        List[Callable]: preprocessing ops list.
-    """
-    expand_dim = True
-    ops_list = []
-    for preprocessing in preprocessings:
-        ops_name = list(preprocessing.keys())[0]
-        if ops_name == "expandDim" and expand_dim is True:
-            expand_dim = False
-            continue
-        ops = PREPROCESSING_MAP[ops_name]
-        kwargs = preprocessing[ops_name]
-        ops_list.append(ops(**kwargs))
-    return ops_list
-
-
-def parse_npu_preprocessing_ops(preprocessings: List[PREPROCESSING]) -> List[Callable]:
-    """parse npu preprocessing ops.
-    it removes calculation operations like div, mul, add, normalizations.
-    and also it remove transpose operations.
-
-    Args:
-        preprocessings (List[PREPROCESSING]): preprocessing list.
-
-    Returns:
-        List[Callable]: preprocessing ops list.
-    """
-    expand_dim = True
-    ops_list = []
-    for preprocessing in preprocessings:
-        ops_name = list(preprocessing.keys())[0]
-        if ops_name == "expandDim" and expand_dim is True:
-            expand_dim = False
-            continue
-
-        if ops_name in ["div", "mul", "add", "normalize", "subtract"]:
-            continue
-        ops = PREPROCESSING_MAP[ops_name]
-        kwargs = preprocessing[ops_name]
-        ops_list.append(ops(**kwargs))
-    return ops_list
-
-
-def parse_preprocessing_ops(preprocessings: List[PREPROCESSING], session_type: str) -> List[Callable]:
-    """parse preprocessing ops.
-
-    Args:
-        preprocessings (List[PREPROCESSING]): preprocessings.
-
-    Returns:
-        List[Callable]: preprocessings ops list.
-    """
-    if session_type == "OnnxRuntime":
-        return parse_ort_preprocessing_ops(preprocessings)
-    elif session_type == "DxRuntime":
-        return parse_npu_preprocessing_ops(preprocessings)
-    else:
-        raise ValueError(f"Invalid sessiont type: {session_type}")
-
-
-class PreProcessingCompose:
-    """Pre Processing Compose.
-    it composes pre processing operations.
-
-    Args:
-        preprocessings (List[PREPROCESSING]): preprocessings List.
+    Accepts either a flat ``List[dict]`` (single-input) or a
+    ``Dict[str, List[dict]]`` (multi-input) config.
     """
 
-    def __init__(self, preprocessings: List[PREPROCESSING], session_type: str) -> None:
-        self._check_preprocessings(preprocessings)
-        self.preprocessings_ops = parse_preprocessing_ops(preprocessings, session_type)
+    def __init__(
+        self,
+        steps_config: Union[List[Dict[str, Any]], Dict[str, List[Dict[str, Any]]]],
+        npu_mode: bool = False,
+    ) -> None:
+        self._raw_config = steps_config
 
-    def _check_preprocessings(self, preprocessings: List[PREPROCESSING]) -> None:
-        """check if the preprocessings are valid.
+        # Build fusable torchvision transforms for Compose.transforms
+        from dx_modelzoo.preprocessing.converter import yaml_to_compose_transforms
 
-        Args:
-            preprocessings (List[PREPROCESSING]): preprocessings.
+        tv_transforms = yaml_to_compose_transforms(steps_config)
+        super().__init__(tv_transforms)
 
-        Raises:
-            ValueError: if the preprocessings are invalid, raise ValueError.
-        """
-        for preprocessing in preprocessings:
-            ops_name = list(preprocessing.keys())[0]
-            if ops_name not in PREPROCESSING_MAP:
-                raise ValueError(f"Invalid Preprocessing name. {preprocessing}")
+        # Flatten dict → list for sequential step execution
+        if isinstance(steps_config, dict):
+            flat: List[Dict[str, Any]] = []
+            for modal_steps in steps_config.values():
+                if isinstance(modal_steps, list):
+                    flat.extend(modal_steps)
+            steps_config = flat
+
+        self._steps_config = steps_config
+        self.steps = []
+        for step_cfg in steps_config:
+            step_type = step_cfg["type"]
+            if npu_mode and step_type in NPU_SKIP_DEFAULT:
+                continue
+            cls = PREPROCESSING_REGISTRY.get(step_type)
+            params = {k: v for k, v in step_cfg.items() if k != "type"}
+            self.steps.append(cls(**params))
+
+    @property
+    def steps_config(self) -> List[Dict[str, Any]]:
+        """Original YAML step dicts used to build this pipeline."""
+        return self._steps_config
+
+    @property
+    def compose(self) -> Any:
+        """Backward-compatible property.  Returns self (single-input) or
+        Dict[str, Compose] (multi-input)."""
+        if isinstance(self._raw_config, dict):
+            from dx_modelzoo.preprocessing.converter import yaml_to_compose_multi_dict
+
+            return yaml_to_compose_multi_dict(self._raw_config)
+        return self
 
     def __call__(self, inputs: np.ndarray) -> np.ndarray:
-        """Pre processing the inputs.
+        for step in self.steps:
+            inputs = step(inputs)
+        return inputs
 
-        Args:
-            inputs (np.ndarray): inputs.
 
-        Returns:
-            np.ndarray: pre processed inputs.
-        """
-        compose = Compose(self.preprocessings_ops)
-        return compose(inputs)
+# Import submodules to trigger registration
+from dx_modelzoo.preprocessing import (  # noqa: F401, E402
+    add,
+    bgr_to_y_channel,
+    bgr_to_y_channel_uint8,
+    centercrop,
+    convertcolor,
+    div,
+    expanddim,
+    mul,
+    normalize,
+    resize,
+    subtract,
+    totensor,
+    transpose,
+)

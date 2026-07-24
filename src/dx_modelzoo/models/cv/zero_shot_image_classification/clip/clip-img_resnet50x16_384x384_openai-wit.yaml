@@ -1,0 +1,91 @@
+name: clip-img_resnet50x16_384x384_openai-wit
+display_name: CLIP ResNet-50x16 (OpenAI WIT)
+task: zero_shot_image_classification
+reference: https://github.com/mlfoundations/open_clip
+description: >-
+  CLIP image-encoder branch with a ResNet-50x16 image encoder (OpenAI WIT weights) on a
+  384x384 RGB input, producing an image embedding aligned to CLIP text embeddings. Zero-
+  shot classification scores the image against text-prompt class embeddings. Evaluated
+  on the ImageNet (ILSVRC2012) validation set reporting zero-shot Top-1 accuracy.
+macs: 75.00 GMACs
+params: 167.23 M
+inputs:
+- name: input
+  shape:
+  - 1
+  - 3
+  - 384
+  - 384
+  dtype: float32
+  layout: NCHW
+preprocessing:
+- type: resize
+  width: 384
+  height: 384
+- type: centercrop
+  height: 384
+  width: 384
+- type: convertcolor
+  form: BGR2RGB
+- type: div
+  x: 255
+- type: normalize
+  mean:
+  - 0.48145466
+  - 0.4578275
+  - 0.40821073
+  std:
+  - 0.26862954
+  - 0.26130258
+  - 0.27577711
+- type: transpose
+  axis:
+  - 2
+  - 0
+  - 1
+- type: expanddim
+  axis: 0
+postprocessing:
+- type: clip_zero_shot
+appendix:
+  clip_model_name: RN50x16
+  clip_pretrained: openai
+dataset:
+  type: ILSVRC2012
+  eval_path: ${DATA_ROOT}/ILSVRC2012/val
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      quantization:
+        pro:
+          num_samples: 1024
+          method: ema
+    runtime:
+      device: 0

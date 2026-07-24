@@ -1,30 +1,37 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
+from typing import List
 
 import numpy as np
 
-from dx_modelzoo.enums import SessionType
+__all__ = ["SessionBase"]
 
 
 class SessionBase(ABC):
-    """Session Base Class.
-    it needs file path, and session type.
-    """
-
-    def __init__(self, path: str, session_type: SessionType) -> None:
+    def __init__(self, path: str, device_count: int = 1) -> None:
         self.path = path
-        self.type = session_type
+        self.device_count = device_count
+        # Sessions own the async decision; default to sync for the base / custom
+        # sessions that don't implement async inference.
+        self._use_async = False
 
     @abstractmethod
-    def run(self, inputs: np.ndarray) -> np.ndarray:
-        """run session.
-
-        Args:
-            inputs (np.ndarray): input value.
-
-        Returns:
-            np.ndarray: session output value.
-        """
+    def run(self, inputs: np.ndarray) -> List[np.ndarray]:
         ...
 
+    def run_async(self, inputs: np.ndarray, **kwargs) -> int:
+        raise NotImplementedError("Async not supported for this session type")
 
-__all__ = ["SessionBase"]
+    def wait(self, job_id: int) -> List[np.ndarray]:
+        raise NotImplementedError("Async not supported for this session type")
+
+    def close(self) -> None:
+        pass
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.close()
+        return False

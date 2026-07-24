@@ -1,0 +1,84 @@
+name: yolact_regnet-x1.6gf_512x512
+display_name: YOLACT (RegNetX-1.6GF)
+task: instance_segmentation
+reference: https://github.com/dbolya/yolact
+description: >-
+  YOLACT instance segmentation model on a 512x512 RGB input that predicts object boxes,
+  classes and per-instance mask coefficients/prototypes. Postprocessing (yolact_decode)
+  assembles per-instance masks and applies NMS. Evaluated on the COCO instance
+  segmentation benchmark reporting mask mean Average Precision (mAP).
+macs: 63.00 GMACs
+params: 18.02 M
+inputs:
+- name: input
+  shape:
+  - 1
+  - 3
+  - 512
+  - 512
+  dtype: float32
+  layout: NCHW
+preprocessing:
+- type: convertcolor
+  form: BGR2RGB
+- type: resize
+  mode: pad
+  size: 512
+  pad_location: edge
+  pad_value:
+  - 114
+  - 114
+  - 114
+- type: div
+  x: 255
+- type: transpose
+  axis:
+  - 2
+  - 0
+  - 1
+- type: expanddim
+  axis: 0
+postprocessing:
+- type: yolact_decode
+evaluator:
+  options:
+    lazy_postprocessing: false
+dataset:
+  type: COCO
+  eval_path: ${DATA_ROOT}/COCO
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      quantization:
+        pro:
+          num_samples: 1024
+          method: ema
+    runtime:
+      device: 0

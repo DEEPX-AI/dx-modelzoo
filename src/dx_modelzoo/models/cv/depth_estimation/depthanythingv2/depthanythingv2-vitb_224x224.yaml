@@ -1,0 +1,93 @@
+name: depthanythingv2-vitb_224x224
+display_name: Depth-Anything-V2-ViT-B
+task: depth_estimation
+reference: https://github.com/DepthAnything/Depth-Anything-V2
+description: >-
+  Depth Anything V2 with ViT-Base backbone. Monocular depth estimation model (relative/inverse depth).
+macs: 31.59 GMACs
+params: 97.17 M
+inputs:
+- name: input
+  shape:
+  - 1
+  - 3
+  - 224
+  - 224
+  dtype: float32
+  layout: NCHW
+preprocessing:
+- type: convertcolor
+  form: BGR2RGB
+- type: resize
+  width: 224
+  height: 224
+- type: div
+  x: 255
+- type: normalize
+  mean:
+  - 0.485
+  - 0.456
+  - 0.406
+  std:
+  - 0.229
+  - 0.224
+  - 0.225
+- type: transpose
+  axis:
+  - 2
+  - 0
+  - 1
+- type: expanddim
+  axis: 0
+postprocessing:
+- type: identity
+appendix:
+  use_scale_shift: true
+  max_depth: 10
+  label_preprocessing:
+  - type: resize
+    mode: default
+    size:
+    - 224
+    - 224
+  - type: expanddim
+    axis: 0
+dataset:
+  type: NYUDepthv2
+  eval_path: ${DATA_ROOT}/nyudepthv2
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      quantization:
+        pro:
+          num_samples: 1024
+          method: ema
+    runtime:
+      device: 0

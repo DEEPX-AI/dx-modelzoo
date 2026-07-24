@@ -1,0 +1,80 @@
+name: damoyolo-tinynas-l20t_640x640
+display_name: DAMO-YOLO TinyNAS-L20T
+task: object_detection
+reference: https://github.com/tinyvision/DAMO-YOLO
+description: >-
+  DAMO-YOLO object detector taking a 640x640 RGB image (NCHW) and producing dense
+  box/class predictions. Postprocessing (damoyolo_decode, nms) decodes the raw outputs
+  into boxes and applies non-maximum suppression. Evaluated on the COCO detection
+  benchmark reporting mean Average Precision (mAP@0.5:0.95).
+macs: 9.13 GMACs
+params: 8.50 M
+inputs:
+- name: input
+  shape:
+  - 1
+  - 3
+  - 640
+  - 640
+  dtype: float32
+  layout: NCHW
+preprocessing:
+- type: resize
+  mode: pad
+  size: 640
+  pad_location: edge
+  pad_value:
+  - 114
+  - 114
+  - 114
+- type: convertcolor
+  form: BGR2RGB
+- type: transpose
+  axis:
+  - 2
+  - 0
+  - 1
+- type: expanddim
+  axis: 0
+postprocessing:
+- type: damoyolo_decode
+- type: nms
+dataset:
+  type: COCO
+  eval_path: ${DATA_ROOT}/COCO
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      quantization:
+        lite:
+          method: ema
+          num_samples: 100
+    runtime:
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      quantization:
+        pro:
+          num_samples: 1024
+          method: ema
+    runtime:
+      device: 0
