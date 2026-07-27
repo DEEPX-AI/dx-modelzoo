@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dx-modelzoo"
-version = "0.10.0"
+version = "0.10.1"
 description = "YAML-centric modelzoo for DX runtime"
 urls = {Homepage = "https://deepx.ai", Repository = "https://github.com/DEEPX-AI/dx-modelzoo"}
 requires-python = ">=3.8"

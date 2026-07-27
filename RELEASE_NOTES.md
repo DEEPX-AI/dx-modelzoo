@@ -1,5 +1,16 @@
 # RELEASE_NOTES
 
+## DX-MODELZOO v0.10.1 / 2026-07-27
+
+### 1. Changed
+- None
+
+### 2. Fixed
+- Fixed a typo in README.md where it was incorrectly written as `ResNet18` instead of `resnet18_224x224`.
+
+### 3. Added
+- None
+
 ## DX-MODELZOO v0.10.0 / 2026-06-16
 
 ### 1. Changed
