@@ -68,13 +68,13 @@ pip install -e ".[gpu]"
 dxmz list
 
 # View model details
-dxmz info ResNet18
+dxmz info resnet18_224x224
 
 # Evaluate with ONNX Runtime
-dxmz eval ResNet18 --profile onnx
+dxmz eval resnet18_224x224 --profile onnx
 
 # Compile for NPU
-dxmz compile ResNet18 --profile q-lite
+dxmz compile resnet18_224x224 --profile q-lite
 
 # Benchmark all models
 dxmz benchmark --profile onnx --domain cv
@@ -86,7 +86,7 @@ dxmz create
 ### Evaluation Options
 
 ```bash
-dxmz eval ResNet18 --profile onnx \
+dxmz eval resnet18_224x224 --profile onnx \
   --data-root /data/datasets \
   --model-root /data/models \
   --model-path /path/to/model.onnx \
@@ -98,7 +98,7 @@ dxmz eval ResNet18 --profile onnx \
 
 ```bash
 # Compile with GPU-accelerated quantization
-dxmz compile ResNet18 --profile q-lite --use-gpu --output ./out
+dxmz compile resnet18_224x224 --profile q-lite --use-gpu --output ./out
 
 # Benchmark across multiple NPU devices in parallel
 dxmz benchmark --profile q-lite --devices 0,1,2,3 --save
@@ -116,7 +116,7 @@ dxmz compile ./my_models/custom_model.yaml --profile q-lite
 Every model is defined by a single YAML file containing preprocessing, postprocessing, evaluation, and compilation settings. See the [YAML Configuration Guide](docs/guides/yaml-config.md) for the full specification.
 
 ```yaml
-name: ResNet18
+name: resnet18_224x224
 task: image_classification
 inputs:
   - name: input
