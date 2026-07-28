@@ -1,8 +1,13 @@
 # Preprocessing
 
-The preprocessing pipeline transforms input data (images) into the format required by the model.
+The preprocessing pipeline in DX-ModelZoo transforms input data into the format required by the model.
 
 **Module:** `dx_modelzoo.preprocessing`
+
+!!! note "See Also"
+    - [YAML Configuration](../guides/yaml-config.md) - Preprocessing configuration in YAML
+    - [Custom Models](../guides/custom-models.md) - Creating custom preprocessing operations
+    - [ModelBuilder](model-builder.md) - How to build preprocessing pipelines
 
 ## Overview
 
@@ -138,7 +143,7 @@ Division (scaling).
 |-----------|------|-------------|
 | `x` | `float` | Divisor value |
 
-!!! info "Automatic NPU Skip"
+!!! note "Automatic NPU Skip"
     `div` is included in `NPU_SKIP_DEFAULT` and is skipped in NPU mode.
 
 ### `normalize`
@@ -274,7 +279,7 @@ preprocessing:
     param: 20
 ```
 
-!!! tip "NPU Skip for Custom Operations"
+!!! note "NPU Skip for Custom Operations"
     Custom operations are not skipped in NPU mode by default, as they are not included in `NPU_SKIP_DEFAULT`. If your custom operation is an arithmetic operation that should be skipped on the NPU, you must add it to the set manually.
 
-For detailed usage, refer to the [Adding Custom Models](../guides/custom-models.md) guide.
+For detailed usage, refer to the [Custom Models](../guides/custom-models.md) guide.

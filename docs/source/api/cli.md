@@ -1,8 +1,13 @@
 # CLI Reference
 
-DX ModelZoo performs all operations through the `dxmz` CLI tool. It is built on [Typer](https://typer.tiangolo.com/).
+DX-ModelZoo performs all operations through the `dxmz` CLI tool. It is built on [Typer](https://typer.tiangolo.com/).
 
-## Verify Installation
+!!! note "See Also"
+    - [Quick Start](../getting-started/quickstart.md) - Basic CLI usage examples
+    - [Model Evaluation](../guides/evaluation.md) - Detailed evaluation guide
+    - [YAML Configuration](../guides/yaml-config.md) - Model configuration reference
+
+## Installation Verification
 
 ```bash
 dxmz --help
@@ -18,8 +23,6 @@ dxmz --help
 | `list` | List available models |
 | `info` | Model details |
 | `create` | Create a new model YAML interactively |
-
----
 
 ## `dxmz eval`
 
@@ -70,8 +73,6 @@ dxmz eval ocr_pipeline.yaml --profile onnx \
   --model-path "det=/path/det.onnx,rec=/path/rec.onnx"
 ```
 
----
-
 ## `dxmz compile`
 
 Compiles a model for the NPU.
@@ -114,8 +115,6 @@ dxmz compile ocr_pipeline.yaml --profile q-lite \
   --model-path "det=/path/det.onnx,rec=/path/rec.onnx"
 ```
 
----
-
 ## `dxmz benchmark`
 
 Benchmarks multiple models in batch with optional parallel execution.
@@ -153,8 +152,6 @@ dxmz benchmark --profile q-lite --devices 0,1,2,3
 dxmz benchmark --profile q-lite --save
 ```
 
----
-
 ## `dxmz list`
 
 Displays the list of available models. By default, an interactive tree browser is launched.
@@ -184,10 +181,8 @@ dxmz list --all
 dxmz list -a --task object_detection
 ```
 
-!!! tip "Interactive Browser"
+!!! note "Interactive Browser"
     Running `dxmz list` without any options launches a TUI (Text User Interface) tree browser. Use the arrow keys to navigate and press Enter to view model details.
-
----
 
 ## `dxmz info`
 
@@ -218,8 +213,6 @@ Profiles: ['onnx', 'c-lite', 'q-lite', 'q-pro']
 Dataset: {'type': 'ILSVRC2012', 'eval_path': '${DATA_ROOT}/ILSVRC2012/val'}
 ```
 
----
-
 ## `dxmz create`
 
 Interactively create a new model YAML configuration file.
@@ -229,8 +222,6 @@ dxmz create
 ```
 
 Launches a step-by-step wizard that asks for model name, task, input shape, preprocessing, and generates the YAML file.
-
----
 
 ## Environment Variables
 

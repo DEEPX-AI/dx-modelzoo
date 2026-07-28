@@ -1,6 +1,18 @@
 # Custom Datasets
 
-This guide explains how to add a custom dataset to DX ModelZoo. Inherit from `DatasetBase`, register it with the Registry, and reference it directly in your YAML configuration.
+This guide explains how to create and integrate custom datasets into DX-ModelZoo for your specific evaluation needs.
+
+!!! note "Prerequisites"
+    Before creating custom datasets, make sure you have:
+
+    - [Installed DX-ModelZoo](../getting-started/installation.md) with development dependencies
+    - Basic understanding of Python classes and abstract base classes
+    - Familiarity with the [evaluation workflow](evaluation.md)
+
+!!! note "See Also"
+    - [Datasets Reference](datasets.md) - Built-in datasets and structure
+    - [Model Evaluation](evaluation.md) - How datasets are used in evaluation
+    - [YAML Configuration](yaml-config.md) - Dataset configuration options
 
 ## Overview
 
@@ -46,7 +58,9 @@ class DatasetBase(ABC):
 
 ## Implementation
 
-### Step 1: Write the Dataset Class
+### Creating a Custom Dataset Class
+
+Create a new Python file in the `src/dx_modelzoo/dataset/` directory:
 
 ```python title="src/dx_modelzoo/dataset/my_dataset.py"
 import os
@@ -102,10 +116,13 @@ class MyCustomDataset(DatasetBase):
         return img, label
 ```
 
-!!! info "Where to Apply `preprocessing`"
+!!! note "Where to Apply `preprocessing`"
     `self.preprocessing` is automatically configured by the Evaluator via `set_preprocessing()`. The standard pattern is to apply it in `__getitem__` after loading the image.
 
 ## Registration
+
+The dataset is automatically discovered when DX-ModelZoo scans the `dataset/` directory.
+No manual import is required — just ensure your file is in the correct location.
 
 ### Reference in YAML
 
@@ -115,13 +132,36 @@ dataset:
   eval_path: ${DATA_ROOT}/my_data
 ```
 
-### Run Evaluation
+### Running Evaluation
 
 ```bash
 dxmz eval MyModel --profile onnx --data-root /path/to/datasets
 ```
 
-## YAML Configuration
+### Example: Complete Workflow
+
+```bash
+# 1. Create dataset structure
+mkdir -p /data/my_dataset/images
+echo "img001.jpg 0" > /data/my_dataset/labels.txt
+echo "img002.jpg 1" >> /data/my_dataset/labels.txt
+
+# 2. Set environment variable
+export DATA_ROOT=/data
+
+# 3. Run evaluation
+dxmz eval MyModel --profile onnx --data-root /data
+```
+
+**What happens:**
+
+1. DX-ModelZoo loads your YAML configuration
+2. Finds `dataset.type: my_custom_dataset` in the YAML
+3. Automatically loads your `MyCustomDataset` class
+4. Creates DataLoader with your dataset
+5. Runs evaluation
+
+## Evaluator Compatibility
 
 The return format of `__getitem__` must match the Evaluator's `extract_inputs` method:
 
@@ -133,7 +173,7 @@ The return format of `__getitem__` must match the Evaluator's `extract_inputs` m
 | `depth_estimation` | `(image, depth_map)` | depth_map: np.ndarray |
 | `face_detection` | `(image, boxes)` | boxes: np.ndarray |
 
-!!! tip "Compatibility with Built-in Evaluators"
+!!! note "Compatibility with Built-in Evaluators"
     To use a built-in Evaluator, your dataset's return format must match exactly what that Evaluator's `extract_inputs` expects.
 
 ## Multi-Input Datasets
