@@ -1,6 +1,14 @@
 # Registry Pattern
 
-DX ModelZoo uses the **Registry pattern** to manage all extensible components. The `type` field in YAML maps to classes registered in a Registry, enabling object creation from strings alone.
+The DX-ModelZoo uses the **Registry pattern** to manage all extensible components. The `type` field in YAML maps to classes registered in a Registry, enabling object creation from strings alone.
+
+!!! note "See Also"
+    - [Overview](overview.md) - Architecture overview and registry system
+    - [Pipeline](pipeline.md) - Pipeline execution using registered components
+    - [Custom Models](../guides/custom-models.md) - Creating custom registered components
+    - [Custom Datasets](../guides/custom-datasets.md) - Custom dataset registration
+    - [Preprocessing](../api/preprocessing.md) - Registered preprocessing operations
+    - [Postprocessing](../api/postprocessing.md) - Registered postprocessing operations
 
 ## Registry Class
 
@@ -196,7 +204,7 @@ def build_preprocessing(self, profile_name, ...):
 | `HandKeypoints` | Hand Landmark |
 | `HandKeypointsDetection` | Hand Detection |
 
-!!! tip "Listing Registered Types"
+!!! note "Listing Registered Types"
     ```python
     from dx_modelzoo.preprocessing import PREPROCESSING_REGISTRY
     print(PREPROCESSING_REGISTRY.list())

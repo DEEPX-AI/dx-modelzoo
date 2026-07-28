@@ -1,8 +1,14 @@
 # Postprocessing
 
-The postprocessing pipeline transforms raw model outputs into structured, task-specific results.
+The postprocessing pipeline in DX-ModelZoo transforms raw model outputs into structured, task-specific results.
 
 **Module:** `dx_modelzoo.postprocessing`
+
+!!! note "See Also"
+    - [YAML Configuration](../guides/yaml-config.md) - Postprocessing configuration in YAML
+    - [Custom Models](../guides/custom-models.md) - Creating custom postprocessing operations
+    - [ModelBuilder](model-builder.md) - How to build postprocessing pipelines
+    - [Preprocessing](preprocessing.md) - Input data preprocessing (compare NPU skip behavior)
 
 ## PostprocessingPipeline
 
@@ -51,8 +57,6 @@ postprocessing:
 
 No parameters.
 
----
-
 ### `topk`
 
 Extracts the top-k predictions from a classification model.
@@ -70,8 +74,6 @@ postprocessing:
 **Input:** `list[np.ndarray]` — Model output (logits/probabilities)
 **Output:** Top-k indices and values
 
----
-
 ### `nms`
 
 Applies Non-Maximum Suppression to remove duplicate detections.
@@ -88,8 +90,6 @@ postprocessing:
 
 **Task:** Object Detection
 
----
-
 ### `segmentation_argmax`
 
 Applies argmax along the channel axis to the output of a segmentation model.
@@ -105,8 +105,6 @@ No parameters.
 **Output:** Class index map of shape `(H, W)`
 
 **Task:** Semantic Segmentation
-
----
 
 ## Postprocessing Guide by Task
 
@@ -157,10 +155,10 @@ postprocessing:
     variant: yolo
 ```
 
-!!! tip "Postprocessing Order"
+!!! note "Postprocessing Order"
     Postprocessing operations are executed in the order they are defined in the YAML configuration. The output of each step becomes the input to the next, so ordering matters.
 
-For detailed usage, refer to the [Adding Custom Models](../guides/custom-models.md) guide.
+For detailed usage, refer to the [Custom Models](../guides/custom-models.md) guide.
 
 ## Model-Specific Postprocessing (`custom_ops.py`)
 

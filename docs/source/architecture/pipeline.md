@@ -1,6 +1,13 @@
 # Pipeline
 
-The DX ModelZoo preprocessing and postprocessing pipelines execute operations sequentially in the order defined in YAML. In NPU mode, certain operations are automatically skipped.
+The DX-ModelZoo preprocessing and postprocessing pipelines execute operations sequentially in the order defined in YAML configuration.
+
+!!! note "See Also"
+    - [Overview](overview.md) - Architecture overview and design principles
+    - [Registry](registry.md) - Registry pattern and component registration
+    - [Preprocessing](../api/preprocessing.md) - Preprocessing operations reference
+    - [Postprocessing](../api/postprocessing.md) - Postprocessing operations reference
+    - [YAML Configuration](../guides/yaml-config.md) - Pipeline configuration in YAML
 
 ## Pipeline Overview
 
@@ -129,7 +136,7 @@ NPU_SKIP_DEFAULT = {
 
     Operations included in `NPU_SKIP_DEFAULT` are skipped.
 
-!!! info "Why Operations Are Skipped"
+!!! note "Why Operations Are Skipped"
     The NPU accepts `uint8` input and handles `div` (normalization), `normalize`, `transpose` (layout conversion), and `expanddim` (batch dimension) at the hardware level. Running these operations redundantly on the CPU would produce incorrect results.
 
 ### Skip Flow
@@ -245,7 +252,7 @@ preprocessing:
     x: 255
 ```
 
-!!! tip "Pipeline Debugging"
+!!! note "Pipeline Debugging"
     Print the shape before and after each step's `__call__` to trace the data transformation process:
     ```python
     for step in pipeline.steps:
