@@ -1,17 +1,19 @@
 # Datasets
 
-Configuration reference for all evaluation datasets supported by DX-ModelZoo.
-Default dataset root is `$DATA_ROOT` (set via environment variable or YAML `dataset.eval_path`).
+Configuration reference and download instructions for all evaluation datasets supported by DX-ModelZoo.
 
-!!! tip "Quick Setup"
+!!! note "See Also"
+    - [Quick Start Guide](../getting-started/quickstart.md) - Basic evaluation commands
+    - [Model Evaluation](evaluation.md) - Detailed evaluation options
+    - [YAML Configuration](yaml-config.md) - Dataset configuration in YAML
+
+!!! note "Quick Setup"
     Create symlinks to your actual dataset locations:
     ```bash
     export DATA_ROOT=/your/datasets/folder
     # or symlink
     ln -s /your/datasets/folder ./download/datasets
     ```
-
----
 
 ## AFLW2000-3D
 
@@ -27,10 +29,9 @@ AFLW20003D/
 ```
 
 ```bash
-dxmz eval <ModelName> --profile onnx --data-dir $DATA_ROOT/AFLW20003D
+# Replace <ModelName> with your model identifier (e.g., resnet50_224x224)
+dxmz eval <ModelName> --profile onnx --data-root $DATA_ROOT/AFLW20003D
 ```
-
----
 
 ## BSD100
 
@@ -58,10 +59,8 @@ BSD100/
 ```
 
 ```bash
-dxmz eval <ModelName> --profile onnx --data-dir $DATA_ROOT/BSD100
+dxmz eval <ModelName> --profile onnx --data-root $DATA_ROOT/BSD100
 ```
-
----
 
 ## BSD68
 
@@ -75,10 +74,8 @@ BSD68/
 ```
 
 ```bash
-dxmz eval <ModelName> --profile onnx --data-dir $DATA_ROOT/BSD68
+dxmz eval <ModelName> --profile onnx --data-root $DATA_ROOT/BSD68
 ```
-
----
 
 ## CBSD68
 
@@ -92,10 +89,8 @@ CBSD68/
 ```
 
 ```bash
-dxmz eval <ModelName> --profile onnx --data-dir $DATA_ROOT/CBSD68
+dxmz eval <ModelName> --profile onnx --data-root $DATA_ROOT/CBSD68
 ```
-
----
 
 ## COCO 2017
 
@@ -126,10 +121,8 @@ COCO/
 ```
 
 ```bash
-dxmz eval <ModelName> --profile onnx --data-dir $DATA_ROOT/COCO/official
+dxmz eval <ModelName> --profile onnx --data-root $DATA_ROOT/COCO/official
 ```
-
----
 
 ## CelebA
 
@@ -145,10 +138,8 @@ CelebA/
 ```
 
 ```bash
-dxmz eval <ModelName> --profile onnx --data-dir $DATA_ROOT/CelebA
+dxmz eval <ModelName> --profile onnx --data-root $DATA_ROOT/CelebA
 ```
-
----
 
 ## DOTA v1
 
@@ -177,10 +168,8 @@ DOTAv1/
 ```
 
 ```bash
-dxmz eval <ModelName> --profile onnx --data-dir $DATA_ROOT/DOTAv1
+dxmz eval <ModelName> --profile onnx --data-root $DATA_ROOT/DOTAv1
 ```
-
----
 
 ## ImageNet ILSVRC2012
 
@@ -208,10 +197,8 @@ ILSVRC2012/
 ```
 
 ```bash
-dxmz eval <ModelName> --profile onnx --data-dir $DATA_ROOT/ILSVRC2012/val
+dxmz eval <ModelName> --profile onnx --data-root $DATA_ROOT/ILSVRC2012/val
 ```
-
----
 
 ## LFW (Labeled Faces in the Wild)
 
@@ -239,10 +226,8 @@ LFW/
 ```
 
 ```bash
-dxmz eval <ModelName> --profile onnx --data-dir $DATA_ROOT/LFW
+dxmz eval <ModelName> --profile onnx --data-root $DATA_ROOT/LFW
 ```
-
----
 
 ## LOL (Low-Light)
 
@@ -265,10 +250,8 @@ LOL/
 ```
 
 ```bash
-dxmz eval <ModelName> --profile onnx --data-dir $DATA_ROOT/LOL
+dxmz eval <ModelName> --profile onnx --data-root $DATA_ROOT/LOL
 ```
-
----
 
 ## Oxford-IIIT Pet
 
@@ -289,10 +272,8 @@ Oxford-IIIT_Pet/
 ```
 
 ```bash
-dxmz eval <ModelName> --profile onnx --data-dir $DATA_ROOT/Oxford-IIIT_Pet
+dxmz eval <ModelName> --profile onnx --data-root $DATA_ROOT/Oxford-IIIT_Pet
 ```
-
----
 
 ## PETA (PEdesTrian Attribute)
 
@@ -308,10 +289,8 @@ PETA/
 ```
 
 ```bash
-dxmz eval <ModelName> --profile onnx --data-dir $DATA_ROOT/PETA
+dxmz eval <ModelName> --profile onnx --data-root $DATA_ROOT/PETA
 ```
-
----
 
 ## Pascal VOC 2007/2012
 
@@ -344,10 +323,8 @@ PascalVOC/
 ```
 
 ```bash
-dxmz eval <ModelName> --profile onnx --data-dir $DATA_ROOT/PascalVOC/VOCdevkit/VOC2012
+dxmz eval <ModelName> --profile onnx --data-root $DATA_ROOT/PascalVOC/VOCdevkit/VOC2012
 ```
-
----
 
 ## Cityscapes
 
@@ -371,10 +348,8 @@ cityscapes/
 ```
 
 ```bash
-dxmz eval <ModelName> --profile onnx --data-dir $DATA_ROOT/cityscapes
+dxmz eval <ModelName> --profile onnx --data-root $DATA_ROOT/cityscapes
 ```
-
----
 
 ## Hand Keypoints
 
@@ -397,10 +372,8 @@ hand-keypoints/
 ```
 
 ```bash
-dxmz eval <ModelName> --profile onnx --data-dir $DATA_ROOT/hand-keypoints
+dxmz eval <ModelName> --profile onnx --data-root $DATA_ROOT/hand-keypoints
 ```
-
----
 
 ## NYU Depth v2
 
@@ -416,10 +389,8 @@ nyudepthv2/
 ```
 
 ```bash
-dxmz eval <ModelName> --profile onnx --data-dir $DATA_ROOT/nyudepthv2
+dxmz eval <ModelName> --profile onnx --data-root $DATA_ROOT/nyudepthv2
 ```
-
----
 
 ## WiderFace
 
@@ -453,17 +424,29 @@ widerface/
 ```
 
 ```bash
-dxmz eval <ModelName> --profile onnx --data-dir $DATA_ROOT/widerface
+dxmz eval <ModelName> --profile onnx --data-root $DATA_ROOT/widerface
 ```
-
----
 
 ## Market-1501
 
 - **Download**: [Market-1501](https://zheng-lab.cecs.anu.edu.au/Project/project_reid.html)
 - **License**: Research use only
-```bash
-dxmz eval <ModelName> --profile onnx
+- **Eval path**: `${DATA_ROOT}/Market-1501`
+
+```text
+Market-1501/
+├── bounding_box_test/
+│   └── .jpg ×3368
+├── bounding_box_train/
+│   └── .jpg ×12936
+├── gt_bbox/
+│   └── .jpg ×25259
+├── gt_query/
+│   └── .jpg ×750
+└── query/
+    └── .jpg ×3368
 ```
 
----
+```bash
+dxmz eval <ModelName> --profile onnx --data-root $DATA_ROOT/Market-1501
+```

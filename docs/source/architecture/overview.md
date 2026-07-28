@@ -1,6 +1,12 @@
 # Architecture Overview
 
-The DX ModelZoo architecture is designed around a **YAML-centric configuration** approach. All components are connected through the Registry pattern, and `ModelBuilder` parses YAML files to construct the runtime objects needed for execution.
+The DX-ModelZoo architecture is designed around a YAML-centric configuration approach, where `ModelBuilder` and the Registry pattern connect all components for runtime execution.
+
+!!! note "See Also"
+    - [Pipeline](pipeline.md) - Detailed pipeline execution flow
+    - [Registry](registry.md) - Registry pattern implementation details
+    - [ModelBuilder](../api/model-builder.md) - ModelBuilder API reference
+    - [YAML Configuration](../guides/yaml-config.md) - YAML configuration guide
 
 ## Architecture Diagram
 
@@ -143,7 +149,7 @@ src/dx_modelzoo/
 │   ├── dx_session.py    # DxRuntime (NPU) backend
 │   ├── runtime_config.py# RuntimeConfig dataclasses
 │   └── factory.py       # Session creation + auto-download
-├── models/              # 340+ YAML model configs
+├── models/              # 300+ YAML model configs
 └── tui/                 # Interactive model browser + wizard
 ```
 
@@ -168,5 +174,5 @@ graph TB
 | Postprocessing | PostprocessingPipeline + custom_ops | Task-specific standardized format |
 | Evaluation | Evaluator | metrics dict |
 
-!!! info "NPU Mode"
+!!! note "NPU Mode"
     When using a `target: dxnn` profile, arithmetic preprocessing operations (`div`, `normalize`, `transpose`, etc.) are automatically skipped. This is because the NPU handles these operations at the hardware level.

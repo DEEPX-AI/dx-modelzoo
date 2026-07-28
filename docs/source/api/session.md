@@ -1,8 +1,13 @@
 # Session
 
-Session is a runtime interface for performing model inference. It supports two backends: ONNX Runtime and DxRuntime (NPU).
+Session in DX-ModelZoo is a runtime interface for performing model inference. It supports two backends: ONNX Runtime and DxRuntime (NPU).
 
 **Module:** `dx_modelzoo.session`
+
+!!! note "See Also"
+    - [YAML Configuration](../guides/yaml-config.md) - Profile and runtime configuration
+    - [ModelBuilder](model-builder.md) - How to build sessions from profiles
+    - [Evaluator](evaluator.md) - Session usage in evaluation pipeline
 
 ## SessionBase
 
@@ -122,7 +127,7 @@ outputs = session.wait(job_id)
 session.close()
 ```
 
-!!! info "Device Selection"
+!!! note "Device Selection"
     ```python
     # Specify via constructor
     session = DxRuntimeSession("model.dxnn", device=0)

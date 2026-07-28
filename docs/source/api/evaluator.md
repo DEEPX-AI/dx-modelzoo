@@ -1,8 +1,14 @@
 # Evaluator
 
-The Evaluator is an abstract class that encapsulates model evaluation logic. It performs inference through a session and computes metrics.
+The Evaluator in DX-ModelZoo is an abstract class that encapsulates model evaluation logic. It performs inference through a session and computes metrics.
 
 **Module:** `dx_modelzoo.evaluator`
+
+!!! note "See Also"
+    - [Model Evaluation](../guides/evaluation.md) - Usage examples and evaluation workflow
+    - [DataLoader](dataloader.md) - Data loading and batching
+    - [Postprocessing](postprocessing.md) - Output transformation pipeline
+    - [Session](session.md) - Inference session interface
 
 ## EvaluatorBase
 
@@ -88,8 +94,6 @@ def init_metrics(self):
     return {"correct_top1": 0, "correct_top5": 0, "total": 0}
 ```
 
----
-
 ### `extract_inputs`
 
 ```python
@@ -105,8 +109,6 @@ def extract_inputs(self, batch_data):
     images, labels = batch_data
     return images
 ```
-
----
 
 ### `process_batch_result`
 
@@ -138,8 +140,6 @@ def process_batch_result(self, batch_data, output, metrics_state):
     return metrics_state
 ```
 
----
-
 ### `compute_final_metrics`
 
 ```python
@@ -160,8 +160,6 @@ def compute_final_metrics(self, metrics_state):
         ]
     }
 ```
-
----
 
 ### `format_progress_desc`
 
@@ -314,5 +312,5 @@ evaluator:
   type: my_evaluator
 ```
 
-!!! tip "Keep Evaluators Pure"
+!!! note "Keep Evaluators Pure"
     If your evaluator needs to decode model-specific output formats, put that logic in a `custom_ops.py` file in the model directory instead. The evaluator should only consume the decoded result and compute metrics.

@@ -3,13 +3,15 @@
 ## DX-MODELZOO v0.10.1 / 2026-07-27
 
 ### 1. Changed
-- None
+- Optimized the documentation layout and print formatting using dedicated styles and scripts.
 
 ### 2. Fixed
-- Fixed a typo in README.md where it was incorrectly written as `ResNet18` instead of `resnet18_224x224`.
+- Corrected typos in the README and fixed outdated information in the prerequisites section.
 
 ### 3. Added
 - None
+
+---
 
 ## DX-MODELZOO v0.10.0 / 2026-06-16
 
@@ -57,6 +59,8 @@
 - **Super Resolution**: Real-ESRGAN (x4/x8), ESPCN-x2
 - **Low-light Enhancement**: Zero-DCE++
 
+---
+
 ## DX-MODELZOO v0.9.0 / 2026-03-30
 
 ### 1. Changed
@@ -99,11 +103,13 @@
 - **Pose**:
   - Yolo26: Yolo26N_Pose, Yolo26S_Pose, Yolo26M_Pose, Yolo26L_Pose, Yolo26X_Pose
 
+---
+
 ## DX-MODELZOO v0.7.0 / 2026-01-20
 
 ### 1. Changed
 - **Environment Variable Update:** Added `DXNN_DEVICES` for device configuration
-- **Evaluator Improvements:** 
+- **Evaluator Improvements:**
   - Refactored log format for better readability
   - Applied async run to all task evaluators for improved performance
   - Enhanced progress bar to include dataset name
@@ -146,7 +152,7 @@ This release includes a major expansion of **dx-modelzoo v0.7.0**, adding **85+ 
 - **ShuffleNet Series:** ShuffleNetV1_x1_0, ShuffleNetV2_x0_5, ShuffleNetV2_x1_0, ShuffleNetV2_x1_5, ShuffleNetV2_x2_0
 - **VGG Series:** VGG16, VGG16BN, VGG19
 - **MnasNet Series:** MnasNet0_5, MnasNet0_75, MnasNet1_0, MnasNet1_3
-- **Others:** 
+- **Others:**
   - GhostNet
   - SqueezeNet1_3
 

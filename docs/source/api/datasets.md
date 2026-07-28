@@ -1,8 +1,13 @@
 # Datasets
 
-API reference for all dataset classes in DX-ModelZoo.
+Complete API reference for all dataset classes in DX-ModelZoo, including constructors, return formats, and resources for each supported dataset.
 
 **Module:** `dx_modelzoo.dataset`
+
+!!! note "See Also"
+    - [Datasets Guide](../guides/datasets.md) - Usage examples and supported datasets
+    - [Custom Datasets](../guides/custom-datasets.md) - Creating custom dataset classes
+    - [DataLoader](dataloader.md) - DatasetBase interface and batch loading
 
 ## Overview
 
@@ -55,11 +60,9 @@ See [DataLoader](dataloader.md) for `DatasetBase` interface details.
 | `SyntheticMultiInput` | `SyntheticMultiInput` | Multi-input Synthetic Data | `dx_modelzoo.dataset.synthetic` |
 | `WiderFace` | `WiderFace` | Face Detection | `dx_modelzoo.dataset.widerface` |
 
----
+## Classification
 
-# Classification
-
-## ImageNet ILSVRC2012
+### ImageNet ILSVRC2012
 
 **Module:** `dx_modelzoo.dataset.imagenet`
 
@@ -90,13 +93,9 @@ class ILSVRC2012(DatasetBase):
 - **Download**: [ImageNet ILSVRC2012](https://image-net.org/download-images.php)
 - **License**: Academic/Research use only
 
----
+## Object Detection
 
----
-
-# Object Detection
-
-## DOTA v1
+### DOTA v1
 
 **Module:** `dx_modelzoo.dataset.dotav1`
 
@@ -129,9 +128,7 @@ class DOTAv1(DatasetBase):
 - **Download**: [DOTA v1](https://captain-whu.github.io/DOTA/dataset.html)
 - **License**: Research use only
 
----
-
-## PascalVOC2007
+### PascalVOC2007
 
 **Module:** `dx_modelzoo.dataset.voc`
 
@@ -167,9 +164,7 @@ class PascalVOC2007(DatasetBase):
 - **Download**: [PascalVOC2007](http://host.robots.ox.ac.uk/pascal/VOC/voc2007/)
 - **License**: "VOC2007" challenge data
 
----
-
-## BDD100K
+### BDD100K
 
 **Module:** `dx_modelzoo.dataset.bdd100k`
 
@@ -180,9 +175,7 @@ class PascalVOC2007(DatasetBase):
 **Notes:** Provides aligned validation samples for YOLOPv2-style evaluation:
 vehicle boxes plus drivable-area and lane masks.
 
----
-
-## COCOMultiInput
+### COCOMultiInput
 
 **Module:** `dx_modelzoo.dataset.coco_multiinput`
 
@@ -193,13 +186,9 @@ vehicle boxes plus drivable-area and lane masks.
 **Notes:** COCO val2017 wrapper that returns a dict of named tensors for models
 with multiple inputs or control scalars.
 
----
+## Segmentation
 
----
-
-# Segmentation
-
-## COCO 2017
+### COCO 2017
 
 **Module:** `dx_modelzoo.dataset.coco`
 
@@ -235,9 +224,7 @@ class COCO(DatasetBase):
 - **Download**: [COCO 2017](https://cocodataset.org/#download)
 - **License**: CC BY 4.0 (free for research and commercial use)
 
----
-
-## Cityscapes
+### Cityscapes
 
 **Module:** `dx_modelzoo.dataset.cityscapes`
 
@@ -272,9 +259,7 @@ class Cityscapes(DatasetBase):
 - **Download**: [Cityscapes](https://www.cityscapes-dataset.com/register/)
 - **License**: Academic/Research use only
 
----
-
-## ADE20K
+### ADE20K
 
 **Module:** `dx_modelzoo.dataset.ade20k`
 
@@ -285,9 +270,7 @@ class Cityscapes(DatasetBase):
 **Notes:** SceneParse150 / ADEChallengeData2016 dataset with `num_class = 150`.
 Validation labels are remapped from dataset IDs to model indices.
 
----
-
-## Oxford-IIIT Pet
+### Oxford-IIIT Pet
 
 **Module:** `dx_modelzoo.dataset.oxford_iiit_pet`
 
@@ -322,9 +305,7 @@ class OxfordIIITPet(DatasetBase):
 - **Download**: [Oxford-IIIT Pet](https://www.robots.ox.ac.uk/~vgg/data/pets/)
 - **License**: CC BY-SA 4.0 (free for research and commercial use)
 
----
-
-## PascalVOC2012
+### PascalVOC2012
 
 **Module:** `dx_modelzoo.dataset.voc`
 
@@ -363,13 +344,9 @@ class PascalVOC2012(DatasetBase):
 - **Download**: [PascalVOC2012](http://host.robots.ox.ac.uk/pascal/VOC/voc2007/)
 - **License**: "VOC2007" challenge data
 
----
+## Pose / Landmark
 
----
-
-# Pose / Landmark
-
-## AFLW2000-3D
+### AFLW2000-3D
 
 **Module:** `dx_modelzoo.dataset.aflw20003d`
 
@@ -411,9 +388,7 @@ class AFLW20003D(DatasetBase):
 - **Download**: [AFLW2000-3D](http://www.cbsr.ia.ac.cn/users/xiangyuzhu/projects/3DDFA/main.htm)
 - **License**: Research use only
 
----
-
-## COCOPose
+### COCOPose
 
 **Module:** `dx_modelzoo.dataset.coco`
 
@@ -449,9 +424,7 @@ class COCOPose(DatasetBase):
 - **Download**: [COCOPose](https://cocodataset.org/#download)
 - **License**: CC BY 4.0 (free for research and commercial use)
 
----
-
-## HOPE
+### HOPE
 
 **Module:** `dx_modelzoo.dataset.hope`
 
@@ -462,9 +435,7 @@ class COCOPose(DatasetBase):
 **Notes:** HOPE-Image validation dataset for single-object 6-DoF pose
 evaluation. Supports DOPE-style projected cuboid keypoints and object geometry.
 
----
-
-## HPatches
+### HPatches
 
 **Module:** `dx_modelzoo.dataset.hpatches`
 
@@ -475,9 +446,7 @@ evaluation. Supports DOPE-style projected cuboid keypoints and object geometry.
 **Notes:** Sequence dataset with reference/target image pairs and homographies for
 repeatability and matching evaluation.
 
----
-
-## Hand Keypoints
+### Hand Keypoints
 
 **Module:** `dx_modelzoo.dataset.hand_keypoints`
 
@@ -512,13 +481,9 @@ class HandKeypoints(DatasetBase):
 
 - **License**: Custom dataset
 
----
+## Face
 
----
-
-# Face
-
-## CelebA
+### CelebA
 
 **Module:** `dx_modelzoo.dataset.celeba`
 
@@ -554,9 +519,7 @@ class CelebA(DatasetBase):
 - **Download**: [CelebA](https://mmlab.ie.cuhk.edu.hk/projects/CelebA.html)
 - **License**: Non-commercial research only
 
----
-
-## LFW (Labeled Faces in the Wild)
+### LFW (Labeled Faces in the Wild)
 
 **Module:** `dx_modelzoo.dataset.lfw`
 
@@ -588,9 +551,7 @@ class LFW(DatasetBase):
 - **Download**: [LFW (Labeled Faces in the Wild)](http://vis-www.cs.umass.edu/lfw/)
 - **License**: Research use only
 
----
-
-## WiderFace
+### WiderFace
 
 **Module:** `dx_modelzoo.dataset.widerface`
 
@@ -626,13 +587,9 @@ class WiderFace(DatasetBase):
 - **Download**: [WiderFace](http://shuoyang1213.me/WIDERFACE/)
 - **License**: Non-commercial research only
 
----
+## Person
 
----
-
-# Person
-
-## PETA (PEdesTrian Attribute)
+### PETA (PEdesTrian Attribute)
 
 **Module:** `dx_modelzoo.dataset.peta`
 
@@ -668,13 +625,9 @@ class PETA(DatasetBase):
 - **Download**: [PETA (PEdesTrian Attribute)](https://mmlab.ie.cuhk.edu.hk/projects/PETA.html)
 - **License**: Research use only
 
----
+## Image Restoration
 
----
-
-# Image Restoration
-
-## BSD100
+### BSD100
 
 **Module:** `dx_modelzoo.dataset.bsd`
 
@@ -705,9 +658,7 @@ class BSD100(DatasetBase):
 - **Download**: [BSD100](https://www2.eecs.berkeley.edu/Research/Projects/CS/vision/bsds/)
 - **License**: BSD license (free for research and commercial use)
 
----
-
-## BSD68
+### BSD68
 
 **Module:** `dx_modelzoo.dataset.bsd`
 
@@ -738,9 +689,7 @@ class BSD68(DatasetBase):
 - **Download**: [BSD68](https://www2.eecs.berkeley.edu/Research/Projects/CS/vision/bsds/)
 - **License**: BSD license (free for research and commercial use)
 
----
-
-## CBSD68
+### CBSD68
 
 **Module:** `dx_modelzoo.dataset.bsd`
 
@@ -771,9 +720,7 @@ class CBSD68(DatasetBase):
 - **Download**: [CBSD68](https://www2.eecs.berkeley.edu/Research/Projects/CS/vision/bsds/)
 - **License**: BSD license (free for research and commercial use)
 
----
-
-## LOL (Low-Light)
+### LOL (Low-Light)
 
 **Module:** `dx_modelzoo.dataset.lol`
 
@@ -804,13 +751,9 @@ class LOL(DatasetBase):
 - **Download**: [LOL (Low-Light)](https://daooshee.github.io/BMVC2018website/)
 - **License**: Research use only
 
----
+## Depth
 
----
-
-# Depth
-
-## NYU Depth v2
+### NYU Depth v2
 
 **Module:** `dx_modelzoo.dataset.nyu`
 
@@ -845,9 +788,7 @@ class NYUDepthv2(DatasetBase):
 - **Download**: [NYU Depth v2](https://cs.nyu.edu/~silberman/datasets/nyu_depth_v2.html)
 - **License**: Research use only
 
----
-
-## Objectron
+### Objectron
 
 **Module:** `dx_modelzoo.dataset.objectron`
 
@@ -858,13 +799,9 @@ class NYUDepthv2(DatasetBase):
 **Notes:** Reads native TFRecord test shards directly and returns 9-point 2D
 keypoints for cuboid-based evaluation.
 
----
+## Other
 
----
-
-# Other
-
-## Market-1501
+### Market-1501
 
 **Module:** `dx_modelzoo.dataset.market1501`
 
@@ -895,9 +832,7 @@ class Market1501(DatasetBase):
 - **Download**: [Market-1501](https://zheng-lab.cecs.anu.edu.au/Project/project_reid.html)
 - **License**: Research use only
 
----
-
-## SyntheticMultiInput
+### SyntheticMultiInput
 
 **Module:** `dx_modelzoo.dataset.synthetic`
 
@@ -907,5 +842,3 @@ class Market1501(DatasetBase):
 
 **Notes:** Generates reproducible synthetic tensors from the YAML `inputs` spec.
 Useful for throughput checks and models without a readily available real dataset.
-
----
