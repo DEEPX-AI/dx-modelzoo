@@ -1,5 +1,16 @@
 # Model Evaluation
 
+This guide provides a comprehensive overview of model evaluation in DX-ModelZoo, covering evaluation workflows, options, and advanced usage patterns.
+
+!!! note "Prerequisites"
+    Before evaluating models, make sure you have [installed DX-ModelZoo](../getting-started/installation.md) and reviewed the [Quick Start guide](../getting-started/quickstart.md).
+
+!!! note "See Also"
+    - [Quick Start](../getting-started/quickstart.md) - Basic evaluation commands
+    - [YAML Configuration](yaml-config.md) - Configure evaluation in YAML
+    - [Datasets](datasets.md) - Supported datasets
+    - [CLI Reference](../api/cli.md) - CLI command reference
+
 ## Basic Usage
 
 ```bash
@@ -37,17 +48,19 @@ sequenceDiagram
 
 ```bash
 dxmz eval resnet50_224x224 --profile onnx \
-  --data-root /data/datasets \       # Override DATA_ROOT
-  --model-root /data/models \        # Override MODEL_ROOT
+  --data-root /data/datasets \       # Override DATA_ROOT (required if env var is not set)
+  --model-root /data/models \        # Override MODEL_ROOT (required if env var is not set)
   --model-path /path/to/model.onnx \ # Specify model file directly
   --seed 42 \                        # Reproducible evaluation
-  --save                             # Save JSON to result/
+  --save                             # Save JSON to result/<model>_<profile>_<timestamp>.json
 ```
 
 Multiple models can be evaluated in one command:
 
 ```bash
+# Evaluate multiple models sequentially
 dxmz eval resnet50_224x224 MobileNetV2 --profile onnx --seed 42
+# Results are saved separately for each model when --save is used
 ```
 
 ## Sync vs Async Evaluation
@@ -107,10 +120,16 @@ profiles:
   ],
   "fps": 624.7,
   "elapsed_time": 82,
-  "start_time": "2026-02-26 22:00:00",
+  "start_time": "2026-07-23 14:30:00",
   "profile": "onnx"
 }
 ```
+
+!!! note "FPS Calculation"
+    FPS (Frames Per Second) is calculated as: `total_images / inference_time`
+
+    - Excludes data loading time
+    - Includes preprocessing and postprocessing
 
 ## Time Breakdown
 

@@ -1,0 +1,108 @@
+site_name: DXNN DX-ModelZoo User Manual
+use_directory_urls: false
+docs_dir: source # markdown 원문 폴더
+site_dir: docs # html로 변환된 폴더
+theme:
+  name : material
+  language: en
+  font:
+    text: Noto Sans Display
+    code: Roboto Mono
+  logo: img/deepx.png
+  palette:
+    # Palette toggle for light mode
+    - scheme: default
+      primary: black
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+     - toc.integrate
+     - content.code.annotate
+     - navigation.tabs
+     - navigation.tabs.sticky
+     - content.tabs.link
+     - content.code.copy
+site_url: 'https://developer.deepx.ai/'
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: getting-started/installation.md
+      - Quick Start: getting-started/quickstart.md
+  - Guides:
+      - YAML Configuration: guides/yaml-config.md
+      - Model Evaluation: guides/evaluation.md
+      - Datasets: guides/datasets.md
+      - Custom Datasets: guides/custom-datasets.md
+      - Custom Models: guides/custom-models.md
+  - API Reference:
+      - CLI: api/cli.md
+      - ModelBuilder: api/model-builder.md
+      - Session: api/session.md
+      - Preprocessing: api/preprocessing.md
+      - Postprocessing: api/postprocessing.md
+      - Datasets: api/datasets.md
+      - DataLoader: api/dataloader.md
+      - Evaluator: api/evaluator.md
+  - Architecture:
+      - Overview: architecture/overview.md
+      - Registry: architecture/registry.md
+      - Pipeline: architecture/pipeline.md
+
+plugins:
+  - search
+  - include-markdown
+  - to-pdf:
+      author: DEEPX.ai
+      copyright: ⓒ Copyright 2026 DEEPX All Rights Reserved.
+      cover_title: DXNN DX-ModelZoo User Manual
+      cover_subtitle: 2026/06/16 (v0.10.1)
+      cover_logo : img/deepx.png
+      custom_template_path: source/stylesheets
+      output_path: ../DEEPX_DX-ModelZoo_UM_v0.10.1_JUL_2026.pdf
+extra:
+  homepage: https://developer.deepx.ai
+#  version:
+#    provider: mike
+#    default: stable
+  generator: false
+  social:
+#     - icon: fontawesome/brands/github
+#       link: https://github.com/deepx-ai
+     - icon: fontawesome/brands/linkedin
+       link: https://www.linkedin.com/company/deepx-corporation/
+extra_css:
+  - stylesheets/extra.css
+markdown_extensions:
+  - admonition
+  - def_list
+  - toc:
+        permalink: "true"
+        baselevel: 1
+        toc_depth: 3
+  - pymdownx.critic
+  - pymdownx.caret
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.tilde
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - attr_list
+  - md_in_html
+# extra_javascript:
+#  - https://polyfill.io/v3/polyfill.min.js?features=es6
+copyright: ⓒ Copyright 2026 <a href="http://deepx.ai">DEEPX</a>. All Rights Reserved.

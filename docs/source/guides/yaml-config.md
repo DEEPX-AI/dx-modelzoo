@@ -1,6 +1,11 @@
 # YAML Model Configuration
 
-Every model in DX ModelZoo is defined by a single YAML file. No Python code is needed — preprocessing, postprocessing, evaluation, and compilation settings are all included.
+Every model in DX-ModelZoo is defined by a single YAML file. No Python code is needed — preprocessing, postprocessing, evaluation, and compilation settings are all included.
+
+!!! note "See Also"
+    - [Model Evaluation](evaluation.md) - Use YAML in evaluation
+    - [Custom Models](custom-models.md) - Create custom model YAML
+    - [ModelBuilder](../api/model-builder.md) - ModelBuilder API reference
 
 ## Full Structure
 
@@ -76,6 +81,21 @@ Supported tasks:
 | `super_resolution` | Super resolution |
 | `oriented_object_detection` | Oriented bounding box detection (OBB) |
 
+### `reference` / `description`
+
+Optional metadata fields for documentation:
+
+```yaml
+reference: https://arxiv.org/abs/1512.03385  # Paper or GitHub URL
+description: |
+  ResNet-50 trained on ImageNet-1K.
+  Top-1 accuracy: 76.13%
+  Top-5 accuracy: 93.15%
+```
+
+- **reference**: URL to the paper, GitHub repo, or model card
+- **description**: Multiline string describing the model, training details, and performance
+
 ### `inputs`
 
 Defines the model's input tensors. Multi-input models are supported.
@@ -140,7 +160,7 @@ Built-in preprocessing types:
 | `expanddim` | `axis` | Add dimension (batch) |
 | `bgr_to_y_channel` | — | BGR → Y channel conversion |
 
-!!! tip "Automatic Skip in NPU Mode"
+!!! note "Automatic Skip in NPU Mode"
     When evaluating with a `target: dxnn` profile, arithmetic operations (`div`, `normalize`, `transpose`, `expanddim`) are automatically skipped.
     The NPU handles these operations internally.
 
@@ -195,6 +215,39 @@ Built-in datasets:
 | `DOTAv1` | Oriented detection | `DOTA/val` |
 | `LFW` | Face verification | `lfw` |
 
+### `evaluator`
+
+Specifies the evaluator type for computing metrics.
+
+```yaml
+evaluator:
+  type: image_classification
+```
+
+The evaluator type typically matches the task type. Common evaluators:
+
+| Evaluator | Metrics |
+|-----------|----------|
+| `image_classification` | Top-1, Top-5 Accuracy |
+| `object_detection` | mAP@0.5, mAP@0.5:0.95 |
+| `semantic_segmentation` | mIoU, Pixel Accuracy |
+| `instance_segmentation` | bbox mAP, segm mAP |
+| `face_detection` | mAP, Recall |
+| `pose_estimation` | AP, AR |
+
+### `artifacts`
+
+Defines where to find model files (ONNX, weights, etc.).
+
+```yaml
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+```
+
+- **path**: Directory containing model files
+- Uses `${MODEL_ROOT}` environment variable + `${MODEL_NAME}` (auto-set to the `name` field)
+- DX-ModelZoo automatically downloads models if not found locally
+
 ### `profiles`
 
 Define multiple runtime profiles. Each profile specifies its own target, compilation options, and runtime options.
@@ -247,11 +300,8 @@ profiles:
       async: true
 ```
 
-> **Note:** `pro` enables dx_com's automatic Q-PRO pipeline
-> (`use_q_pro=True`), which applies SmoothQuant (P0), QSNR-guided
-> calibration refinement (P1), and per-layer AdaRound/FlexRound
-> selection (P3/P4) automatically. It is mutually exclusive with the
-> manual `p0`–`p5` enhanced-scheme keys and with `lite`/`master`.
+!!! note "NOTE"
+    `pro` enables dx_com's automatic Q-PRO pipeline (`use_q_pro=True`), which applies SmoothQuant (P0), QSNR-guided  calibration refinement (P1), and per-layer AdaRound/FlexRound selection (P3/P4) automatically. It is mutually exclusive with the manual `p0`–`p5` enhanced-scheme keys and with `lite`/`master`.
 
 #### Profile Naming Convention
 
@@ -316,12 +366,19 @@ dataset:
 
 artifacts:
   path: ${MODEL_ROOT}/${MODEL_NAME}       # MODEL_NAME equals the name field
+  download_url: ${DXMZ_MODEL_URL}/${MODEL_NAME}  # Auto-download URL
 ```
 
 Special variables:
 
-| Variable | Description |
-|----------|-------------|
-| `${DATA_ROOT}` | Dataset root directory |
-| `${MODEL_ROOT}` | Model artifact root directory |
-| `${MODEL_NAME}` | Value of the YAML `name` field |
+| Variable | Description | Example |
+|----------|-------------|----------|
+| `${DATA_ROOT}` | Dataset root directory | `download/datasets` |
+| `${MODEL_ROOT}` | Model artifact root directory | `download/models` |
+| `${MODEL_NAME}` | Value of the YAML `name` field | `resnet50_224x224` |
+| `${DXMZ_MODEL_URL}` | Auto-download server URL | `https://sdk.deepx.ai/modelzoo` |
+
+These can be set via:
+- Environment variables: `export DATA_ROOT=/data/datasets`
+- `.env` file in the project root
+- Command-line options: `dxmz eval ... --data-root /data/datasets`

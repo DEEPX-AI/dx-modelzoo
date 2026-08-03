@@ -1,8 +1,13 @@
 # ModelBuilder
 
-`ModelBuilder` is the core class that parses YAML configuration files and creates all components required at runtime.
+`ModelBuilder` is the core class in DX-ModelZoo that parses YAML configuration files and creates all components required at runtime.
 
 **Module:** `dx_modelzoo.loader.model_builder`
+
+!!! note "See Also"
+    - [YAML Configuration](../guides/yaml-config.md) - Complete YAML reference
+    - [Model Evaluation](../guides/evaluation.md) - How to use ModelBuilder for evaluation
+    - [Custom Models](../guides/custom-models.md) - Creating custom model configurations
 
 ## Overview
 
@@ -67,8 +72,6 @@ profile = builder.get_profile("onnx")
 # {"target": "onnx", "runtime": {"device": "gpu", "batch_size": 1}}
 ```
 
----
-
 ### `build_preprocessing`
 
 ```python
@@ -95,10 +98,8 @@ preprocessing_npu = builder.build_preprocessing("q-lite")
 # PreprocessingPipeline(steps=[Resize(...), CenterCrop(...)], npu_mode=True)
 ```
 
-!!! info "Automatic NPU Mode Detection"
+!!! note "Automatic NPU Mode Detection"
     When the profile's `target` is `dxnn`, `npu_mode=True` is set automatically.
-
----
 
 ### `build_postprocessing`
 
@@ -112,8 +113,6 @@ Creates a pipeline from the `postprocessing` section of the YAML. Returns the sa
 postprocessing = builder.build_postprocessing()
 # PostprocessingPipeline(steps=[TopK(k=[1, 5])])
 ```
-
----
 
 ### `build_session`
 
@@ -138,10 +137,8 @@ session = builder.build_session("q-lite")
 # DxRuntimeSession("/path/to/resnet50_224x224.dxnn")
 ```
 
-!!! tip "Automatic Download"
+!!! note "Automatic Download"
     If the `DXMZ_MODEL_URL` environment variable is set, the model file is automatically downloaded when it is not available locally.
-
----
 
 ### `build_dataset`
 
@@ -163,8 +160,6 @@ dataset = builder.build_dataset()
 dataset = builder.build_dataset(data_dir="/custom/data/path")
 ```
 
----
-
 ### `build_evaluator`
 
 ```python
@@ -185,8 +180,6 @@ def build_evaluator(
 ```python
 evaluator = builder.build_evaluator(session, dataset, "onnx")
 ```
-
----
 
 ### `run_eval`
 
@@ -211,9 +204,14 @@ Runs the entire evaluation pipeline in a single call. Internally invokes `build_
 results = builder.run_eval("onnx")
 # {
 #     "model": "resnet50_224x224",
-#     "metrics": [{"name": "Top-1", "metric_value": 69.76}, ...],
+#     "metrics": [
+#         {"name": "Top-1", "metric_value": 69.76},
+#         {"name": "Top-5", "metric_value": 89.08}
+#     ],
 #     "fps": 624.7,
-#     "elapsed_time": 82
+#     "elapsed_time": 82,
+#     "start_time": "2026-07-23 14:30:00",
+#     "profile": "onnx"
 # }
 ```
 

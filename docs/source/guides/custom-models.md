@@ -1,6 +1,19 @@
 # Custom Models
 
-This guide explains how to add a new model to DX ModelZoo. All you need is a single YAML file and, optionally, custom preprocessing/postprocessing operations.
+This guide explains how to add a new model to DX-ModelZoo. All you need is a single YAML file and, optionally, custom preprocessing/postprocessing operations.
+
+!!! note "Prerequisites"
+    Before creating custom models, make sure you have:
+
+    - [Installed DX-ModelZoo](../getting-started/installation.md) with development dependencies
+    - Basic understanding of [YAML configuration](yaml-config.md)
+    - Model file in ONNX format (or other supported formats)
+    - Familiarity with preprocessing/postprocessing concepts
+
+!!! note "See Also"
+    - [YAML Configuration](yaml-config.md) - Complete YAML reference
+    - [Model Evaluation](evaluation.md) - How to evaluate your custom model
+    - [Custom Datasets](custom-datasets.md) - Create custom datasets for your model
 
 ## Overview
 
@@ -13,10 +26,20 @@ graph LR
     E --> C
 ```
 
-## Step 1: Create YAML File
+## Step 1: Creating YAML File
 
-Model YAML files are located under the `models/<domain>/<task>/<Family>/` directory.
+Model YAML files are organized by domain, task, and model family:
 
+**Directory structure:**
+```
+src/dx_modelzoo/models/
+└── <domain>/          # e.g., cv, nlp, audio
+    └── <task>/        # e.g., image_classification, object_detection
+        └── <Family>/  # e.g., ResNet, EfficientNet
+            └── <ModelName>.yaml
+```
+
+**Example:**
 ```
 src/dx_modelzoo/models/
 └── cv/
@@ -24,6 +47,19 @@ src/dx_modelzoo/models/
         └── MyModel/
             └── MyModel_v1.yaml    ← create here
 ```
+
+### Environment Variables in YAML
+
+DX-ModelZoo supports environment variable substitution in YAML files:
+
+| Variable | Description | Example |
+|----------|-------------|---------||
+| `${DATA_ROOT}` | Dataset root directory | `/data/datasets` |
+| `${MODEL_ROOT}` | Model artifacts root | `/data/models` |
+| `${MODEL_NAME}` | Current model name | `MyModel_v1` |
+| `${DXMZ_MODEL_URL}` | Auto-download server URL | `https://sdk.deepx.ai/modelzoo` |
+
+For more details, see [YAML Configuration](yaml-config.md#environment-variable-substitution).
 
 ### Minimal YAML Example
 
@@ -102,12 +138,21 @@ profiles:
       async: true
 ```
 
-!!! tip "Leverage Built-in Types"
+!!! note "Leverage Built-in Types"
     When using built-in types for preprocessing, postprocessing, datasets, and evaluators, the model can be fully defined in YAML alone — no Python code required.
 
 ## Step 2: Custom Operations
 
-If the built-in types are insufficient, create a `custom_ops.py` file with your own operations.
+If the built-in types are insufficient, create a `custom_ops.py` file in the **same directory as your model YAML**:
+
+```
+src/dx_modelzoo/models/
+└── cv/
+    └── image_classification/
+        └── MyModel/
+            ├── MyModel_v1.yaml
+            └── custom_ops.py      ← create here
+```
 
 ### Custom Preprocessing
 
@@ -177,14 +222,25 @@ postprocessing:
     conf_threshold: 0.3
 ```
 
-!!! info "Auto-Import"
+!!! note "Auto-Import"
     `custom_ops.py` placed in the same directory as the model YAML is automatically imported by `ModelBuilder`. No manual import is needed — just define your classes with `@REGISTRY.register()` and they become available in the YAML configuration.
 
-## Step 3: Verify
+## Step 3: Verification
 
 ```bash
 # Run by model name
 dxmz eval MyModel_v1 --profile onnx
+
+# Expected output:
+# Loading model: MyModel_v1
+# Dataset: ILSVRC2012 (50000 samples)
+# Evaluating... [============================] 100%
+# Top-1 Accuracy: 76.13%
+# Top-5 Accuracy: 92.86%
+# FPS: 245.3
+
+# Run with dataset path override
+dxmz eval MyModel_v1 --profile onnx --data-root /path/to/datasets
 
 # Run by YAML path
 dxmz eval path/to/MyModel_v1.yaml --profile onnx
@@ -324,7 +380,7 @@ def process_batch_result(self, batch_data, output, metrics_state):
         rec_input = self._get_rec_preprocessor()(crop)      # custom_ops
         rec_output = self.rec_session.run(rec_input)        # session
         text = self._get_ctc_decoder()(rec_output)          # custom_ops
-    
+
     # Compute Deteval metrics (evaluator logic)
     ...
 ```
