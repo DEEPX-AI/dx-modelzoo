@@ -63,10 +63,10 @@ plugins:
       author: DEEPX.ai
       copyright: ⓒ Copyright 2026 DEEPX All Rights Reserved.
       cover_title: DXNN DX-ModelZoo User Manual
-      cover_subtitle: 2026/06/16 (v0.10.1)
+      cover_subtitle: 2026/08/05 (v0.10.2)
       cover_logo : img/deepx.png
       custom_template_path: source/stylesheets
-      output_path: ../DEEPX_DX-ModelZoo_UM_v0.10.1_JUL_2026.pdf
+      output_path: ../DEEPX_DX-ModelZoo_UM_v0.10.2_AUG_2026.pdf
 extra:
   homepage: https://developer.deepx.ai
 #  version:
