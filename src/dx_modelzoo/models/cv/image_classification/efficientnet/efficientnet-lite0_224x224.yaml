@@ -1,9 +1,9 @@
-name: efficientnet-lite0_256x256
+name: efficientnet-lite0_224x224
 display_name: EfficientNet-Lite0
 task: image_classification
 reference: https://github.com/huggingface/pytorch-image-models
 description: >-
-  EfficientNet compound-scaled CNN image classification model that ingests a 256x256 RGB
+  EfficientNet compound-scaled CNN image classification model that ingests a 224x224 RGB
   image (NHWC, ImageNet mean/std normalization) and outputs a 1000-way logit vector over
   the ImageNet-1k categories. Postprocessing applies top-k selection on the class
   logits. Evaluated on the ImageNet (ILSVRC2012) validation set reporting Top-1 and
@@ -14,8 +14,8 @@ inputs:
 - name: input
   shape:
   - 1
-  - 256
-  - 256
+  - 224
+  - 224
   - 3
   dtype: float32
   layout: NHWC

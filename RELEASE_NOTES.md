@@ -1,5 +1,23 @@
 # RELEASE_NOTES
 
+## DX-MODELZOO v0.10.2 / 2026-08-05
+
+### 1. Changed
+- None
+
+### 2. Fixed
+- Fixed the EfficientNet-Lite0 model input size from 256x256 to 224x224.
+
+### 3. Added
+- Added YOLO26-depth models at 768x768:
+  - YOLO26-n-depth
+  - YOLO26-s-depth
+  - YOLO26-m-depth
+  - YOLO26-l-depth
+  - YOLO26-x-depth
+
+---
+
 ## DX-MODELZOO v0.10.1 / 2026-07-27
 
 ### 1. Changed
