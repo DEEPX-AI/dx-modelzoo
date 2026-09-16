@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from glob import glob
+from pathlib import Path
 from typing import List, Tuple
 
 import cv2
@@ -71,3 +72,27 @@ class WiderFace(DatasetBase):
             medium_mat["gt_list"],
             easy_mat["gt_list"],
         )
+
+    def validate(self) -> None:
+        """Validate the dataset's integrity and structure.
+
+        Raises:
+            RuntimeError: If the dataset is invalid or corrupted.
+        """
+        # directory structure
+        is_correct_structure = (
+            Path(self.data_dir).is_dir()
+            and Path(self.data_dir, "WIDER_val/images").is_dir()
+            and Path(self.data_dir, "eval_tools/ground_truth").is_dir()
+        )
+        if not is_correct_structure:
+            raise RuntimeError(
+                "Dataset directory structure is invalid. Expected 'WIDER_val/images/' and 'eval_tools/ground_truth/'"
+                f" under {self.data_dir}."
+            )
+
+        # file existence
+        NUM_DATA = 3226  # Total number of images in WIDER validation set
+        num_images = len(list(Path(self.data_dir, "WIDER_val/images").rglob("*.jpg")))
+        if num_images != NUM_DATA:
+            raise RuntimeError(f"Expected {NUM_DATA} images in WIDER_val/images/, but found {num_images}.")

@@ -2,6 +2,7 @@ name: fastsam-s_1024x1024
 display_name: FastSAM-s
 task: zero_shot_instance_segmentation
 reference: https://github.com/CASIA-IVA-Lab/FastSAM
+license: AGPL-3.0
 description: >-
   FastSAM-s (Fast Segment Anything Model) — a YOLOv8-seg based CNN that performs
   class-agnostic "segment everything" instance segmentation, trained on 2% of
@@ -50,6 +51,11 @@ dataset:
   eval_path: ${DATA_ROOT}/COCO
 artifacts:
   path: ${MODEL_ROOT}/${MODEL_NAME}
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
+
 profiles:
   onnx:
     target: onnx
@@ -60,27 +66,21 @@ profiles:
     target: dxnn
     compile:
       opt_level: 0
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-lite:
     target: dxnn
     compile:
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-pro:
     target: dxnn
     compile:
-      quantization:
-        pro:
-          num_samples: 1024
-          method: ema
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
     runtime:
       device: 0

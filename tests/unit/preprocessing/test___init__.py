@@ -37,6 +37,17 @@ class TestPreprocessingPipeline:
         pipeline = PreprocessingPipeline(config)
         # Steps from both inputs get flattened
         assert len(pipeline.steps) >= 2
+        assert pipeline.transforms == []
+
+    def test_dict_config_applies_each_pipeline_to_matching_input(self):
+        config = {
+            "image": [{"type": "div", "x": 2}],
+            "tokens": [{"type": "add", "x": 1}],
+        }
+        pipeline = PreprocessingPipeline(config)
+        result = pipeline({"image": np.array([4.0]), "tokens": np.array([2.0])})
+        np.testing.assert_array_equal(result["image"], [2.0])
+        np.testing.assert_array_equal(result["tokens"], [3.0])
 
     def test_steps_config_property(self):
         config = [{"type": "div", "x": 255}]
@@ -59,9 +70,19 @@ class TestPreprocessingPipeline:
 class TestPreprocessingRegistry:
     def test_all_types_registered(self):
         expected = [
-            "add", "bgr_to_y_channel", "bgr_to_y_channel_uint8",
-            "centercrop", "convertcolor", "div", "expanddim",
-            "mul", "normalize", "resize", "subtract", "totensor", "transpose",
+            "add",
+            "bgr_to_y_channel",
+            "bgr_to_y_channel_uint8",
+            "centercrop",
+            "convertcolor",
+            "div",
+            "expanddim",
+            "mul",
+            "normalize",
+            "resize",
+            "subtract",
+            "totensor",
+            "transpose",
         ]
         for name in expected:
             assert name in PREPROCESSING_REGISTRY, f"{name} not registered"

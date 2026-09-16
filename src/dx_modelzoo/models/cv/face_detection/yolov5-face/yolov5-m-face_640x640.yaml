@@ -2,6 +2,7 @@ name: yolov5-m-face_640x640
 display_name: YOLOv5-m-face
 task: face_detection
 reference: https://github.com/deepcam-cn/yolov5-face
+license: GPL-3.0
 description: >-
   YOLOv5-Face detector on a 640x640 RGB input that predicts face bounding boxes (with
   landmarks) and confidences. Postprocessing (yolo_face_decode) decodes anchors/priors
@@ -47,6 +48,11 @@ dataset:
   eval_path: ${DATA_ROOT}/widerface
 artifacts:
   path: ${MODEL_ROOT}/${MODEL_NAME}
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
+
 profiles:
   onnx:
     target: onnx
@@ -57,27 +63,21 @@ profiles:
     target: dxnn
     compile:
       opt_level: 0
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-lite:
     target: dxnn
     compile:
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-pro:
     target: dxnn
     compile:
-      quantization:
-        pro:
-          num_samples: 1024
-          method: ema
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
     runtime:
       device: 0

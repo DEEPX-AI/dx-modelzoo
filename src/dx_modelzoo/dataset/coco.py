@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from glob import glob
+from pathlib import Path
 from typing import Tuple
 
 import cv2
@@ -81,6 +82,36 @@ class COCO(DatasetBase):
         img = self.preprocessing(img)
         return img, origin_shape, int(self.ids[idx])
 
+    def validate(self) -> None:
+        """Validate the dataset's integrity and structure.
+
+        Raises:
+            RuntimeError: If the dataset is invalid or corrupted.
+        """
+        # directory structure
+        is_correct_structure = (
+            Path(self.data_dir, "val2017").is_dir()
+            and Path(self.data_dir, "annotations", "instances_val2017.json").is_file()
+        )
+        if not is_correct_structure:
+            raise RuntimeError(
+                "Dataset directory structure is invalid. Expected 'val2017' directory and "
+                f"'annotations/instances_val2017.json' file under {self.data_dir}."
+            )
+
+        # file existence
+        NUM_DATA = 5000
+        num_images = len(list(Path(self.data_dir, "val2017").glob("*.jpg")))
+        num_annotations = len(list(Path(self.data_dir, "annotations").glob("instances_val2017.json")))
+        if num_images != NUM_DATA:
+            raise RuntimeError(
+                f"Expected {NUM_DATA} validation images, but found {num_images} in {self.data_dir}/val2017."
+            )
+        if num_annotations != 1:
+            raise RuntimeError(
+                f"Expected 1 annotation file, but found {num_annotations} in {self.data_dir}/annotations."
+            )
+
 
 @DATASET_REGISTRY.register
 class COCOPose(DatasetBase):
@@ -114,6 +145,36 @@ class COCOPose(DatasetBase):
         img = self.preprocessing(img)
         return img, origin_shape, int(self.ids[idx])
 
+    def validate(self) -> None:
+        """Validate the dataset's integrity and structure.
+
+        Raises:
+            RuntimeError: If the dataset is invalid or corrupted.
+        """
+        # directory structure
+        is_correct_structure = (
+            Path(self.data_dir, "val2017").is_dir()
+            and Path(self.data_dir, "annotations", "person_keypoints_val2017.json").is_file()
+        )
+        if not is_correct_structure:
+            raise RuntimeError(
+                "Dataset directory structure is invalid. Expected 'val2017' directory and "
+                f"'annotations/person_keypoints_val2017.json' file under {self.data_dir}."
+            )
+
+        # file existence
+        NUM_DATA = 5000
+        num_images = len(list(Path(self.data_dir, "val2017").glob("*.jpg")))
+        num_annotations = len(list(Path(self.data_dir, "annotations").glob("person_keypoints_val2017.json")))
+        if num_images != NUM_DATA:
+            raise RuntimeError(
+                f"Expected {NUM_DATA} validation images, but found {num_images} in {self.data_dir}/val2017."
+            )
+        if num_annotations != 1:
+            raise RuntimeError(
+                f"Expected 1 annotation file, but found {num_annotations} in {self.data_dir}/annotations."
+            )
+
 
 @DATASET_REGISTRY.register
 class COCOPoseTopDown(DatasetBase):
@@ -131,12 +192,21 @@ class COCOPoseTopDown(DatasetBase):
 
     _BBOX_PAD_RATIO = 0.25
 
-    def __init__(self, data_dir: str, bbox_pad_ratio: float = 0.25, square_crop: bool = False) -> None:
+    def __init__(
+        self,
+        data_dir: str,
+        bbox_pad_ratio: float = 0.25,
+        square_crop: bool = False,
+        model_input_w: int = 192,
+        model_input_h: int = 256,
+    ) -> None:
         self.ensure_exists(data_dir, _INSTALL_GUIDE)
         super().__init__(data_dir)
         self.data_dir = data_dir
         self._bbox_pad_ratio = bbox_pad_ratio
         self._square_crop = square_crop
+        self._model_input_w = int(model_input_w)
+        self._model_input_h = int(model_input_h)
 
         ann_file = os.path.join(data_dir, "annotations", "person_keypoints_val2017.json")
         from faster_coco_eval import COCO
@@ -204,7 +274,7 @@ class COCOPoseTopDown(DatasetBase):
 
         # Transform keypoints from full-image coords to crop coords,
         # then scale to model input size (192 x 256)
-        model_w, model_h = 192, 256
+        model_w, model_h = self._model_input_w, self._model_input_h
         kpts_crop = np.zeros((17, 2), dtype=np.float32)
         if crop_w > 0 and crop_h > 0:
             kpts_crop[:, 0] = (kpts_full[:, 0] - x1) * (model_w / crop_w)
@@ -219,6 +289,36 @@ class COCOPoseTopDown(DatasetBase):
         crop = self.preprocessing(crop)
 
         return crop, gt_bbox, crop_params, kpts_crop, visibility, img_id, ann_id
+
+    def validate(self) -> None:
+        """Validate the dataset's integrity and structure.
+
+        Raises:
+            RuntimeError: If the dataset is invalid or corrupted.
+        """
+        # directory structure
+        is_correct_structure = (
+            Path(self.data_dir, "val2017").is_dir()
+            and Path(self.data_dir, "annotations", "person_keypoints_val2017.json").is_file()
+        )
+        if not is_correct_structure:
+            raise RuntimeError(
+                "Dataset directory structure is invalid. Expected 'val2017' directory and "
+                f"'annotations/person_keypoints_val2017.json' file under {self.data_dir}."
+            )
+
+        # file existence
+        NUM_DATA = 5000
+        num_images = len(list(Path(self.data_dir, "val2017").glob("*.jpg")))
+        num_annotations = len(list(Path(self.data_dir, "annotations").glob("person_keypoints_val2017.json")))
+        if num_images != NUM_DATA:
+            raise RuntimeError(
+                f"Expected {NUM_DATA} validation images, but found {num_images} in {self.data_dir}/val2017."
+            )
+        if num_annotations != 1:
+            raise RuntimeError(
+                f"Expected 1 annotation file, but found {num_annotations} in {self.data_dir}/annotations."
+            )
 
 
 @DATASET_REGISTRY.register
@@ -293,3 +393,30 @@ class COCOPersonSeg(DatasetBase):
         mask = self._person_mask(int(info["id"]), h0, w0)
         label = cv2.resize(mask, (self.in_w, self.in_h), interpolation=cv2.INTER_NEAREST)
         return image, label.astype(np.int64)
+
+    def validate(self) -> None:
+        """Validate the dataset's integrity and structure.
+
+        Raises:
+            RuntimeError: If the dataset is invalid or corrupted.
+        """
+        # directory structure
+        is_correct_structure = Path(self.data_dir, "val2017").is_dir() and Path(self.data_dir, "annotations").is_dir()
+        if not is_correct_structure:
+            raise RuntimeError(
+                "Dataset directory structure is invalid. Expected 'val2017' directory and "
+                f"'annotations' directory under {self.data_dir}."
+            )
+
+        # file existence
+        NUM_DATA = 5000
+        num_images = len(list(Path(self.data_dir, "val2017").glob("*.jpg")))
+        num_annotations = len(list(Path(self.data_dir, "annotations").glob("*.json")))
+        if num_images != NUM_DATA:
+            raise RuntimeError(
+                f"Expected {NUM_DATA} validation images, but found {num_images} in {self.data_dir}/val2017."
+            )
+        if num_annotations < 1:
+            raise RuntimeError(
+                f"Expected at least 1 annotation file, but found {num_annotations} in {self.data_dir}/annotations."
+            )

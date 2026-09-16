@@ -2,6 +2,7 @@ name: vitpose-s_256x192
 display_name: ViTPose-S
 task: pose_estimation
 reference: https://github.com/ViTAE-Transformer/ViTPose
+license: Apache-2.0
 description: |
   ViTPose-Small top-down pose estimation.
   Input is a person-cropped patch [1,3,256,192]; output is 17 keypoint
@@ -9,29 +10,29 @@ description: |
 macs: 8.94 GMACs
 params: 24.38 M
 inputs:
-  - name: pixel_values
-    shape: [1, 3, 256, 192]
-    dtype: float32
-    layout: NCHW
+- name: pixel_values
+  shape: [1, 3, 256, 192]
+  dtype: float32
+  layout: NCHW
 preprocessing:
-  - type: resize
-    width: 192
-    height: 256
-  - type: convertcolor
-    form: BGR2RGB
-  - type: div
-    x: 255
-  - type: normalize
-    mean: [0.485, 0.456, 0.406]
-    std: [0.229, 0.224, 0.225]
-  - type: transpose
-    axis: [2, 0, 1]
-  - type: expanddim
-    axis: 0
+- type: resize
+  width: 192
+  height: 256
+- type: convertcolor
+  form: BGR2RGB
+- type: div
+  x: 255
+- type: normalize
+  mean: [0.485, 0.456, 0.406]
+  std: [0.229, 0.224, 0.225]
+- type: transpose
+  axis: [2, 0, 1]
+- type: expanddim
+  axis: 0
 postprocessing:
-  - type: vitpose_heatmap_decode
-    model_w: 192
-    model_h: 256
+- type: vitpose_heatmap_decode
+  model_w: 192
+  model_h: 256
 dataset:
   type: COCOPoseTopDown
   eval_path: ${DATA_ROOT}/COCO
@@ -39,6 +40,11 @@ evaluator:
   type: pose_estimation_topdown
 artifacts:
   path: ${MODEL_ROOT}/${MODEL_NAME}
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
+
 profiles:
   onnx:
     target: onnx
@@ -49,27 +55,21 @@ profiles:
     target: dxnn
     compile:
       opt_level: 0
-      quantization:
-        lite:
-          num_samples: 100
-          method: ema
+      calibration: *calibration
     runtime:
       device: 0
   q-lite:
     target: dxnn
     compile:
-      quantization:
-        lite:
-          num_samples: 100
-          method: ema
+      calibration: *calibration
     runtime:
       device: 0
   q-pro:
     target: dxnn
     compile:
-      quantization:
-        pro:
-          num_samples: 1024
-          method: ema
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
     runtime:
       device: 0

@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import os
 from glob import glob
+from pathlib import Path
 from typing import Dict, List, Tuple
 
 import cv2
@@ -248,7 +249,7 @@ class HOPE(DatasetBase):
             )
 
     def _load_gt(self, jpath: str) -> Dict:
-        with open(jpath) as f:
+        with open(jpath, encoding="utf-8") as f:
             d = json.load(f)
         cam = d["camera"]
         K = np.array(cam["intrinsics"], dtype=np.float64).reshape(3, 3)
@@ -272,11 +273,7 @@ class HOPE(DatasetBase):
             if self.cuboid3d is not None:
                 # Projected pseudo-GT cuboid keypoints (8 corners + centroid) in
                 # normalised image coords, in the DOPE belief-map channel order.
-                keypoints_2d.append(
-                    project_cuboid_keypoints(
-                        pose, self.cuboid3d, K, W, H, self.frame_align
-                    )
-                )
+                keypoints_2d.append(project_cuboid_keypoints(pose, self.cuboid3d, K, W, H, self.frame_align))
         n = len(poses)
         return {
             "class": self.object_class,
@@ -284,15 +281,9 @@ class HOPE(DatasetBase):
             "K": K,
             "W": W,
             "H": H,
-            "poses": np.array(poses, dtype=np.float64).reshape(n, 4, 4)
-            if n
-            else np.zeros((0, 4, 4)),
-            "translations": np.array(translations, dtype=np.float64).reshape(n, 3)
-            if n
-            else np.zeros((0, 3)),
-            "centroids_2d": np.array(centroids, dtype=np.float64).reshape(n, 2)
-            if n
-            else np.zeros((0, 2)),
+            "poses": np.array(poses, dtype=np.float64).reshape(n, 4, 4) if n else np.zeros((0, 4, 4)),
+            "translations": np.array(translations, dtype=np.float64).reshape(n, 3) if n else np.zeros((0, 3)),
+            "centroids_2d": np.array(centroids, dtype=np.float64).reshape(n, 2) if n else np.zeros((0, 2)),
             "keypoints_2d": (
                 np.array(keypoints_2d, dtype=np.float64).reshape(n, 9, 2)
                 if (n and keypoints_2d)
@@ -318,3 +309,30 @@ class HOPE(DatasetBase):
         }
         image = self.preprocessing(img)
         return image, gt, meta
+
+    def validate(self) -> None:
+        """Validate the dataset's integrity and structure.
+
+        Raises:
+            RuntimeError: If the dataset is invalid or corrupted.
+        """
+        split_dir = Path(self.data_dir, "valid")
+        # directory structure
+        is_correct_structure = split_dir.is_dir() and any(split_dir.glob("scene_*/[0-9]*.json"))
+        if not is_correct_structure:
+            raise RuntimeError(
+                "Dataset directory structure is invalid. Expected 'scene_XXXX/NNNN_rgb.jpg' and 'scene_XXXX/NNNN.json'"
+                f" under {split_dir}."
+            )
+
+        # file existence
+        NUM_DATA = 50
+        num_images = len(list(split_dir.glob("scene_*/[0-9]*_rgb.jpg")))
+        if num_images != NUM_DATA:
+            raise RuntimeError(f"Expected {NUM_DATA} RGB images in {split_dir}, but found {num_images}.")
+        num_labels = len(list(split_dir.glob("scene_*/[0-9]*.json")))
+        if num_labels != NUM_DATA:
+            raise RuntimeError(f"Expected {NUM_DATA} JSON labels in {split_dir}, but found {num_labels}.")
+        num_depth = len(list(split_dir.glob("scene_*/[0-9]*_depth.png")))
+        if num_depth != NUM_DATA:
+            raise RuntimeError(f"Expected {NUM_DATA} depth images in {split_dir}, but found {num_depth}.")

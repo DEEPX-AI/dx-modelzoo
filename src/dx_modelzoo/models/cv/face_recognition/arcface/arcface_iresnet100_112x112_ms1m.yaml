@@ -2,6 +2,7 @@ name: arcface_iresnet100_112x112_ms1m
 display_name: ArcFace IResNet-100 (MS1M)
 task: face_recognition
 reference: https://github.com/deepinsight/insightface
+license: MIT
 description: >-
   ArcFace face recognition model with an Improved-ResNet-100 backbone on a 112x112
   aligned face crop, producing a 512-dimensional embedding (postprocessing is identity).
@@ -38,6 +39,11 @@ dataset:
   eval_path: ${DATA_ROOT}/LFW
 artifacts:
   path: ${MODEL_ROOT}/${MODEL_NAME}
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
+
 profiles:
   onnx:
     target: onnx
@@ -48,27 +54,21 @@ profiles:
     target: dxnn
     compile:
       opt_level: 0
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-lite:
     target: dxnn
     compile:
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-pro:
     target: dxnn
     compile:
-      quantization:
-        pro:
-          num_samples: 1024
-          method: ema
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
     runtime:
       device: 0

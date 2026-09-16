@@ -1,0 +1,84 @@
+name: pp-shituv2-feature-extraction_224x224
+display_name: PP-ShiTuV2_feature_extraction
+task: visual_place_recognition
+reference: https://paddle-imagenet-models-name.bj.bcebos.com/dygraph/rec/models/inference/PP-ShiTuV2/general_PPLCNetV2_base_pretrained_v1.0_infer.tar
+license: Apache-2.0
+description: Paddle PP-ShiTuV2_feature_extraction visual place recognition model evaluated with the HPatches dataset and 224x224
+  input.
+macs: 0.99 GMACs
+params: 4.58 M
+evaluator:
+  type: visual_place_recognition
+inputs:
+- name: x
+  shape:
+  - 1
+  - 3
+  - 224
+  - 224
+  dtype: float32
+  layout: NCHW
+preprocessing:
+- type: convertcolor
+  form: BGR2RGB
+- type: resize
+  width: 224
+  height: 224
+- type: div
+  x: 255
+- type: normalize
+  mean:
+  - 0.485
+  - 0.456
+  - 0.406
+  std:
+  - 0.229
+  - 0.224
+  - 0.225
+- type: transpose
+  axis:
+  - 2
+  - 0
+  - 1
+- type: expanddim
+  axis: 0
+postprocessing:
+- type: identity
+dataset:
+  type: HPatches
+  eval_path: ${DATA_ROOT}/hpatches/hpatches-sequences-release
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
+
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      calibration: *calibration
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      calibration: *calibration
+    runtime:
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
+    runtime:
+      device: 0

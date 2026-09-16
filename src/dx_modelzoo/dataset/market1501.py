@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 from typing import List, Tuple
 
 import cv2
@@ -74,3 +75,29 @@ class Market1501(DatasetBase):
             raise FileNotFoundError(f"Failed to load image: {self._paths[idx]}")
         img = self.preprocessing(img)
         return img, idx
+
+    def validate(self) -> None:
+        """Validate the dataset's integrity and structure.
+
+        Raises:
+            RuntimeError: If the dataset is invalid or corrupted.
+        """
+        # directory structure
+        gallery_dir = os.path.join(self.data_dir, "bounding_box_test")
+        query_dir = os.path.join(self.data_dir, "query")
+        is_correct_structure = Path(self.data_dir).is_dir() and Path(gallery_dir).is_dir() and Path(query_dir).is_dir()
+        if not is_correct_structure:
+            raise RuntimeError(
+                "Dataset directory structure is invalid. Expected 'bounding_box_test' and 'query' directories under"
+                f" {self.data_dir}."
+            )
+
+        # file existence
+        NUM_GALLERY = 19732
+        NUM_QUERY = 3368
+        num_gallery = len(list(Path(gallery_dir).glob("*.jpg")))
+        num_query = len(list(Path(query_dir).glob("*.jpg")))
+        if num_gallery != NUM_GALLERY:
+            raise RuntimeError(f"Expected {NUM_GALLERY} images in {gallery_dir}, but found {num_gallery}.")
+        if num_query != NUM_QUERY:
+            raise RuntimeError(f"Expected {NUM_QUERY} images in {query_dir}, but found {num_query}.")

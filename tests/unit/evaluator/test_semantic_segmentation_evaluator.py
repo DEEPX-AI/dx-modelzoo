@@ -1,7 +1,6 @@
 """Tests for dx_modelzoo.evaluator.semantic_segmentation_evaluator."""
 
 import numpy as np
-from datetime import datetime
 
 from dx_modelzoo.common.dataloader import DatasetBase
 from dx_modelzoo.evaluator.semantic_segmentation_evaluator import SegmentationEvaluator
@@ -22,6 +21,9 @@ class FakeSession(SessionBase):
 
 
 class FakeDataset(DatasetBase):
+    def validate(self) -> None:  # ponytail: test double, nothing to validate
+        pass
+
     def __init__(self, num_classes=3):
         super().__init__("/fake")
         self.num_classes = num_classes
@@ -42,6 +44,7 @@ class TestSemanticSegmentationEvaluator:
         dataset = FakeDataset(num_classes)
         ev = SegmentationEvaluator(session, dataset)
         from dx_modelzoo.postprocessing.segmentation_argmax import SegmentationArgmax
+
         ev.set_postprocessing(SegmentationArgmax(layout="nchw"))
         return ev
 
@@ -68,3 +71,11 @@ class TestSemanticSegmentationEvaluator:
         result = ev.eval()
         assert isinstance(result, dict)
         # Prediction is always class 1, label is always class 1 → perfect mIoU for class 1
+
+    def test_eval_resizes_prediction_to_label_shape(self):
+        ev = self._make_evaluator(num_classes=3)
+        metrics = ev.init_metrics()
+        label = np.ones((64, 96), dtype=np.int64)
+        output = np.ones((1, 32, 48), dtype=np.int64)
+        updated = ev.process_batch_result((np.zeros((3, 32, 48)), label), output, metrics)
+        assert updated["confusion_matrix"][1, 1] == label.size

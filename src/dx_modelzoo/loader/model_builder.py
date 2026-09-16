@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from dx_modelzoo.common.dataloader import DatasetBase
     from dx_modelzoo.session import SessionBase
 
+from dx_modelzoo.common.exceptions import ConfigError, DatasetValidationError, ModelBuildError, SessionCreationError
 from dx_modelzoo.loader.yaml_loader import load_yaml, validate_yaml
 from dx_modelzoo.postprocessing import PostprocessingPipeline
 from dx_modelzoo.preprocessing import PreprocessingPipeline
@@ -95,7 +96,7 @@ class ModelBuilder:
     def get_profile(self, profile_name: str, stage: Optional[str] = None) -> Dict[str, Any]:
         profiles = self.config["profiles"]
         if profile_name not in profiles:
-            raise KeyError(f"Profile '{profile_name}' not found. " f"Available: {list(profiles.keys())}")
+            raise ConfigError(f"Profile '{profile_name}' not found. Available profiles: {list(profiles.keys())}")
         return profiles[profile_name]
 
     def build_preprocessing(
@@ -218,7 +219,7 @@ class ModelBuilder:
         """Build a session for a specific pipeline stage using its own artifacts/profiles."""
         from loguru import logger
 
-        from dx_modelzoo.session.factory import SessionCreationError, _create_session, _try_download
+        from dx_modelzoo.session.factory import _create_session, _try_download
         from dx_modelzoo.session.runtime_config import RuntimeConfig
 
         stage_cfg = self.get_stage_config(stage)
@@ -260,9 +261,15 @@ class ModelBuilder:
         ds_config = self.config.get("dataset", {})
         ds_type = ds_config.get("type")
         if ds_type is None:
-            raise ValueError(f"No dataset type specified in {self.yaml_path}")
+            raise DatasetValidationError(f"No dataset type specified in {self.yaml_path}")
 
-        ds_cls = DATASET_REGISTRY.get(ds_type)
+        try:
+            ds_cls = DATASET_REGISTRY.get(ds_type)
+        except KeyError as exc:
+            raise DatasetValidationError(
+                f"Unknown dataset type {ds_type!r} in {self.yaml_path}. "
+                f"Available dataset types: {sorted(DATASET_REGISTRY.list())}"
+            ) from exc
         ds_path = data_dir or ds_config.get("eval_path", "")
 
         # Forward any extra dataset.* fields (other than type/eval_path)
@@ -274,7 +281,7 @@ class ModelBuilder:
             sig = inspect.signature(ds_cls.__init__)
             params = sig.parameters
             if "inputs" in params and "inputs" not in extra_kwargs:
-                extra_kwargs["inputs"] = self.config.get("inputs", [])
+                extra_kwargs["inputs"] = self.inputs
             extra_kwargs = {k: v for k, v in extra_kwargs.items() if k in params}
         except (TypeError, ValueError):
             extra_kwargs = {}
@@ -295,7 +302,7 @@ class ModelBuilder:
         if custom_root_index is not None:
             eval_type = self.config.get("evaluator", {}).get("type")
             if not eval_type:
-                raise ValueError(f"Custom model YAMLs under ./custom must define evaluator.type: {self.yaml_path}")
+                raise ModelBuildError(f"Custom model YAMLs under ./custom must define evaluator.type: {self.yaml_path}")
         else:
             # Priority 1: explicit evaluator.type override
             eval_type = self.config.get("evaluator", {}).get("type")
@@ -311,12 +318,18 @@ class ModelBuilder:
                 )
 
             if not eval_type:
-                raise ValueError(
+                raise ModelBuildError(
                     f"Cannot determine evaluator type for {self.yaml_path}. "
                     "Please specify task: <task_name> or evaluator.type: <type_name> in the YAML config."
                 )
 
-        evaluator_cls = EVALUATOR_REGISTRY.get(eval_type)
+        try:
+            evaluator_cls = EVALUATOR_REGISTRY.get(eval_type)
+        except KeyError as exc:
+            raise ModelBuildError(
+                f"Unknown evaluator type {eval_type!r} in {self.yaml_path}. "
+                f"Available evaluator types: {sorted(EVALUATOR_REGISTRY.list())}"
+            ) from exc
 
         # Read batch_size from profile runtime config
         # dxnn target only supports batch_size=1
@@ -331,7 +344,7 @@ class ModelBuilder:
         evaluator = evaluator_cls(session, dataset, batch_size=batch_size)
 
         # Set model spec for evaluator (macs, params, input_resolution, license)
-        input_shape = self.config.get("inputs")[0].get("shape")
+        input_shape = self.inputs[0].get("shape")
         if len(input_shape) == 4:
             input_resolution = tuple(input_shape[2:] + input_shape[1:2])  # H, W, C
         elif len(input_shape) < 4:

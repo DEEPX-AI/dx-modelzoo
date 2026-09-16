@@ -16,6 +16,8 @@ from typing import TYPE_CHECKING, Optional
 
 from loguru import logger
 
+from dx_modelzoo.common.exceptions import SessionCreationError
+
 if TYPE_CHECKING:
     from dx_modelzoo.session import SessionBase
     from dx_modelzoo.session.runtime_config import RuntimeConfig
@@ -26,10 +28,6 @@ if TYPE_CHECKING:
 DXMZ_MODEL_URL_ENV = "DXMZ_MODEL_URL"
 
 
-class SessionCreationError(Exception):
-    """Raised when a session cannot be created."""
-
-
 def _detect_target(path: str) -> str:
     """Detect session type from file extension."""
     p = Path(path)
@@ -37,14 +35,10 @@ def _detect_target(path: str) -> str:
         return "onnx"
     elif p.suffix == ".dxnn":
         return "dxnn"
-    raise SessionCreationError(
-        f"Cannot determine session type from extension: '{p.suffix}'. " "Expected .onnx or .dxnn"
-    )
+    raise SessionCreationError(f"Cannot determine session type from extension: '{p.suffix}'. Expected .onnx or .dxnn")
 
 
-def _create_session(
-    path: str, target: str, runtime_config: Optional["RuntimeConfig"] = None
-) -> "SessionBase":
+def _create_session(path: str, target: str, runtime_config: Optional["RuntimeConfig"] = None) -> "SessionBase":
     """Create a session instance from a resolved file path."""
     if target == "dxnn":
         from dx_modelzoo.session.dx_session import DxRuntimeSession
@@ -84,8 +78,10 @@ def _try_download(model_name: str, compile_profile: str, dest_path: Path) -> Pat
         )
 
     suffix = Path(dest_path).suffix
-    branch = "" if suffix == ".onnx" else f"latest/{compile_profile}/"
-    url = f"{base_url}/{suffix[1:]}/{branch}{model_name}{suffix}"
+    if suffix == ".onnx":
+        url = f"{base_url}/onnx/{model_name}{suffix}"
+    else:
+        url = f"{base_url}/{compile_profile}-dxnn/latest/{model_name}{suffix}"
     _download_model(url, dest_path)
     return dest_path
 
@@ -127,7 +123,7 @@ def create_session(
         if path.suffix in (".onnx", ".dxnn"):
             raise SessionCreationError(f"Model file not found: {path}")
         raise SessionCreationError(
-            f"'{model_or_profile}' is not a file path. " "Provide a ModelBuilder to resolve profile names."
+            f"'{model_or_profile}' is not a file path. Provide a ModelBuilder to resolve profile names."
         )
 
     return _create_session_from_profile(model_or_profile, builder, runtime_config)
@@ -144,7 +140,7 @@ def _create_session_from_profile(
 
     if target is None:
         target = "onnx" if profile_name == "onnx" else "dxnn"
-        logger.warning(f"No target specified for profile '{profile_name}'. " f"Defaulting to '{target}'.")
+        logger.warning(f"No target specified for profile '{profile_name}'. Defaulting to '{target}'.")
 
     if runtime_config is None:
         runtime_config = RuntimeConfig.from_profile(profile, target=target)

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+from pathlib import Path
 from typing import Dict, List, Tuple
 
 import cv2
@@ -55,7 +56,7 @@ def _first_existing_dir(data_dir: str, candidates: List[str]) -> str:
         if os.path.isdir(path):
             return path
     raise FileNotFoundError(
-        f"None of the expected directories found in {data_dir}: " f"{', '.join(candidates)}\n{_PANOPTIC_INSTALL_GUIDE}"
+        f"None of the expected directories found in {data_dir}: {', '.join(candidates)}\n{_PANOPTIC_INSTALL_GUIDE}"
     )
 
 
@@ -125,7 +126,7 @@ class BDD100K(DatasetBase):
             )
 
     def _load_detection_gt(self, det_file: str) -> Dict[str, np.ndarray]:
-        with open(det_file, "r") as f:
+        with open(det_file, "r", encoding="utf-8") as f:
             records = json.load(f)
         gt: Dict[str, np.ndarray] = {}
         for rec in records:
@@ -167,3 +168,43 @@ class BDD100K(DatasetBase):
         }
         img = self.preprocessing(img)
         return img, origin_shape, label
+
+    def validate(self) -> None:
+        """Validate the dataset's integrity and structure.
+
+        Raises:
+            RuntimeError: If the dataset is invalid or corrupted.
+        """
+        # directory structure
+        is_correct_structure = (
+            Path(self.data_dir, "images", "100k", "val").is_dir()
+            and Path(self.data_dir, "labels", "drivable", "masks", "val").is_dir()
+            and Path(self.data_dir, "labels", "lane", "masks", "val").is_dir()
+            and Path(self.data_dir, "labels", "det_20", "det_val.json").is_file()
+        )
+        if not is_correct_structure:
+            raise RuntimeError(
+                "Dataset directory structure is invalid. Expected 'images/100k/val', "
+                "'labels/drivable/masks/val', 'labels/lane/masks/val' directories and "
+                f"'labels/det_20/det_val.json' file under {self.data_dir}."
+            )
+
+        # file existence
+        NUM_DATA = 10000
+        num_images = len(list(Path(self.data_dir, "images", "100k", "val").glob("*.jpg")))
+        num_drivable = len(list(Path(self.data_dir, "labels", "drivable", "masks", "val").glob("*_drivable_id.png")))
+        num_lane = len(list(Path(self.data_dir, "labels", "lane", "masks", "val").glob("*.png")))
+        if num_images != NUM_DATA:
+            raise RuntimeError(
+                f"Expected {NUM_DATA} validation images, but found {num_images} in {self.data_dir}/images/100k/val."
+            )
+        if num_drivable != NUM_DATA:
+            raise RuntimeError(
+                f"Expected {NUM_DATA} validation drivable masks, but found {num_drivable} in "
+                f"{self.data_dir}/labels/drivable/masks/val."
+            )
+        if num_lane != NUM_DATA:
+            raise RuntimeError(
+                f"Expected {NUM_DATA} validation lane masks, but found {num_lane} in "
+                f"{self.data_dir}/labels/lane/masks/val."
+            )

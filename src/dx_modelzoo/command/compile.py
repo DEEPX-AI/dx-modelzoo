@@ -32,7 +32,6 @@ def compile_model(
     profile_name: str,
     output: Optional[str] = None,
     model_path: Optional[str] = None,
-    use_gpu: bool = False,
     debug: bool = False,
     stage: Optional[str] = None,
 ) -> None:
@@ -45,13 +44,13 @@ def compile_model(
     compile_config = profile.get("compile")
     if compile_config is None:
         raise ValueError(
-            f"Profile '{profile_name}' has no compile section. " "Only profiles with compile config can be compiled."
+            f"Profile '{profile_name}' has no compile section. Only profiles with compile config can be compiled."
         )
 
     try:
         from dx_com import compile as dx_compile
     except ImportError:
-        raise ImportError("dx_com is not installed. " "Install it to use compile: pip install dx_com")
+        raise ImportError("dx_com is not installed. Install it to use compile: pip install dx_com")
 
     # Resolve model path
     if model_path is None:
@@ -88,74 +87,6 @@ def compile_model(
         output_dir.mkdir(parents=True, exist_ok=True)
     raw_output_file = str(output_dir / f"{onnx_path.stem}.dxnn")
 
-    opt_level = compile_config.get("opt_level", 1)
-
-    quantization_config = compile_config.get("quantization", {})
-    if not isinstance(quantization_config, dict):
-        raise ValueError(f"'quantization' must be a dict, got: {type(quantization_config).__name__}")
-
-    _VALID_P_LEVELS = {"p0", "p1", "p2", "p3", "p4", "p5"}
-    _VALID_P_COMBINATIONS = {
-        "p0",
-        "p1",
-        "p2",
-        "p3",
-        "p4",
-        "p5",
-        "p1p3",
-        "p2p3",
-        "p1p4",
-        "p2p4",
-        "p1p5",
-        "p2p5",
-    }
-
-    # Determine quantization mode from top-level keys
-    quant_keys = set(quantization_config.keys())
-
-    enhanced_scheme = None
-    use_q_pro = False
-    if "pro" in quant_keys:
-        if quant_keys != {"pro"}:
-            raise ValueError(f"'pro' cannot be combined with other quantization keys, got: {sorted(quant_keys)}.")
-        pro_opts = quantization_config["pro"] or {}
-        use_q_pro = True
-        calibration_method = pro_opts.get("method", "ema")
-        calibration_num = pro_opts.get("num_samples", 100)
-    elif "lite" in quant_keys:
-        lite_opts = quantization_config["lite"] or {}
-        calibration_method = lite_opts.get("method", "ema")
-        calibration_num = lite_opts.get("num_samples", 100)
-    elif "master" in quant_keys:
-        master_opts = quantization_config["master"] or {}
-        calibration_method = master_opts.get("method", "ema")
-        calibration_num = master_opts.get("num_samples", 100)
-    elif quant_keys and quant_keys <= _VALID_P_LEVELS:
-        # Validate the combination of p-levels
-        combo_key = "".join(sorted(quant_keys, key=lambda k: int(k[1:])))
-        if combo_key not in _VALID_P_COMBINATIONS:
-            raise ValueError(
-                f"Unsupported p-level combination: {sorted(quant_keys)}. "
-                f"Valid combinations: {sorted(_VALID_P_COMBINATIONS)}"
-            )
-        enhanced_scheme = {}
-        calibration_method = "ema"
-        calibration_num = 100
-        for level in sorted(quant_keys, key=lambda k: int(k[1:])):
-            key = f"DXQ-{level.upper()}"
-            per_level_opts = quantization_config[level]
-            if per_level_opts and isinstance(per_level_opts, dict):
-                enhanced_scheme[key] = per_level_opts
-                calibration_method = per_level_opts.get("method", calibration_method)
-                calibration_num = per_level_opts.get("num_samples", calibration_num)
-            else:
-                enhanced_scheme[key] = True
-    else:
-        raise ValueError(
-            f"Unsupported quantization keys: {sorted(quant_keys)}. "
-            f"Expected 'pro', 'lite', 'master', or p-levels (p0-p5)."
-        )
-
     # Build calibration dataloader with full preprocessing (ONNX input format)
     # Exclude expanddim — DataLoader already adds batch dimension
     dataset = builder.build_dataset()
@@ -166,37 +97,22 @@ def compile_model(
         preproc_config = _remove_expanddim(builder.config["preprocessing"])
         input_specs = builder.config.get("inputs", [])
     dataset.preprocessing = PreprocessingPipeline(preproc_config, npu_mode=False)
-    dataloader = _make_calibration_loader(dataset, calibration_num, input_specs)
+    dataloader = _make_calibration_loader(dataset, len(dataset), input_specs)
 
-    # Run compilation
-    ppu_config_dict = compile_config.get("ppu_config")
-
-    compile_params = dict(
+    # Pass every compile profile attribute through unchanged. These four values
+    # are owned by dx-modelzoo and cannot be overridden from YAML.
+    fixed_params = dict(
         model=str(onnx_path),
-        # output=str(output_dir),
         output_dir=str(output_dir),
         config=None,
         dataloader=dataloader,
-        # use_gpu=use_gpu,
-        quantization_device="cuda" if use_gpu else "cpu",
-        opt_level=0 if debug else opt_level,
-        aggressive_partitioning=False,
-        # save_log=debug,
-        gen_log=debug,
-        ###
-        # release=True,
-        calibration_method=calibration_method,
-        calibration_num=calibration_num,
-        enhanced_scheme=enhanced_scheme,
     )
-
-    if use_q_pro:
-        compile_params["use_q_pro"] = True
-    if ppu_config_dict:
-        from dx_com import PPUConfig
-
-        ppu_config = PPUConfig.parse(ppu_config_dict)
-        compile_params["ppu_config"] = ppu_config
+    compile_params = {
+        key: value
+        for key, value in compile_config.items()
+        if key not in {"model", "output_dir", "config", "dataloader"}
+    }
+    compile_params.update(fixed_params)
 
     dx_compile(**compile_params)
 
@@ -221,6 +137,18 @@ def _make_calibration_loader(dataset, num_samples: int, input_specs=None):
     """
     import numpy as np
     import torch
+
+    torch_dtype_map = {
+        "float32": torch.float32,
+        "float16": torch.float16,
+        "float64": torch.float64,
+        "int32": torch.int32,
+        "int64": torch.int64,
+        "uint8": torch.uint8,
+    }
+    input_dtype_map = {
+        spec["name"]: torch_dtype_map.get(spec.get("dtype", "float32"), torch.float32) for spec in input_specs
+    }
 
     # Identify constant inputs (have 'value' in spec) — skip the first (variable) input
     constant_inputs = {}  # name → tensor
@@ -254,6 +182,29 @@ def _make_calibration_loader(dataset, num_samples: int, input_specs=None):
         def __getitem__(self, idx):
             item = self.dataset[idx]
             inp = item[0] if isinstance(item, (tuple, list)) else item
+            if isinstance(inp, dict):
+                result = {}
+                expected = {spec["name"] for spec in input_specs}
+                missing = expected - set(inp) - set(constant_inputs)
+                extra = set(inp) - expected
+                if missing or extra:
+                    raise ValueError(
+                        f"Calibration input keys mismatch. Missing: {sorted(missing)}; unknown: {sorted(extra)}"
+                    )
+                for name, value in inp.items():
+                    if isinstance(value, np.ndarray):
+                        value = torch.from_numpy(np.ascontiguousarray(value))
+                    elif not isinstance(value, torch.Tensor):
+                        value = torch.as_tensor(value)
+                    result[name] = value.to(input_dtype_map.get(name, torch.float32))
+                overlap = set(result) & set(constant_inputs)
+                if overlap:
+                    raise ValueError(
+                        f"Dataset returned constant input keys: {sorted(overlap)}. "
+                        "Remove constant inputs from dataset output."
+                    )
+                result.update(constant_inputs)
+                return result
             if isinstance(inp, np.ndarray):
                 inp = torch.from_numpy(inp.astype(np.float32))
             elif not isinstance(inp, torch.Tensor):

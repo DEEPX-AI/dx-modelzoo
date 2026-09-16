@@ -24,6 +24,7 @@ BEV config and the camera->LiDAR math mirror the SFA3D reference
 from __future__ import annotations
 
 import os
+from pathlib import Path
 from typing import Tuple
 
 import numpy as np
@@ -135,7 +136,7 @@ class _Calib:
 
     def __init__(self, path: str) -> None:
         data = {}
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 if not line or ":" not in line:
@@ -172,7 +173,7 @@ class KITTI(DatasetBase):
         split_file = os.path.join(data_dir, "ImageSets", f"{split}.txt")
         if not os.path.isfile(split_file):
             raise FileNotFoundError(f"KITTI split list not found: {split_file}\n{_INSTALL_GUIDE}")
-        with open(split_file) as f:
+        with open(split_file, encoding="utf-8") as f:
             self.ids = [line.strip() for line in f if line.strip()]
         self.ids = [i for i in self.ids if os.path.exists(os.path.join(self.lidar_dir, f"{i}.bin"))]
 
@@ -199,7 +200,7 @@ class KITTI(DatasetBase):
         if not os.path.exists(label_path):
             return np.zeros((0, 7), np.float64), np.zeros(0, np.float64)
         b = BOUNDARY
-        with open(label_path) as f:
+        with open(label_path, encoding="utf-8") as f:
             for line in f:
                 p = line.strip().split()
                 if len(p) < 15:
@@ -221,3 +222,49 @@ class KITTI(DatasetBase):
         if not boxes:
             return np.zeros((0, 7), np.float64), np.zeros(0, np.float64)
         return np.array(boxes, np.float64), np.array(classes, np.float64)
+
+    def validate(self) -> None:
+        """Validate the dataset's integrity and structure.
+
+        Raises:
+            RuntimeError: If the dataset is invalid or corrupted.
+        """
+        # directory structure
+        base_dir = os.path.join(self.data_dir, "training")
+        lidar_dir = os.path.join(base_dir, "velodyne")
+        label_dir = os.path.join(base_dir, "label_2")
+        calib_dir = os.path.join(base_dir, "calib")
+        is_correct_structure = (
+            Path(self.data_dir).is_dir()
+            and Path(base_dir).is_dir()
+            and Path(lidar_dir).is_dir()
+            and Path(label_dir).is_dir()
+            and Path(calib_dir).is_dir()
+            and Path(self.data_dir, "ImageSets").is_dir()
+        )
+        if not is_correct_structure:
+            raise RuntimeError(
+                "Dataset directory structure is invalid. Expected 'training' and 'ImageSets' directories under"
+                f" {self.data_dir}."
+            )
+
+        # file existence
+        NUM_DATA = 7481
+        num_lidar = len(list(Path(lidar_dir).glob("*.bin")))
+        num_labels = len(list(Path(label_dir).glob("*.txt")))
+        num_calib = len(list(Path(calib_dir).glob("*.txt")))
+        if num_lidar != NUM_DATA:
+            raise RuntimeError(f"Expected {NUM_DATA} LiDAR files in {lidar_dir}, but found {num_lidar}.")
+        if num_labels != NUM_DATA:
+            raise RuntimeError(f"Expected {NUM_DATA} label files in {label_dir}, but found {num_labels}.")
+        if num_calib != NUM_DATA:
+            raise RuntimeError(f"Expected {NUM_DATA} calibration files in {calib_dir}, but found {num_calib}.")
+
+        NUM_VAL = 1481
+        val_file = os.path.join(self.data_dir, "ImageSets", "val.txt")
+        with open(val_file, encoding="utf-8") as f:
+            num_lines = len(f.read().strip().splitlines())
+        if num_lines != NUM_VAL:
+            raise RuntimeError(
+                f"Expected {NUM_VAL} lines in {val_file}, but found {num_lines}. Please check the split file."
+            )

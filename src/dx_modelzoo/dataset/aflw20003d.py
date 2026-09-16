@@ -3,6 +3,7 @@ from __future__ import annotations
 import math
 import os
 from glob import glob
+from pathlib import Path
 from typing import List, Tuple
 
 import cv2
@@ -103,3 +104,18 @@ class AFLW20003D(DatasetBase):
         if src_ex > src_sx and src_ey > src_sy:
             res[dsy:dey, dsx:dex] = img[src_sy:src_ey, src_sx:src_ex]
         return res
+
+    def validate(self) -> None:
+        """Validate the dataset's integrity and structure.
+
+        Raises:
+            RuntimeError: If the dataset is invalid or corrupted.
+        """
+        # file existence
+        NUM_DATA = 2000
+        num_images = len(list(Path(self.data_dir).glob("*.jpg")))
+        num_annotations = len(list(Path(self.data_dir).glob("*.mat")))
+        if num_images != NUM_DATA:
+            raise RuntimeError(f"Expected {NUM_DATA} images, but found {num_images} in {self.data_dir}.")
+        if num_annotations != NUM_DATA:
+            raise RuntimeError(f"Expected {NUM_DATA} annotations, but found {num_annotations} in {self.data_dir}.")

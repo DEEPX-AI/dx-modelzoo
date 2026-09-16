@@ -2,12 +2,16 @@ from __future__ import annotations
 
 import multiprocessing as mp
 import os
+import queue
 import random
 from abc import ABC, abstractmethod
+from collections.abc import Mapping
 from typing import Any, Callable, Iterator, List, Optional, Tuple
 
 import numpy as np
 from loguru import logger
+
+from dx_modelzoo.common.exceptions import DatasetValidationError
 
 
 class DatasetBase(ABC):
@@ -17,6 +21,7 @@ class DatasetBase(ABC):
         self.data_dir = data_dir
         self._preprocessing = None
         self.transform = None  # torchvision Compose or Dict[str, Compose] for dx_com fusion
+        self._check_dataset()  # validate dataset integrity and structure
 
     @property
     def preprocessing(self):
@@ -31,7 +36,11 @@ class DatasetBase(ABC):
         # dx_com's _is_compose() will recognize it natively.
         from torchvision.transforms import Compose
 
-        if isinstance(value, Compose):
+        if isinstance(value, Compose) and isinstance(getattr(value, "_raw_config", None), Mapping):
+            self.transform = value.compose
+        elif isinstance(value, Compose):
+            self.transform = value
+        elif isinstance(value, Mapping):
             self.transform = value
         elif hasattr(value, "compose"):
             # Legacy fallback
@@ -46,6 +55,28 @@ class DatasetBase(ABC):
     @abstractmethod
     def __getitem__(self, idx: int) -> Tuple:
         ...
+
+    @abstractmethod
+    def validate(self) -> None:
+        """Validate the dataset's integrity and structure.
+
+        Raises:
+            RuntimeError: If the dataset is invalid or corrupted.
+        """
+        ...
+
+    def _check_dataset(self) -> bool:
+        try:
+            self.validate()
+        except DatasetValidationError:
+            raise
+        except Exception as e:
+            raise DatasetValidationError(
+                f"Dataset validation failed for {self.__class__.__name__}: {e}. "
+                "Check dataset path and expected directory/file structure."
+            ) from e
+        else:
+            logger.info(f" ✅ Dataset {self.__class__.__name__} validation passed.")
 
     def ensure_exists(self, data_dir: str, install_guide: str) -> None:
         """Raise ``FileNotFoundError`` with detailed install instructions if ``data_dir`` is missing.
@@ -63,11 +94,11 @@ class DatasetBase(ABC):
             f"  Expected path: {data_dir}\n"
             f"{'=' * 70}\n\n"
             f"{install_guide}\n\n"
-            f"After downloading, set the DATA_ROOT environment variable or\n"
-            f"use --data-root to point to the datasets directory.\n"
+            "After downloading, set the DATA_ROOT environment variable or\n"
+            "use --data-root to point to the datasets directory.\n"
             f"{'=' * 70}\n"
         )
-        raise FileNotFoundError(msg)
+        raise DatasetValidationError(msg)
 
 
 def _worker_loop(dataset, index_queue, result_queue, worker_seed=None):
@@ -99,6 +130,11 @@ def _numpy_collate(batch):
     if not batch:
         return batch
     elem = batch[0]
+    if isinstance(elem, Mapping):
+        keys = set(elem)
+        if any(set(item) != keys for item in batch):
+            raise ValueError("Mapping batch items must contain identical keys")
+        return {key: _numpy_collate([item[key] for item in batch]) for key in elem}
     if isinstance(elem, tuple):
         lengths = [len(b) for b in batch]
         n = min(lengths)
@@ -106,13 +142,10 @@ def _numpy_collate(batch):
             import warnings
 
             warnings.warn(
-                f"Inconsistent tuple lengths in batch collation: {set(lengths)}. " f"Truncating to {n} elements.",
+                f"Inconsistent tuple lengths in batch collation: {set(lengths)}. Truncating to {n} elements.",
                 stacklevel=2,
             )
-        return tuple(
-            np.stack([b[i] for b in batch]) if isinstance(batch[0][i], np.ndarray) else [b[i] for b in batch]
-            for i in range(n)
-        )
+        return tuple(_numpy_collate([b[i] for b in batch]) for i in range(n))
     if isinstance(elem, np.ndarray):
         return np.stack(batch)
     return batch
@@ -132,6 +165,7 @@ class DataLoader:
         num_workers: int = 0,
         collate_fn: Optional[Callable] = None,
         prefetch_factor: int = 2,
+        start_method: str = "auto",
     ) -> None:
         self.dataset = dataset
         self.batch_size = batch_size
@@ -139,6 +173,11 @@ class DataLoader:
         self.num_workers = min(num_workers, os.cpu_count() or 1)
         self.collate_fn = collate_fn or (_numpy_collate if batch_size > 1 else None)
         self.prefetch_factor = prefetch_factor
+        if start_method not in {"auto", "forkserver", "spawn"}:
+            raise ValueError(
+                f"Unsupported multiprocessing start method {start_method!r}. Expected one of: auto, forkserver, spawn"
+            )
+        self.start_method = start_method
 
     def __len__(self) -> int:
         n = len(self.dataset)
@@ -157,6 +196,8 @@ class DataLoader:
     def _collate_batch(self, items: List) -> Any:
         if self.collate_fn is not None:
             return self.collate_fn(items)
+        if items and isinstance(items[0], Mapping):
+            return _numpy_collate(items)
         return items[0] if len(items) == 1 else items
 
     def _iter_single(self, indices: List[int]) -> Iterator:
@@ -175,7 +216,9 @@ class DataLoader:
         from dx_modelzoo.common.seed import get_seed
 
         base_seed = get_seed()
-        ctx = mp.get_context("forkserver")
+        from dx_modelzoo.session.runtime_config import RuntimeConfig
+
+        ctx = mp.get_context(RuntimeConfig(start_method=self.start_method).resolved_start_method())
         index_queue = ctx.Queue()
         result_queue = ctx.Queue()
 
@@ -206,7 +249,13 @@ class DataLoader:
         try:
             for _ in range(len(indices)):
                 while next_order not in pending:
-                    order, data = result_queue.get()
+                    try:
+                        order, data = result_queue.get(timeout=1)
+                    except queue.Empty:
+                        dead = [worker.exitcode for worker in workers if not worker.is_alive()]
+                        if dead:
+                            raise RuntimeError(f"DataLoader worker exited before returning result; exit codes: {dead}")
+                        continue
                     if isinstance(data, Exception):
                         if hasattr(data, "__traceback_str__"):
                             logger.error("Worker error:\n{}", data.__traceback_str__)
@@ -260,6 +309,7 @@ def make_dataloader(
     shuffle: bool = False,
     num_workers: int = 0,
     collate_fn: Optional[Callable] = None,
+    start_method: str = "auto",
 ) -> DataLoader:
     """Create a DataLoader wrapping a DatasetBase.
 
@@ -272,4 +322,5 @@ def make_dataloader(
         shuffle=shuffle,
         num_workers=num_workers,
         collate_fn=collate_fn,
+        start_method=start_method,
     )

@@ -2,6 +2,7 @@ name: beit-l-p16_224x224
 display_name: BEiT-Large/16
 task: image_classification
 reference: https://github.com/microsoft/unilm/tree/master/beit
+license: MIT
 description: >-
   BEiT-Large (patch 16) Vision Transformer image classification model that ingests a
   224x224 RGB image (NCHW, ImageNet mean/std normalization) and outputs a 1000-way logit
@@ -59,6 +60,11 @@ artifacts:
   path: ${MODEL_ROOT}/${MODEL_NAME}
 appendix:
   npu_skip_arithmetic: false
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
+
 profiles:
   onnx:
     target: onnx
@@ -69,27 +75,42 @@ profiles:
     target: dxnn
     compile:
       opt_level: 0
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-lite:
     target: dxnn
     compile:
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-pro:
     target: dxnn
     compile:
-      quantization:
-        pro:
-          num_samples: 1024
-          method: ema
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
+    runtime:
+      device: 0
+  q-master:
+    target: dxnn
+    compile:
+      calibration: *calibration
+      qmaster:
+        config:
+          batch_size: 16
+          train_limit: 50000
+          val_limit: 5000
+          max_grad_norm: 0.5
+          use_amp: false
+          criterion: mse
+          use_kd: true
+          kd_loss: mse
+          kd_alpha: 1.0
+          scheduler: cosine
+          save_best_model: false
+          early_stopping_delta: 0.0
+          freeze_bn_after: 0
     runtime:
       device: 0

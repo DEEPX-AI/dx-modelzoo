@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 from typing import Tuple
 
 import cv2
@@ -69,7 +70,7 @@ class Cityscapes(DatasetBase):
         self.ensure_exists(data_dir, _INSTALL_GUIDE)
         super().__init__(data_dir)
         annpath = os.path.join(self.data_dir, "val.txt")
-        with open(annpath, "r") as fr:
+        with open(annpath, "r", encoding="utf-8") as fr:
             pairs = fr.read().splitlines()
         self.img_paths, self.lb_paths = [], []
         for pair in pairs:
@@ -92,3 +93,33 @@ class Cityscapes(DatasetBase):
             label = self.lb_map[label]
         img = self.preprocessing(img)
         return img, label
+
+    def validate(self) -> None:
+        """Validate the dataset's integrity and structure.
+
+        Raises:
+            RuntimeError: If the dataset is invalid or corrupted.
+        """
+        # directory structure
+        is_correct_structure = (
+            Path(self.data_dir).is_dir()
+            and Path(self.data_dir, "leftImg8bit").is_dir()
+            and Path(self.data_dir, "gtFine").is_dir()
+            and Path(self.data_dir, "val.txt").is_file()
+        )
+        if not is_correct_structure:
+            raise RuntimeError(
+                "Dataset directory structure is invalid. Expected 'leftImg8bit', 'gtFine' directories and "
+                f"'val.txt' file under {self.data_dir}."
+            )
+
+        # file existence
+        NUM_DATA = 500
+        num_images = len(list(Path(self.data_dir, "leftImg8bit", "val").glob("*/*.png")))
+        num_labels = len(list(Path(self.data_dir, "gtFine", "val").glob("*/*_labelIds.png")))
+        if num_images != NUM_DATA:
+            raise RuntimeError(
+                f"Expected {NUM_DATA} images in {self.data_dir}/leftImg8bit/val, but found {num_images}."
+            )
+        if num_labels != NUM_DATA:
+            raise RuntimeError(f"Expected {NUM_DATA} labels in {self.data_dir}/gtFine/val, but found {num_labels}.")

@@ -2,6 +2,7 @@ name: yolo26-x-obb_1024x1024
 display_name: Ultralytics YOLO26-x-obb
 task: oriented_object_detection
 reference: https://github.com/ultralytics/ultralytics
+license: AGPL-3.0
 description: >-
   YOLO26-OBB oriented object detector on a 1024x1024 RGB input that predicts rotated
   bounding boxes (center, size and angle) with class scores. Postprocessing
@@ -45,6 +46,11 @@ dataset:
   eval_path: ${DATA_ROOT}/DOTAv1
 artifacts:
   path: ${MODEL_ROOT}/${MODEL_NAME}
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
+
 profiles:
   onnx:
     target: onnx
@@ -55,27 +61,21 @@ profiles:
     target: dxnn
     compile:
       opt_level: 0
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-lite:
     target: dxnn
     compile:
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-pro:
     target: dxnn
     compile:
-      quantization:
-        pro:
-          num_samples: 1024
-          method: ema
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
     runtime:
       device: 0

@@ -2,13 +2,14 @@ name: shufflenetv2-x1.0_224x224
 display_name: ShuffleNetV2-x1.0
 task: image_classification
 reference: https://github.com/pytorch/vision
+license: BSD-3-Clause
 description: >-
   ShuffleNet-v2 efficient CNN image classification model that ingests a 224x224 RGB
   image (NCHW, ImageNet mean/std normalization) and outputs a 1000-way logit vector over
   the ImageNet-1k categories. Postprocessing applies top-k selection on the class
   logits. Evaluated on the ImageNet (ILSVRC2012) validation set reporting Top-1 and
   Top-5 classification accuracy.
-macs: 149.07 MMACs
+macs: 0.15 GMACs
 params: 2.27 M
 inputs:
 - name: input
@@ -57,6 +58,11 @@ dataset:
   eval_path: ${DATA_ROOT}/ILSVRC2012/val
 artifacts:
   path: ${MODEL_ROOT}/${MODEL_NAME}
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
+
 profiles:
   onnx:
     target: onnx
@@ -67,27 +73,21 @@ profiles:
     target: dxnn
     compile:
       opt_level: 0
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-lite:
     target: dxnn
     compile:
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-pro:
     target: dxnn
     compile:
-      quantization:
-        pro:
-          num_samples: 1024
-          method: ema
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
     runtime:
       device: 0

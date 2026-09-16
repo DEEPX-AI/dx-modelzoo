@@ -16,6 +16,9 @@ class FakeSession(SessionBase):
 
 
 class FakeDataset(DatasetBase):
+    def validate(self) -> None:  # ponytail: test double, nothing to validate
+        pass
+
     """Single GT car at LiDAR (x=20, y=5), l=4, w=2, yaw=0."""
 
     def __init__(self):

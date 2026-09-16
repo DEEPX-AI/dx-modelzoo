@@ -2,13 +2,14 @@ name: espcn-x2_17x17
 display_name: ESPCN-x2
 task: super_resolution
 reference: https://github.com/Lornatang/ESPCN-PyTorch
+license: MIT
 description: >-
   ESPCN efficient sub-pixel CNN for x2 single-image super-resolution, taking a 17x17
   low-resolution luminance (Y) patch and reconstructing the high-resolution output via a
   sub-pixel (pixel-shuffle) layer. Evaluated on the BSD100 benchmark reporting PSNR and
   SSIM.
-macs: 8.26 MMACs
-params: 21.28 K
+macs: 0.01 GMACs
+params: 0.02 M
 inputs:
 - name: input
   shape:
@@ -52,6 +53,11 @@ appendix:
     - 2
     - 0
     - 1
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
+
 profiles:
   onnx:
     target: onnx
@@ -62,27 +68,21 @@ profiles:
     target: dxnn
     compile:
       opt_level: 0
-      quantization:
-        lite:
-          method: minmax
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-lite:
     target: dxnn
     compile:
-      quantization:
-        lite:
-          method: minmax
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-pro:
     target: dxnn
     compile:
-      quantization:
-        pro:
-          num_samples: 1024
-          method: minmax
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
     runtime:
       device: 0

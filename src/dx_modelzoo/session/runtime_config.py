@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import multiprocessing as mp
 from dataclasses import dataclass, replace
 from typing import Any, ClassVar, Dict, Optional
+
+from dx_modelzoo.common.exceptions import ConfigError
 
 __all__ = ["RuntimeConfig", "OnnxRuntimeConfig", "DxnnRuntimeConfig"]
 
@@ -26,6 +29,18 @@ class RuntimeConfig:
     device: Any = None
     batch_size: int = 1
     async_mode: Optional[bool] = None
+    start_method: str = "auto"
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.start_method, str) or self.start_method not in {"auto", "forkserver", "spawn"}:
+            raise ConfigError(
+                f"runtime.start_method must be one of: auto, forkserver, spawn; got {self.start_method!r}"
+            )
+        if self.start_method != "auto" and self.start_method not in mp.get_all_start_methods():
+            raise ConfigError(
+                f"Unsupported multiprocessing start method {self.start_method!r}. "
+                f"Supported on this platform: {sorted(mp.get_all_start_methods())}"
+            )
 
     @property
     def use_async(self) -> bool:
@@ -38,6 +53,7 @@ class RuntimeConfig:
             "device": runtime.get("device"),
             "batch_size": runtime.get("batch_size", 1),
             "async_mode": runtime.get("async"),
+            "start_method": runtime.get("start_method", "auto"),
         }
 
     @classmethod
@@ -58,7 +74,24 @@ class RuntimeConfig:
 
     @classmethod
     def from_runtime(cls, runtime: Optional[Dict[str, Any]]) -> "RuntimeConfig":
-        return cls(**cls._common_kwargs(runtime or {}))
+        kwargs = cls._common_kwargs(runtime or {})
+        return cls(**kwargs)
+
+    def resolved_start_method(self) -> str:
+        """Resolve auto to best supported portable worker start method."""
+        if self.start_method != "auto":
+            if self.start_method not in mp.get_all_start_methods():
+                raise ConfigError(
+                    f"Unsupported multiprocessing start method {self.start_method!r}. "
+                    f"Supported on this platform: {sorted(mp.get_all_start_methods())}"
+                )
+            return self.start_method
+        methods = mp.get_all_start_methods()
+        if "forkserver" in methods:
+            return "forkserver"
+        if "spawn" in methods:
+            return "spawn"
+        raise ConfigError("No supported multiprocessing start method found; expected forkserver or spawn")
 
     def with_device_override(self, device: Any) -> "RuntimeConfig":
         """Return a copy with ``device`` replaced, unless ``device`` is ``None``."""

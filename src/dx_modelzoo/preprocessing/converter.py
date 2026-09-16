@@ -93,20 +93,16 @@ def _extract_fusable_transforms(yaml_steps: List[Dict[str, Any]]) -> List:
 
 def yaml_to_compose_transforms(
     preprocessing_config: Union[List[Dict[str, Any]], Dict[str, List[Dict[str, Any]]]],
-) -> List:
-    """Extract fusable transforms as a flat list (for Compose.__init__).
-
-    For dict configs, flattens all inputs' fusable transforms into one list.
-    Used internally by PreprocessingPipeline(Compose) to populate .transforms.
-    """
+) -> Union[List, Dict[str, List]]:
+    """Extract fusable transforms while preserving input mapping."""
     if isinstance(preprocessing_config, list):
         return _extract_fusable_transforms(preprocessing_config)
 
     if isinstance(preprocessing_config, dict):
-        result: list = []
-        for steps in preprocessing_config.values():
+        result: Dict[str, List] = {}
+        for name, steps in preprocessing_config.items():
             if isinstance(steps, list):
-                result.extend(_extract_fusable_transforms(steps))
+                result[name] = _extract_fusable_transforms(steps)
         return result
 
     return []

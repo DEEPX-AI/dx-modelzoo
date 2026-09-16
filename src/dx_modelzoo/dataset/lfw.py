@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import os
+from pathlib import Path
 from typing import List, Tuple
 
 import cv2
@@ -41,7 +42,7 @@ class LFW(DatasetBase):
     @staticmethod
     def _load_pairs(pairs_csv: str) -> List[Tuple]:
         pairs = []
-        with open(pairs_csv, newline="") as f:
+        with open(pairs_csv, newline="", encoding="utf-8") as f:
             reader = csv.reader(f)
             next(reader)
             for row in reader:
@@ -69,3 +70,26 @@ class LFW(DatasetBase):
         img1 = self.preprocessing(img1)
         img2 = self.preprocessing(img2)
         return img1, img2, label
+
+    def validate(self) -> None:
+        """Validate the dataset's integrity and structure.
+
+        Raises:
+            RuntimeError: If the dataset is invalid or corrupted.
+        """
+        # directory structure
+        image_dir = os.path.join(self.data_dir, "lfw-deepfunneled")
+        is_correct_structure = (
+            Path(self.data_dir).is_dir() and Path(image_dir).is_dir() and Path(self.data_dir, "pairs.csv").is_file()
+        )
+        if not is_correct_structure:
+            raise RuntimeError(
+                "Dataset directory structure is invalid. Expected 'lfw-deepfunneled' directory and 'pairs.csv' file"
+                f" under {self.data_dir}."
+            )
+
+        # file existence
+        NUM_DATA = 13233
+        num_images = len(list(Path(image_dir).glob("*/*.jpg")))
+        if num_images != NUM_DATA:
+            raise RuntimeError(f"Expected {NUM_DATA} images in {image_dir}, but found {num_images}.")

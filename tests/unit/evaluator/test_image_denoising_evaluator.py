@@ -16,6 +16,9 @@ class FakeSession(SessionBase):
 
 
 class FakeDataset(DatasetBase):
+    def validate(self) -> None:  # ponytail: test double, nothing to validate
+        pass
+
     def __init__(self):
         super().__init__("/fake")
 

@@ -21,6 +21,7 @@ class SessionType(str, Enum):
 class EvaluationType(str, Enum):
     image_classification = "ImageClassification"
     coco = "ObjectDetection_COCO"
+    mainbody_detection = "MainbodyDetection"
     segmentation = "ImageSegmentation"
     voc = "ObjectDetection_VOC2007"
     bsd68 = "ImageDenoising_BSD68"
@@ -47,6 +48,7 @@ class EvaluationType(str, Enum):
             "ImageClassification": "TopK1, TopK5",
             "ZeroShotClassification": "TopK1, TopK5",
             "ObjectDetection_COCO": "mAP, mAP50",
+            "MainbodyDetection": "mAP, mAP50",
             "ObjectDetection_VOC2007": "mAP50",
             "ImageSegmentation": "mIoU",
             "OxfordPetSegmentation": "mIoU",
@@ -77,6 +79,7 @@ class DatasetType(str, Enum):
     CelebA = "CelebA"
     Cityscapes = "Cityscapes"
     COCO = "COCO"
+    COCOForeground = "COCOForeground"
     COCOPose = "COCOPose"
     DOTAv1 = "DOTAv1"
     AFLW20003D = "AFLW20003D"

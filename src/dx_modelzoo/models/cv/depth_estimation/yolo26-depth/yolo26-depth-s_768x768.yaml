@@ -2,6 +2,7 @@ name: yolo26-depth-s_768x768
 display_name: Ultralytics YOLO26-s-depth
 task: depth_estimation
 reference: https://github.com/ultralytics/ultralytics
+license: AGPL-3.0
 description: >-
   Ultralytics YOLO26-s monocular depth estimation model taking a 768x768 RGB image
   and producing a dense per-pixel depth map. Evaluated on the NYU Depth v2 benchmark
@@ -51,6 +52,11 @@ dataset:
   eval_path: ${DATA_ROOT}/nyudepthv2
 artifacts:
   path: ${MODEL_ROOT}/${MODEL_NAME}
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
+
 profiles:
   onnx:
     target: onnx
@@ -61,27 +67,21 @@ profiles:
     target: dxnn
     compile:
       opt_level: 0
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-lite:
     target: dxnn
     compile:
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-pro:
     target: dxnn
     compile:
-      quantization:
-        pro:
-          num_samples: 1024
-          method: ema
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
     runtime:
       device: 0

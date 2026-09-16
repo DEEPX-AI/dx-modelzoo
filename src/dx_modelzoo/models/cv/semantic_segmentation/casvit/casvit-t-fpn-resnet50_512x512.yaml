@@ -2,6 +2,7 @@ name: casvit-t-fpn-resnet50_512x512
 display_name: CAS-ViT-T FPN (ResNet-50)
 task: semantic_segmentation
 reference: https://github.com/Tianfang-Zhang/CAS-ViT
+license: Apache-2.0
 description: >-
   CAS-ViT-T (tiny) backbone with a Semantic FPN decode head (ResNet-50-style
   channel layout) for semantic segmentation. CAS-ViT replaces full self-attention
@@ -14,27 +15,27 @@ macs: 41.48 GMACs
 params: 24.99 M
 
 inputs:
-  - name: input
-    shape: [1, 3, 512, 512]
-    dtype: float32
-    layout: NCHW
+- name: input
+  shape: [1, 3, 512, 512]
+  dtype: float32
+  layout: NCHW
 
 preprocessing:
-  - type: convertcolor
-    form: BGR2RGB
-  - type: resize
-    width: 512
-    height: 512
-  - type: normalize
-    mean: [123.675, 116.28, 103.53]
-    std: [58.395, 57.12, 57.375]
-  - type: transpose
-    axis: [2, 0, 1]
-  - type: expanddim
-    axis: 0
+- type: convertcolor
+  form: BGR2RGB
+- type: resize
+  width: 512
+  height: 512
+- type: normalize
+  mean: [123.675, 116.28, 103.53]
+  std: [58.395, 57.12, 57.375]
+- type: transpose
+  axis: [2, 0, 1]
+- type: expanddim
+  axis: 0
 
 postprocessing:
-  - type: segmentation_argmax
+- type: segmentation_argmax
 
 evaluator:
   type: semantic_segmentation
@@ -45,6 +46,10 @@ dataset:
 
 artifacts:
   path: ${MODEL_ROOT}/${MODEL_NAME}
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
 
 profiles:
   onnx:
@@ -56,28 +61,22 @@ profiles:
     target: dxnn
     compile:
       opt_level: 0
-      quantization:
-        lite:
-          num_samples: 100
-          method: ema
+      calibration: *calibration
     runtime:
       device: 0
   q-lite:
     target: dxnn
     compile:
-      quantization:
-        lite:
-          num_samples: 100
-          method: ema
+      calibration: *calibration
     runtime:
       device: 0
 
   q-pro:
     target: dxnn
     compile:
-      quantization:
-        pro:
-          num_samples: 1024
-          method: ema
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
     runtime:
       device: 0
