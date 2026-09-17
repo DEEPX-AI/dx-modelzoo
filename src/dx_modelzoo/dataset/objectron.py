@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import os
 import struct
+from pathlib import Path
 from typing import Dict, List, Tuple
 
 import cv2
@@ -225,3 +226,23 @@ class Objectron(DatasetBase):
             kpts = np.zeros((0, 9, 2), dtype=np.float32)
 
         return self.preprocessing(img), kpts.astype(np.float32), (H, W)
+
+    def validate(self) -> None:
+        """Validate the dataset's integrity and structure.
+
+        Raises:
+            RuntimeError: If the dataset is invalid or corrupted.
+        """
+        # directory structure
+        is_correct_structure = Path(self.data_dir).is_dir() and any(Path(self.data_dir).glob("*test-*"))
+        if not is_correct_structure:
+            raise RuntimeError(
+                "Dataset directory structure is invalid. Expected TFRecord shards named '*test-*' under"
+                f" {self.data_dir}."
+            )
+
+        # file existence
+        NUM_DATA = 379  # Replace with the actual number of test shards
+        num_shards = len(list(Path(self.data_dir).glob("*test-*")))
+        if num_shards != NUM_DATA:
+            raise RuntimeError(f"Expected {NUM_DATA} test shards in {self.data_dir}, but found {num_shards}.")

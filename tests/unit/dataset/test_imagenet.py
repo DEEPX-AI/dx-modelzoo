@@ -1,8 +1,7 @@
 """Tests for dx_modelzoo.dataset.imagenet."""
 
-import os
-import numpy as np
 import cv2
+import numpy as np
 import pytest
 
 from dx_modelzoo.dataset.imagenet import ILSVRC2012
@@ -10,6 +9,11 @@ from dx_modelzoo.preprocessing import PreprocessingPipeline
 
 
 class TestILSVRC2012:
+    @pytest.fixture(autouse=True)
+    def _skip_validate(self, monkeypatch):
+        # ponytail: unit tests use tiny fixtures; skip full-dataset count validation
+        monkeypatch.setattr(ILSVRC2012, "validate", lambda self: None)
+
     def _setup_data(self, tmp_path):
         # Create minimal structure: val/n01440764/img.JPEG
         cls_dir = tmp_path / "n01440764"

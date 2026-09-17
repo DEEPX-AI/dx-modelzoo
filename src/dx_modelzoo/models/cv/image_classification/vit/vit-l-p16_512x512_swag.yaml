@@ -1,0 +1,82 @@
+name: vit-l-p16_512x512_swag
+task: image_classification
+reference: https://pytorch.org/vision/stable/models/generated/torchvision.models.vit_l_16.html
+license: BSD-3-Clause
+description: torchvision ViT-L/16 with SWAG E2E weights, 512x512 input, ImageNet-1k.
+macs: 379.71 GMACs
+params: 305.17 M
+
+evaluator:
+  type: image_classification
+inputs:
+- name: x
+  shape: [1, 3, 512, 512]
+  dtype: float32
+  layout: NCHW
+
+preprocessing:
+- type: resize
+  mode: torchvision
+  size: 512
+  interpolation: BICUBIC
+- type: centercrop
+  height: 512
+  width: 512
+- type: convertcolor
+  form: BGR2RGB
+- type: div
+  x: 255
+- type: normalize
+  mean: [0.485, 0.456, 0.406]
+  std: [0.229, 0.224, 0.225]
+- type: transpose
+  axis: [2, 0, 1]
+- type: expanddim
+  axis: 0
+
+postprocessing:
+- type: topk
+  k: [1, 5]
+
+dataset:
+  type: ILSVRC2012
+  eval_path: ${DATA_ROOT}/ILSVRC2012/val
+
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
+
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      calibration: *calibration
+    runtime:
+      buffer_count: 1
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      calibration: *calibration
+    runtime:
+      buffer_count: 1
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
+    runtime:
+      buffer_count: 1
+      device: 0

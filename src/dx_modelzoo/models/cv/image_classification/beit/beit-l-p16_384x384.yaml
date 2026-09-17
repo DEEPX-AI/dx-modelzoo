@@ -1,0 +1,110 @@
+name: beit-l-p16_384x384
+task: image_classification
+reference: https://github.com/microsoft/unilm
+license: MIT
+description: beit-l-p16_384x384 image_classification model with 384x384 input.
+macs: 62.76 GMACs
+params: 319.05 M
+inputs:
+- name: input
+  shape:
+  - 1
+  - 3
+  - 384
+  - 384
+  dtype: float32
+  layout: NCHW
+preprocessing:
+- type: resize
+  mode: torchvision
+  size: 384
+  interpolation: BICUBIC
+- type: centercrop
+  height: 384
+  width: 384
+- type: convertcolor
+  form: BGR2RGB
+- type: div
+  x: 255
+- type: normalize
+  mean:
+  - 0.5
+  - 0.5
+  - 0.5
+  std:
+  - 0.5
+  - 0.5
+  - 0.5
+- type: transpose
+  axis:
+  - 2
+  - 0
+  - 1
+- type: expanddim
+  axis: 0
+postprocessing:
+- type: topk
+  k:
+  - 1
+  - 5
+dataset:
+  type: ILSVRC2012
+  eval_path: ${DATA_ROOT}/ILSVRC2012/val
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+appendix:
+  npu_skip_arithmetic: false
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
+
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      calibration: *calibration
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      calibration: *calibration
+    runtime:
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
+    runtime:
+      device: 0
+  q-master:
+    target: dxnn
+    compile:
+      calibration: *calibration
+      qmaster:
+        config:
+          batch_size: 16
+          train_limit: 50000
+          val_limit: 5000
+          max_grad_norm: 0.5
+          use_amp: false
+          criterion: mse
+          use_kd: true
+          kd_loss: mse
+          kd_alpha: 1.0
+          scheduler: cosine
+          save_best_model: false
+          early_stopping_delta: 0.0
+          freeze_bn_after: 0
+    runtime:
+      device: 0

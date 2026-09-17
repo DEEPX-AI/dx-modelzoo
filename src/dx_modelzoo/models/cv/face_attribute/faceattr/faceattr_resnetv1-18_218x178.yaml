@@ -2,6 +2,7 @@ name: faceattr_resnetv1-18_218x178
 display_name: FaceAttr ResNet-18
 task: face_attribute
 reference: https://github.com/d-li14/face-attribute-prediction
+license: MIT
 description: >-
   Face attribute recognition with a ResNet-V1-18 backbone on a 218x178 aligned
   face image (CelebA native crop size, NCHW, ImageNet mean/std normalization).
@@ -53,6 +54,11 @@ dataset:
   eval_path: ${DATA_ROOT}/CelebA
 artifacts:
   path: ${MODEL_ROOT}/${MODEL_NAME}
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
+
 profiles:
   onnx:
     target: onnx
@@ -63,27 +69,21 @@ profiles:
     target: dxnn
     compile:
       opt_level: 0
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-lite:
     target: dxnn
     compile:
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-pro:
     target: dxnn
     compile:
-      quantization:
-        pro:
-          num_samples: 1024
-          method: ema
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
     runtime:
       device: 0

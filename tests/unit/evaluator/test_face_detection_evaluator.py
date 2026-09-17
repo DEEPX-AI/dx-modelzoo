@@ -16,6 +16,9 @@ class FakeSession(SessionBase):
 
 
 class FakeDataset(DatasetBase):
+    def validate(self) -> None:  # ponytail: test double, nothing to validate
+        pass
+
     def __init__(self):
         super().__init__("/fake")
         # Common attrs evaluators may expect
@@ -38,10 +41,23 @@ class TestFaceDetectionEvaluator:
         metrics = ev.init_metrics()
         assert isinstance(metrics, dict)
 
-    def test_compute_final_metrics(self):
+    def test_compute_final_metrics(self, monkeypatch):
         ev = self._make()
         ev.total_inference_time = 1.0
-        metrics = ev.init_metrics()
-        # Face detection needs gt_boxes from dataset — skip compute_final
-        # Just verify init works
-        assert "current_count" in metrics or True
+        captured = {}
+
+        def fake_evaluation(predictions):
+            captured["predictions"] = predictions
+            return [0.1, 0.2, 0.3]
+
+        monkeypatch.setattr(ev, "evaluation", fake_evaluation)
+
+        metrics = ev.compute_final_metrics(ev.init_metrics())
+
+        assert captured["predictions"] == {}
+        assert metrics["metrics"] == [
+            {"name": "Easy AP", "metric_value": 10.0},
+            {"name": "Medium AP", "metric_value": 20.0},
+            {"name": "Hard AP", "metric_value": 30.0},
+        ]
+        assert metrics["fps"] == 3.0

@@ -1,0 +1,86 @@
+name: stdc1-seg50_512x1024
+display_name: STDC1-Seg50
+task: semantic_segmentation
+reference: https://github.com/MichaelFan01/STDC-Seg
+license: MIT
+description: >-
+  STDC1-Seg50 semantic segmentation model using an STDCNet813 backbone.
+  The reference reports 72.22% mIoU on Cityscapes at 0.5 scale.
+macs: 17.83 GMACs
+params: 8.42 M
+inputs:
+- name: x
+  shape:
+  - 1
+  - 3
+  - 512
+  - 1024
+  dtype: float32
+  layout: NCHW
+preprocessing:
+- type: convertcolor
+  form: BGR2RGB
+- type: resize
+  width: 1024
+  height: 512
+- type: div
+  x: 255
+- type: normalize
+  mean:
+  - 0.485
+  - 0.456
+  - 0.406
+  std:
+  - 0.229
+  - 0.224
+  - 0.225
+- type: transpose
+  axis:
+  - 2
+  - 0
+  - 1
+- type: expanddim
+  axis: 0
+postprocessing:
+- type: segmentation_argmax
+  target_size:
+  - 1024
+  - 2048
+dataset:
+  type: Cityscapes
+  eval_path: ${DATA_ROOT}/cityscapes
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
+
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      calibration: *calibration
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      calibration: *calibration
+    runtime:
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
+    runtime:
+      device: 0

@@ -166,7 +166,7 @@ class OBBEvaluator(EvaluatorBase):
         img_h = float(origin_shape[0].item() if hasattr(origin_shape[0], "item") else origin_shape[0])
         img_w = float(origin_shape[1].item() if hasattr(origin_shape[1], "item") else origin_shape[1])
         try:
-            with open(label_path, "r") as f:
+            with open(label_path, "r", encoding="utf-8") as f:
                 for line in f.readlines():
                     parts = line.strip().split()
                     if len(parts) >= 9:

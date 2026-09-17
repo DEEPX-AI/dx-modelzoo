@@ -97,11 +97,11 @@ class OnnxRuntimeSession(SessionBase):
             import onnxruntime  # noqa: F401
         except ImportError:
             raise ImportError(
-                "onnxruntime is required for OnnxRuntimeSession. " "Install it with: pip install onnxruntime"
+                "onnxruntime is required for OnnxRuntimeSession. Install it with: pip install onnxruntime"
             )
 
         cfg = runtime_config if runtime_config is not None else OnnxRuntimeConfig()
-        super().__init__(path)
+        super().__init__(path, runtime_config=cfg)
         from onnxruntime import InferenceSession
 
         provider = _get_ort_provider(cfg.device)
@@ -159,6 +159,10 @@ class OnnxRuntimeSession(SessionBase):
                 "tensor(uint8)": np.uint8,
             }
             feed = {}
+            expected_names = {spec.name for spec in input_specs}
+            extra = set(inputs) - expected_names
+            if extra:
+                raise KeyError(f"Unknown input tensor(s): {sorted(extra)}. Expected: {sorted(expected_names)}")
             for spec in input_specs:
                 if spec.name not in inputs:
                     continue

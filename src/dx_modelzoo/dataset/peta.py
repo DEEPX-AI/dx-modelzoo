@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 from typing import List, Tuple
 
 import cv2
@@ -110,3 +111,26 @@ class PETA(DatasetBase):
             raise FileNotFoundError(f"Failed to load image: {img_path}")
         img = self.preprocessing(img)
         return img, labels, idx
+
+    def validate(self) -> None:
+        """Validate the dataset's integrity and structure.
+
+        Raises:
+            RuntimeError: If the dataset is invalid or corrupted.
+        """
+        # directory structure
+        is_correct_structure = (
+            Path(self.data_dir).is_dir()
+            and Path(self.data_dir, "PETA.mat").is_file()
+            and Path(self.data_dir, "images").is_dir()
+        )
+        if not is_correct_structure:
+            raise RuntimeError(
+                f"Dataset directory structure is invalid. Expected 'PETA.mat' and 'images/' under {self.data_dir}."
+            )
+
+        # file existence
+        NUM_DATA = 19000  # Total number of images in PETA dataset
+        num_images = len(list(Path(self.data_dir, "images").glob("*.png")))
+        if num_images != NUM_DATA:
+            raise RuntimeError(f"Expected {NUM_DATA} images in {self.data_dir}/images, but found {num_images}.")

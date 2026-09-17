@@ -1,7 +1,8 @@
 """Tests for dx_modelzoo.evaluator.image_classification_evaluator."""
 
-import numpy as np
 from datetime import datetime
+
+import numpy as np
 
 from dx_modelzoo.common.dataloader import DatasetBase
 from dx_modelzoo.evaluator.image_classification_evaluator import ImageClassificationEvaluator
@@ -23,6 +24,9 @@ class FakeSession(SessionBase):
 
 
 class FakeDataset(DatasetBase):
+    def validate(self) -> None:  # ponytail: test double, nothing to validate
+        pass
+
     def __init__(self, size=5):
         super().__init__("/fake")
         self._size = size

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 from typing import List, Optional, Tuple
 
 import cv2
@@ -82,3 +83,30 @@ class HPatches(DatasetBase):
             raise FileNotFoundError(f"Failed to load image: {img_path}")
         H_1_n = _load_homography(seq_dir, n)
         return self.preprocessing(img), img.shape, seq, n, img_path, H_1_n
+
+    def validate(self) -> None:
+        """Validate the dataset's integrity and structure.
+
+        Raises:
+            RuntimeError: If the dataset is invalid or corrupted.
+        """
+        # directory structure
+        is_correct_structure = Path(self.data_dir).is_dir() and any(Path(self.data_dir).glob("*/1.ppm"))
+        if not is_correct_structure:
+            raise RuntimeError(
+                "Dataset directory structure is invalid. Expected 'hpatches-sequences-release/SEQ/1.ppm' under"
+                f" {self.data_dir}."
+            )
+
+        # file existence
+        NUM_DATA = 696
+        NUM_SEQUENCES = 116
+        num_images = len(list(Path(self.data_dir).glob("*/[1-6].ppm")))
+        if num_images != NUM_DATA:
+            raise RuntimeError(
+                f"Expected {NUM_DATA} images in each sequence under {self.data_dir}, but found {num_images}."
+            )
+
+        num_sequences = len(list(Path(self.data_dir).glob("*/")))
+        if num_sequences != NUM_SEQUENCES:
+            raise RuntimeError(f"Expected {NUM_SEQUENCES} sequences under {self.data_dir}, but found {num_sequences}.")

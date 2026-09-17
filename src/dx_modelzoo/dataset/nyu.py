@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 from typing import Callable, List, Tuple
 
 import numpy as np
@@ -90,3 +91,22 @@ class NYUDepthv2(DatasetBase):
         rgb, depth = self._h5_loader(path)
         label = self._label_preprocessing(depth) if self._label_preprocessing is not None else depth
         return self.preprocessing(rgb), label
+
+    def validate(self) -> None:
+        """Validate the dataset's integrity and structure.
+
+        Raises:
+            RuntimeError: If the dataset is invalid or corrupted.
+        """
+        # directory structure
+        is_correct_structure = Path(self.data_dir).is_dir()
+        if not is_correct_structure:
+            raise RuntimeError(
+                f"Dataset directory structure is invalid. Expected subdirectories with .h5 files under {self.data_dir}."
+            )
+
+        # file existence
+        NUM_DATA = 654
+        num_images = len(list(Path(self.data_dir).rglob("*.h5")))
+        if num_images != NUM_DATA:
+            raise RuntimeError(f"Expected {NUM_DATA} .h5 files in {self.data_dir}, but found {num_images}.")

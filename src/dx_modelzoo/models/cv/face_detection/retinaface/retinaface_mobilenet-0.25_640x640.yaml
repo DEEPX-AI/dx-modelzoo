@@ -2,13 +2,14 @@ name: retinaface_mobilenet-0.25_640x640
 display_name: RetinaFace (MobileNet-0.25)
 task: face_detection
 reference: https://github.com/deepinsight/insightface
+license: MIT
 description: >-
   RetinaFace single-stage face detector on a 640x640 RGB input that predicts face
   bounding boxes (with landmarks) and confidences. Postprocessing (retinaface_decode)
   decodes anchors/priors and applies NMS. Evaluated on the WiderFace benchmark reporting
   Average Precision (AP).
 macs: 1.02 GMACs
-params: 423.26 K
+params: 0.42 M
 inputs:
 - name: input
   shape:
@@ -51,6 +52,11 @@ dataset:
   eval_path: ${DATA_ROOT}/widerface
 artifacts:
   path: ${MODEL_ROOT}/${MODEL_NAME}
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
+
 profiles:
   onnx:
     target: onnx
@@ -61,27 +67,21 @@ profiles:
     target: dxnn
     compile:
       opt_level: 0
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-lite:
     target: dxnn
     compile:
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-pro:
     target: dxnn
     compile:
-      quantization:
-        pro:
-          num_samples: 1024
-          method: ema
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
     runtime:
       device: 0

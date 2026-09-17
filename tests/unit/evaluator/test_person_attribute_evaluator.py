@@ -1,7 +1,8 @@
 """Tests for dx_modelzoo.evaluator.person_attribute_evaluator."""
 
-import numpy as np
 from datetime import datetime
+
+import numpy as np
 
 from dx_modelzoo.common.dataloader import DatasetBase
 from dx_modelzoo.evaluator.person_attribute_evaluator import PersonAttributeEvaluator
@@ -17,6 +18,9 @@ class FakeSession(SessionBase):
 
 
 class FakeDataset(DatasetBase):
+    def validate(self) -> None:  # ponytail: test double, nothing to validate
+        pass
+
     def __init__(self):
         super().__init__("/fake")
         self.num_attr = 35

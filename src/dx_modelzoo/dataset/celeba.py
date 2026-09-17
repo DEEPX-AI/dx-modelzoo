@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import os
+from pathlib import Path
 from typing import List, Tuple
 
 import cv2
@@ -92,12 +93,12 @@ class CelebA(DatasetBase):
         attr_path = os.path.join(self.data_dir, "list_attr_celeba.csv")
         img_dir = os.path.join(self.data_dir, "img_align_celeba")
         test_ids = set()
-        with open(partition_path, "r") as f:
+        with open(partition_path, "r", encoding="utf-8") as f:
             reader = csv.DictReader(f)
             for row in reader:
                 if row["partition"] == "2":
                     test_ids.add(row["image_id"])
-        with open(attr_path, "r") as f:
+        with open(attr_path, "r", encoding="utf-8") as f:
             reader = csv.DictReader(f)
             for row in reader:
                 img_id = row["image_id"]
@@ -119,3 +120,30 @@ class CelebA(DatasetBase):
             raise FileNotFoundError(f"Failed to load image: {img_path}")
         img = self.preprocessing(img)
         return img, labels, idx
+
+    def validate(self) -> None:
+        """Validate the dataset's integrity and structure.
+
+        Raises:
+            RuntimeError: If the dataset is invalid or corrupted.
+        """
+        # directory structure
+        is_correct_structure = (
+            Path(self.data_dir).is_dir()
+            and Path(self.data_dir, "img_align_celeba").is_dir()
+            and Path(self.data_dir, "list_eval_partition.csv").is_file()
+            and Path(self.data_dir, "list_attr_celeba.csv").is_file()
+        )
+        if not is_correct_structure:
+            raise RuntimeError(
+                "Dataset directory structure is invalid. Expected 'img_align_celeba' directory and annotation files"
+                f" under {self.data_dir}."
+            )
+
+        # file existence
+        NUM_DATA = 19962
+        num_images = len(list(Path(self.data_dir, "img_align_celeba").glob("*")))
+        if num_images != NUM_DATA:
+            raise RuntimeError(
+                f"Expected {NUM_DATA} images in {self.data_dir}/img_align_celeba, but found {num_images}."
+            )

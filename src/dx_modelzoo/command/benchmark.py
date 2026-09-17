@@ -46,7 +46,7 @@ def _eval_single(
         result_dir.mkdir(exist_ok=True)
         # start = metrics.get("start_time", "").replace(" ", "_").replace(":", "-")
         fname = result_dir / f"eval_{builder.name}_{profile_name}.json"
-        with open(fname, "w") as f:
+        with open(fname, "w", encoding="utf-8") as f:
             json.dump(metrics, f, indent=2, ensure_ascii=False)
         logger.success(f"Saved to {fname}")
 
@@ -130,7 +130,7 @@ def _run_sequential(
 
         find_files = list(Path("result").rglob(f"eval_{entry.name}_{profile_name}.json"))
         if len(find_files) > 0:
-            with open(find_files[0], "r") as f:
+            with open(find_files[0], "r", encoding="utf-8") as f:
                 data = json.load(f)
                 cached_profile = data.get("profile", "")
                 performance = data.get("metrics", [])
@@ -246,6 +246,6 @@ def _print_summary(results: List[Dict[str, Any]], profile_name: str) -> None:
     result_dir.mkdir(exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     fname = result_dir / f"benchmark_{profile_name}_summary_{timestamp}.json"
-    with open(fname, "w") as f:
+    with open(fname, "w", encoding="utf-8") as f:
         json.dump(summary_rows, f, indent=2, ensure_ascii=False)
     logger.success(f"Summary saved to {fname}")

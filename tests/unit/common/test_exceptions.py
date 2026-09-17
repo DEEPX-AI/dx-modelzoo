@@ -2,10 +2,27 @@
 
 import pytest
 
-from dx_modelzoo.common.exceptions import ConfigError, ModelBuildError, YamlValidationError
+from dx_modelzoo.common.exceptions import (
+    ConfigError,
+    DatasetValidationError,
+    DxmzError,
+    ModelBuildError,
+    SessionCreationError,
+    YamlValidationError,
+)
 
 
 class TestExceptions:
+    def test_public_errors_share_domain_base(self):
+        for error_type in (
+            ConfigError,
+            YamlValidationError,
+            ModelBuildError,
+            SessionCreationError,
+            DatasetValidationError,
+        ):
+            assert issubclass(error_type, DxmzError)
+
     def test_config_error_is_exception(self):
         with pytest.raises(ConfigError):
             raise ConfigError("bad config")

@@ -2,6 +2,7 @@ name: bisenetv1_1024x2048
 display_name: BiSeNetV1
 task: semantic_segmentation
 reference: https://github.com/CoinCheung/BiSeNet
+license: MIT
 description: >-
   BiSeNet-V1 bilateral segmentation network for semantic segmentation on a 1024x2048 RGB
   input, producing per-pixel class logits. Postprocessing applies a per-pixel argmax to
@@ -49,6 +50,11 @@ dataset:
   eval_path: ${DATA_ROOT}/cityscapes
 artifacts:
   path: ${MODEL_ROOT}/${MODEL_NAME}
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
+
 profiles:
   onnx:
     target: onnx
@@ -59,27 +65,21 @@ profiles:
     target: dxnn
     compile:
       opt_level: 0
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-lite:
     target: dxnn
     compile:
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-pro:
     target: dxnn
     compile:
-      quantization:
-        pro:
-          num_samples: 1024
-          method: ema
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
     runtime:
       device: 0
