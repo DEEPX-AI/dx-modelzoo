@@ -1,7 +1,6 @@
 """Tests for dx_modelzoo.evaluator.low_light_enhancement_evaluator (E2E)."""
 
 import numpy as np
-from datetime import datetime
 
 from dx_modelzoo.common.dataloader import DatasetBase
 from dx_modelzoo.evaluator.low_light_enhancement_evaluator import LowLightEnhancementEvaluator
@@ -18,6 +17,9 @@ class FakeSession(SessionBase):
 
 
 class FakeDataset(DatasetBase):
+    def validate(self) -> None:  # ponytail: test double, nothing to validate
+        pass
+
     def __init__(self):
         super().__init__("/fake")
 

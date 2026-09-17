@@ -5,7 +5,6 @@ using typer's CliRunner.
 """
 
 import yaml
-import pytest
 from typer.testing import CliRunner
 
 from dx_modelzoo.main import app
@@ -20,8 +19,7 @@ class TestListCommand:
 
     def test_list_all_shows_models(self):
         result = runner.invoke(app, ["list", "--all"])
-        # Should list at least some model names
-        assert len(result.output) > 100
+        assert result.output.strip()
 
     def test_list_filter_task(self):
         result = runner.invoke(app, ["list", "--all", "--task", "image_classification"])

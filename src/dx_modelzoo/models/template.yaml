@@ -57,36 +57,127 @@ profiles:
     runtime:
       device: gpu
       batch_size: 1
-  c-lite:
+  dxnn-profile:
     target: dxnn
     compile:
-      opt_level: 0
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
-    runtime:
-      device: 0
-      batch_size: 1
-      async: true
-  q-lite:
-    target: dxnn
-    compile:
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
-    runtime:
-      device: 0
-      batch_size: 1
-      async: true
-  q-pro:
-    target: dxnn
-    compile:
-      quantization:
-        pro:
-          num_samples: 1024
-          method: ema
+      gen_log: false  # Default is false
+      verbose: false  # Default is false
+      compile_input_nodes:
+      compile_output_nodes:
+      export_html: false  # Default is false
+
+      opt_level: 1  # 0, Default is 1
+      aggressive_partitioning: false  # Default is false
+
+      calibration:
+        method: ema  # iqr, minmax, Default is ema
+        num: 100  # Default is 100
+        seed: 42
+        wbit: 8
+        use_q_pro: false  # Default is false
+        enhanced_scheme:
+          DXQ-P0:
+            alpha: 0.5
+            acc_boost: false
+          DXQ-P1: true
+          DXQ-P2:
+            alpha: 0.1
+            beta: 1.0
+            cosim_num: 2
+          DXQ-P3:
+            num_samples: 1024
+          DXQ-P4:
+            num_samples: 1024
+          DXQ-P5:
+            num_samples: 1024
+
+      ppu_config:
+        type: 0  # 1, 2
+        conf_thres: 0.25
+        activation: "Sigmoid"
+        num_classes: 80
+        layer:
+          Conv_245:
+            num_anchors: 3
+          Conv_294:
+            num_anchors: 3
+          Conv_343:
+            num_anchors: 3
+        # type: 1
+        # conf_thres: 0.25
+        # num_classes: 80
+        # layer:
+        #   - bbox: "output_bbox_1"
+        #     obj_conf: "output_obj_1"
+        #     cls_conf: "output_cls_1"
+        #   - bbox: "output_bbox_2"
+        #     obj_conf: "output_obj_2"
+        #     cls_conf: "output_cls_2"
+        #   - bbox: "output_bbox_3"
+        #     obj_conf: "output_obj_3"
+        #     cls_conf: "output_cls_3"
+        # type: 1
+        # conf_thres: 0.25
+        # num_classes: 80
+        # layer:
+        #   - bbox: "output_bbox_1"
+        #     cls_conf: "output_cls_1"
+        #   - bbox: "output_bbox_2"
+        #     cls_conf: "output_cls_2"
+        #   - bbox: "output_bbox_3"
+        #     cls_conf: "output_cls_3"
+      pre_optimize_config:
+      - yolo_dfl_postprocess:
+          num_classes: 80
+          topk: 512
+          layers:
+          - bbox: /model.22/cv2.0/cv2.0.2/Conv_output_0
+            cls_conf: /model.22/cv3.0/cv3.0.2/Conv_output_0
+            mask_coeff: /model.22/cv4.0/cv4.0.2/Conv_output_0
+          - bbox: /model.22/cv2.1/cv2.1.2/Conv_output_0
+            cls_conf: /model.22/cv3.1/cv3.1.2/Conv_output_0
+            mask_coeff: /model.22/cv4.1/cv4.1.2/Conv_output_0
+          - bbox: /model.22/cv2.2/cv2.2.2/Conv_output_0
+            cls_conf: /model.22/cv3.2/cv3.2.2/Conv_output_0
+            mask_coeff: /model.22/cv4.2/cv4.2.2/Conv_output_0
+
+      qmaster:
+        batch_size: 8
+        num_workers: 4
+        train_limit: 500
+        val_limit: 50
+        train_drop_last: true
+        val_drop_last: false
+
+        device: "cuda:0"
+        epochs: 30
+        lr: 1e-05
+        weight_decay: 0.0001
+        optimizer: "adamw"
+        scheduler: "cosine"
+        scheduler_step_size: 10
+        criterion: "mse"
+        freeze_bn_after:
+        gradient_accumulation_steps: 1
+        use_amp: true
+        max_grad_norm: 1.0
+        early_stopping_patience: 5
+        early_stopping_delta: 0.001
+        warmup_epochs: 0
+        label_smoothing: 0.0
+        save_best_model: true
+        verbose_epoch_logs: false
+
+        use_kd: true
+        kd_loss: "mse"
+        kd_alpha: 1.0
+        kd_temperature: 4.0
+
+        multi_output: false
+        stage1_mode: "fresh"
+
+        skip_training: false
+        resume_path:
     runtime:
       device: 0
       batch_size: 1

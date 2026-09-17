@@ -1,8 +1,7 @@
 """Tests for dx_modelzoo.dataset.cityscapes."""
 
-import os
-import numpy as np
 import cv2
+import numpy as np
 import pytest
 
 from dx_modelzoo.dataset.cityscapes import Cityscapes
@@ -10,6 +9,11 @@ from dx_modelzoo.preprocessing import PreprocessingPipeline
 
 
 class TestCityscapes:
+    @pytest.fixture(autouse=True)
+    def _skip_validate(self, monkeypatch):
+        # ponytail: unit tests use tiny fixtures; skip full-dataset count validation
+        monkeypatch.setattr(Cityscapes, "validate", lambda self: None)
+
     def _setup_data(self, tmp_path):
         # Cityscapes expects val.txt with img,label pairs
         img_dir = tmp_path / "leftImg8bit" / "val" / "city1"
@@ -40,4 +44,5 @@ class TestCityscapes:
 
     def test_is_subclass(self):
         from dx_modelzoo.common.dataloader import DatasetBase
+
         assert issubclass(Cityscapes, DatasetBase)

@@ -1,0 +1,98 @@
+name: yolov12-seg-m_640x640_pre-optimized
+display_name: YOLOv12-m-seg (Pre-Optimized)
+task: instance_segmentation
+reference: https://github.com/sunsmarterjie/yolov12
+license: AGPL-3.0
+description: YOLOv12 instance segmentation model on a 640x640 RGB input that predicts object boxes, classes and per-instance
+  mask coefficients/prototypes. Postprocessing (yolov12_seg_decode) assembles per-instance masks and applies NMS. Evaluated
+  on the COCO instance segmentation benchmark reporting mask mean Average Precision (mAP).
+macs: 62.87 GMACs
+params: 21.97 M
+inputs:
+- name: input
+  shape:
+  - 1
+  - 3
+  - 640
+  - 640
+  dtype: float32
+  layout: NCHW
+preprocessing:
+- type: resize
+  mode: pad
+  size: 640
+  pad_location: edge
+  pad_value:
+  - 114
+  - 114
+  - 114
+- type: div
+  x: 255
+- type: convertcolor
+  form: BGR2RGB
+- type: transpose
+  axis:
+  - 2
+  - 0
+  - 1
+- type: expanddim
+  axis: 0
+postprocessing:
+- type: yolov12_seg_decode
+dataset:
+  type: COCO
+  eval_path: ${DATA_ROOT}/COCO
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
+
+pre_optimize_config: &pre_optimize_config
+- yolo_dfl_postprocess:
+    task: seg
+    layers:
+    - bbox: conv2d_127
+      cls_conf: conv2d_132
+      mask_coeff: conv2d_118
+    - bbox: conv2d_135
+      cls_conf: conv2d_140
+      mask_coeff: conv2d_121
+    - bbox: conv2d_143
+      cls_conf: conv2d_148
+      mask_coeff: conv2d_124
+    num_classes: 80
+    topk: 512
+
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      calibration: *calibration
+      pre_optimize_config: *pre_optimize_config
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      calibration: *calibration
+      pre_optimize_config: *pre_optimize_config
+    runtime:
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
+      pre_optimize_config: *pre_optimize_config
+    runtime:
+      device: 0

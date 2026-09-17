@@ -16,12 +16,10 @@ class DxRuntimeSession(SessionBase):
         try:
             from dx_engine import DeviceStatus, InferenceEngine, InferenceOption
         except ImportError:
-            raise ImportError(
-                "dx_engine is required for DxRuntimeSession. " "Please install the DeepX runtime package."
-            )
+            raise ImportError("dx_engine is required for DxRuntimeSession. Please install the DeepX runtime package.")
 
         cfg = runtime_config if runtime_config is not None else DxnnRuntimeConfig()
-        super().__init__(path)
+        super().__init__(path, runtime_config=cfg)
         # DXNN supports async inference; honor an explicit runtime async flag,
         # otherwise default to async.
         self._use_async = cfg.use_async
@@ -65,15 +63,22 @@ class DxRuntimeSession(SessionBase):
 
     def run(self, inputs: Union[np.ndarray, Dict[str, np.ndarray]]) -> List[np.ndarray]:
         if isinstance(inputs, dict):
-            if len(inputs) == 1:
+            names = self.inference_engine.get_input_tensor_names()
+            if len(inputs) == 1 and len(names) == 1:
+                name = names[0]
+                if name not in inputs:
+                    raise KeyError(f"Unknown input tensor(s): {list(inputs)}. Expected: {names}")
                 inputs = next(iter(inputs.values()))
             else:
-                names = self.inference_engine.get_input_tensor_names()
+                extra = set(inputs) - set(names)
+                missing = [name for name in names if name not in inputs]
+                if extra or missing:
+                    raise KeyError(
+                        f"Input tensors mismatch. Missing: {missing}; unknown: {sorted(extra)}; expected: {names}"
+                    )
                 dtypes = self.inference_engine.get_input_data_type()
                 prepared = {}
                 for name, dt in zip(names, dtypes):
-                    if name not in inputs:
-                        raise KeyError(f"Missing input tensor '{name}'. Provided: {list(inputs.keys())}")
                     arr = inputs[name]
                     if not isinstance(arr, np.ndarray):
                         arr = np.asarray(arr)
@@ -96,15 +101,21 @@ class DxRuntimeSession(SessionBase):
         user_arg = kwargs.get("user_arg")
         output_buffer = kwargs.get("output_buffer")
         if isinstance(inputs, dict):
-            if len(inputs) == 1:
+            names = self.inference_engine.get_input_tensor_names()
+            if len(inputs) == 1 and len(names) == 1:
+                if names[0] not in inputs:
+                    raise KeyError(f"Unknown input tensor(s): {list(inputs)}. Expected: {names}")
                 inputs = next(iter(inputs.values()))
             else:
-                names = self.inference_engine.get_input_tensor_names()
                 dtypes = self.inference_engine.get_input_data_type()
+                extra = set(inputs) - set(names)
+                missing = [name for name in names if name not in inputs]
+                if extra or missing:
+                    raise KeyError(
+                        f"Input tensors mismatch. Missing: {missing}; unknown: {sorted(extra)}; expected: {names}"
+                    )
                 prepared = {}
                 for name, dt in zip(names, dtypes):
-                    if name not in inputs:
-                        raise KeyError(f"Missing input tensor '{name}'. Provided: {list(inputs.keys())}")
                     arr = inputs[name]
                     if not isinstance(arr, np.ndarray):
                         arr = np.asarray(arr)

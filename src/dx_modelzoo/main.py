@@ -195,7 +195,7 @@ def eval(
             result_dir = Path("result")
             result_dir.mkdir(exist_ok=True)
             fname = result_dir / f"eval_{builder.name}_{profile}.json"
-            with open(fname, "w") as f:
+            with open(fname, "w", encoding="utf-8") as f:
                 json.dump(result, f, indent=2, ensure_ascii=False)
             logger.info(f"Saved to {fname}")
 
@@ -212,7 +212,6 @@ def compile(
     model_path: Optional[str] = typer.Option(None, "--model-path", help="Path to ONNX model"),
     data_root: Optional[str] = typer.Option(None, "--data-root", help="Override DATA_ROOT"),
     model_root: Optional[str] = typer.Option(None, "--model-root", help="Override MODEL_ROOT"),
-    use_gpu: bool = typer.Option(False, "--use-gpu", help="Use GPU for quantization"),
 ) -> None:
     """Compile a model for NPU deployment."""
     _apply_env_overrides(data_root, model_root)
@@ -242,7 +241,6 @@ def compile(
                 profile_name=profile,
                 output=stage_output,
                 model_path=stage_mp,
-                use_gpu=use_gpu,
                 stage=stage_name,
             )
     else:
@@ -252,7 +250,6 @@ def compile(
             profile_name=profile,
             output=output,
             model_path=model_path,
-            use_gpu=use_gpu,
         )
 
 
@@ -267,8 +264,9 @@ def benchmark(
     devices: Optional[str] = typer.Option(
         None,
         "--devices",
-        help="Comma-separated device IDs for parallel execution (e.g. '0,1,2,3'). "
-        "Each device runs one model at a time.",
+        help=(
+            "Comma-separated device IDs for parallel execution (e.g. '0,1,2,3'). Each device runs one model at a time."
+        ),
     ),
     save: bool = typer.Option(False, "--save", help="Save results to JSON file"),
 ) -> None:
@@ -303,7 +301,7 @@ def benchmark(
         result_dir.mkdir(exist_ok=True)
         current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         fname = result_dir / f"benchmark_{profile}_{current_time}.json"
-        with open(fname, "w") as f:
+        with open(fname, "w", encoding="utf-8") as f:
             json.dump(results, f, indent=2, ensure_ascii=False)
         logger.success(f"Saved to {fname}")
 
@@ -393,6 +391,14 @@ def info(
     typer.echo(f"Profiles: {list(builder.config['profiles'].keys())}")
     if "dataset" in builder.config:
         typer.echo(f"Dataset: {builder.config['dataset']}")
+    if builder.is_pipeline:
+        for stage_name in builder.pipeline_stages:
+            stage = builder.get_stage_config(stage_name)
+            typer.echo(f"Pipeline stage: {stage_name}")
+            typer.echo(f"  Inputs: {stage['inputs']}")
+            typer.echo(f"  Preprocessing: {stage['preprocessing']}")
+    else:
+        typer.echo(f"Preprocessing: {builder.config.get('preprocessing', [])}")
 
 
 def main() -> None:

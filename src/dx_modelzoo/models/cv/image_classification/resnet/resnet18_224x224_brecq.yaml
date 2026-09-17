@@ -2,6 +2,7 @@ name: resnet18_224x224_brecq
 display_name: ResNet-18 (BRECQ)
 task: image_classification
 reference: https://github.com/yhhhli/BRECQ
+license: Apache-2.0
 description: >-
   ResNet residual CNN image classification model that ingests a 224x224 RGB image (NCHW,
   ImageNet mean/std normalization) and outputs a 1000-way logit vector over the
@@ -59,6 +60,11 @@ dataset:
   eval_path: ${DATA_ROOT}/ILSVRC2012/val
 artifacts:
   path: ${MODEL_ROOT}/${MODEL_NAME}
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
+
 profiles:
   onnx:
     target: onnx
@@ -69,27 +75,21 @@ profiles:
     target: dxnn
     compile:
       opt_level: 0
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-lite:
     target: dxnn
     compile:
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-pro:
     target: dxnn
     compile:
-      quantization:
-        pro:
-          num_samples: 1024
-          method: ema
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
     runtime:
       device: 0

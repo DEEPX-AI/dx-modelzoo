@@ -230,11 +230,10 @@ def _profiles_for(choice: str) -> dict[str, Any]:
         profiles["q-lite"] = {
             "target": "dxnn",
             "compile": {
-                "quantization": {
-                    "lite": {
-                        "num_samples": 100,
-                        "method": "ema",
-                    },
+                "calibration": {
+                    "method": "ema",
+                    "num": 100,
+                    "seed": 42,
                 },
             },
             "runtime": {
@@ -439,7 +438,7 @@ def _write_custom_ops_template(model_dir: Path, spec: ClassificationScaffold) ->
     custom_ops_text = _render_custom_ops_template(spec)
     temp_path = custom_ops_path.with_name(f"{custom_ops_path.name}.tmp")
     try:
-        temp_path.write_text(custom_ops_text)
+        temp_path.write_text(custom_ops_text, encoding="utf-8")
         temp_path.replace(custom_ops_path)
     except Exception:
         temp_path.unlink(missing_ok=True)
@@ -494,7 +493,7 @@ def write_classification_scaffold(
     should_update_custom_ops = bool(_custom_postprocessing_types(spec)) and custom_ops_path.exists()
     custom_ops_text = _render_custom_ops_template(spec) if should_create_custom_ops else None
     updated_custom_ops_text = (
-        _append_missing_custom_postprocessing_sections(custom_ops_path.read_text(), spec)
+        _append_missing_custom_postprocessing_sections(custom_ops_path.read_text(encoding="utf-8"), spec)
         if should_update_custom_ops
         else None
     )
@@ -504,11 +503,11 @@ def write_classification_scaffold(
     backup_path = target_path.with_name(f"{target_path.name}.bak")
     published_custom_ops = False
     try:
-        temp_path.write_text(yaml_text)
+        temp_path.write_text(yaml_text, encoding="utf-8")
         if custom_ops_text is not None:
-            custom_ops_temp_path.write_text(custom_ops_text)
+            custom_ops_temp_path.write_text(custom_ops_text, encoding="utf-8")
         elif updated_custom_ops_text is not None:
-            custom_ops_temp_path.write_text(updated_custom_ops_text)
+            custom_ops_temp_path.write_text(updated_custom_ops_text, encoding="utf-8")
 
         if overwrite and target_path.exists():
             backup_path.unlink(missing_ok=True)

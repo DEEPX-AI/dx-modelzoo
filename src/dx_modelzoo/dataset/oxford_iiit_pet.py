@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 from typing import Callable, List, Tuple
 
 import cv2
@@ -57,7 +58,7 @@ class OxfordIIITPet(DatasetBase):
         img_dir = os.path.join(self.data_dir, "images")
         trimap_dir = os.path.join(self.data_dir, "annotations", "trimaps")
         image_files, label_files = [], []
-        with open(test_txt, "r") as f:
+        with open(test_txt, "r", encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 if not line or line.startswith("#"):
@@ -85,3 +86,34 @@ class OxfordIIITPet(DatasetBase):
         if self._label_preprocessing is not None:
             label = self.label_preprocessing(label)
         return img, label
+
+    def validate(self) -> None:
+        """Validate the dataset's integrity and structure.
+
+        Raises:
+            RuntimeError: If the dataset is invalid or corrupted.
+        """
+        # directory structure
+        img_dir = os.path.join(self.data_dir, "images")
+        trimap_dir = os.path.join(self.data_dir, "annotations", "trimaps")
+        test_txt = os.path.join(self.data_dir, "annotations", "test.txt")
+        is_correct_structure = (
+            Path(self.data_dir).is_dir()
+            and Path(img_dir).is_dir()
+            and Path(trimap_dir).is_dir()
+            and Path(test_txt).is_file()
+        )
+        if not is_correct_structure:
+            raise RuntimeError(
+                "Dataset directory structure is invalid. Expected 'images', 'annotations/trimaps' directories and"
+                f" 'annotations/test.txt' file under {self.data_dir}."
+            )
+
+        # file existence
+        NUM_DATA = 7390
+        num_images = len(list(Path(img_dir).glob("*.jpg")))
+        num_labels = len(list(Path(trimap_dir).glob("*.png")))
+        if num_images != NUM_DATA:
+            raise RuntimeError(f"Expected {NUM_DATA} images in {img_dir}, but found {num_images}.")
+        if num_labels != NUM_DATA:
+            raise RuntimeError(f"Expected {NUM_DATA} labels in {trimap_dir}, but found {num_labels}.")

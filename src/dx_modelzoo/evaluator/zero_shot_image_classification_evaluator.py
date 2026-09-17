@@ -8,7 +8,10 @@ from tqdm import tqdm
 
 from dx_modelzoo.common.dataloader import DatasetBase
 from dx_modelzoo.evaluator import EVALUATOR_REGISTRY, EvaluatorBase
+from dx_modelzoo.evaluator.embedding_cache import load_or_build_embedding, resolve_embedding_cache_path
 from dx_modelzoo.session import SessionBase
+
+_TEXT_EMBEDDING_CACHE = "imagenet_text_embedding.npy"
 
 
 @EVALUATOR_REGISTRY.register("zero_shot_image_classification")
@@ -64,12 +67,26 @@ class ZeroShotImageClassificationEvaluator(EvaluatorBase):
         return [float(correct[:, :k].sum()) for k in topk]
 
     def init_metrics(self) -> dict:
-        if self.zero_shot_text_embedding:
-            logger.info("Loading pre-computed text embeddings from '{}'" , self.zero_shot_text_embedding)
-            self.zeroshot_text_embedding_weight = np.load(self.zero_shot_text_embedding)
+        cache_path = resolve_embedding_cache_path(
+            self.zero_shot_text_embedding,
+            getattr(self.session, "path", ""),
+            _TEXT_EMBEDDING_CACHE,
+        )
+        if self.zero_shot_text_embedding or (cache_path and cache_path.is_file()):
+            self.zeroshot_text_embedding_weight = load_or_build_embedding(
+                self.zero_shot_text_embedding,
+                getattr(self.session, "path", ""),
+                _TEXT_EMBEDDING_CACHE,
+                lambda: self._build_text_embedding(self.clip_model_name, self.clip_pretrained),
+            )
             logger.info("Text embeddings loaded -- shape: {}", self.zeroshot_text_embedding_weight.shape)
         elif self.clip_model_name and self.clip_pretrained:
-            self.zeroshot_text_embedding_weight = self._build_text_embedding(self.clip_model_name, self.clip_pretrained)
+            self.zeroshot_text_embedding_weight = load_or_build_embedding(
+                None,
+                getattr(self.session, "path", ""),
+                _TEXT_EMBEDDING_CACHE,
+                lambda: self._build_text_embedding(self.clip_model_name, self.clip_pretrained),
+            )
         else:
             logger.warning(
                 "No 'zero_shot_text_embedding' or 'clip_model_name'/'clip_pretrained' specified. "

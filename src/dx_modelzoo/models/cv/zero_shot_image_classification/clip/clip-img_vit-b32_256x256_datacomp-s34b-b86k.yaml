@@ -2,6 +2,7 @@ name: clip-img_vit-b32_256x256_datacomp-s34b-b86k
 display_name: CLIP ViT-B/32 (DataComp)
 task: zero_shot_image_classification
 reference: https://github.com/mlfoundations/open_clip
+license: MIT
 description: >-
   CLIP image-encoder branch with a ViT-B/32 image encoder (DataComp weights) on a
   256x256 RGB input, producing an image embedding aligned to CLIP text embeddings. Zero-
@@ -56,6 +57,11 @@ dataset:
   eval_path: ${DATA_ROOT}/ILSVRC2012/val
 artifacts:
   path: ${MODEL_ROOT}/${MODEL_NAME}
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
+
 profiles:
   onnx:
     target: onnx
@@ -66,27 +72,21 @@ profiles:
     target: dxnn
     compile:
       opt_level: 0
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-lite:
     target: dxnn
     compile:
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-pro:
     target: dxnn
     compile:
-      quantization:
-        pro:
-          num_samples: 1024
-          method: ema
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
     runtime:
       device: 0

@@ -3,6 +3,7 @@ from __future__ import annotations
 import math
 import os
 from glob import glob
+from pathlib import Path
 from typing import List, Tuple
 
 import cv2
@@ -58,7 +59,7 @@ class HandKeypoints(DatasetBase):
             label_path = os.path.join(label_dir, f"{basename}.txt")
             if not os.path.exists(label_path):
                 continue
-            with open(label_path, "r") as f:
+            with open(label_path, "r", encoding="utf-8") as f:
                 for line in f:
                     parts = line.strip().split()
                     if len(parts) < 5 + self.NUM_KEYPOINTS * 3:
@@ -117,6 +118,34 @@ class HandKeypoints(DatasetBase):
             return angle + 90.0
         return 0.0
 
+    def validate(self) -> None:
+        """Validate the dataset's integrity and structure.
+
+        Raises:
+            RuntimeError: If the dataset is invalid or corrupted.
+        """
+        # directory structure
+        is_correct_structure = (
+            Path(self.data_dir).is_dir()
+            and Path(self.data_dir, "images", "val").is_dir()
+            and Path(self.data_dir, "labels", "val").is_dir()
+        )
+        if not is_correct_structure:
+            raise RuntimeError(
+                "Dataset directory structure is invalid. Expected 'images/val' and 'labels/val' directories under"
+                f" {self.data_dir}."
+            )
+
+        # file existence
+        NUM_DATA = 7992
+        num_images = len(list(Path(self.data_dir, "images", "val").glob("*.jpg")))
+        if num_images != NUM_DATA:
+            raise RuntimeError(f"Expected {NUM_DATA} images in {self.data_dir}/images/val, but found {num_images}.")
+
+        num_labels = len(list(Path(self.data_dir, "labels", "val").glob("*.txt")))
+        if num_labels != NUM_DATA:
+            raise RuntimeError(f"Expected {NUM_DATA} labels in {self.data_dir}/labels/val, but found {num_labels}.")
+
 
 @DATASET_REGISTRY.register
 class HandKeypointsDetection(DatasetBase):
@@ -145,7 +174,7 @@ class HandKeypointsDetection(DatasetBase):
             label_path = os.path.join(label_dir, f"{basename}.txt")
             boxes: List[List[float]] = []
             if os.path.exists(label_path):
-                with open(label_path, "r") as f:
+                with open(label_path, "r", encoding="utf-8") as f:
                     for line in f:
                         parts = line.strip().split()
                         if len(parts) < 5:
@@ -165,3 +194,31 @@ class HandKeypointsDetection(DatasetBase):
         h, w = img.shape[:2]
         image = self.preprocessing(img)
         return image, boxes, (h, w), img_path
+
+    def validate(self) -> None:
+        """Validate the dataset's integrity and structure.
+
+        Raises:
+            RuntimeError: If the dataset is invalid or corrupted.
+        """
+        # directory structure
+        is_correct_structure = (
+            Path(self.data_dir).is_dir()
+            and Path(self.data_dir, "images", "val").is_dir()
+            and Path(self.data_dir, "labels", "val").is_dir()
+        )
+        if not is_correct_structure:
+            raise RuntimeError(
+                "Dataset directory structure is invalid. Expected 'images/val' and 'labels/val' directories under"
+                f" {self.data_dir}."
+            )
+
+        # file existence
+        NUM_DATA = 7992
+        num_images = len(list(Path(self.data_dir, "images", "val").glob("*.jpg")))
+        if num_images != NUM_DATA:
+            raise RuntimeError(f"Expected {NUM_DATA} images in {self.data_dir}/images/val, but found {num_images}.")
+
+        num_labels = len(list(Path(self.data_dir, "labels", "val").glob("*.txt")))
+        if num_labels != NUM_DATA:
+            raise RuntimeError(f"Expected {NUM_DATA} labels in {self.data_dir}/labels/val, but found {num_labels}.")

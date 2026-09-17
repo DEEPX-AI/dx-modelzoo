@@ -1,8 +1,7 @@
 """Tests for dx_modelzoo.dataset.lol."""
 
-import os
-import numpy as np
 import cv2
+import numpy as np
 import pytest
 
 from dx_modelzoo.dataset.lol import LOL
@@ -10,6 +9,11 @@ from dx_modelzoo.preprocessing import PreprocessingPipeline
 
 
 class TestLOL:
+    @pytest.fixture(autouse=True)
+    def _skip_validate(self, monkeypatch):
+        # ponytail: unit tests use tiny fixtures; skip full-dataset count validation
+        monkeypatch.setattr(LOL, "validate", lambda self: None)
+
     def _setup_data(self, tmp_path):
         # LOL expects eval15/low/*.png and eval15/high/*.png
         low_dir = tmp_path / "eval15" / "low"
@@ -35,4 +39,5 @@ class TestLOL:
 
     def test_is_subclass(self):
         from dx_modelzoo.common.dataloader import DatasetBase
+
         assert issubclass(LOL, DatasetBase)

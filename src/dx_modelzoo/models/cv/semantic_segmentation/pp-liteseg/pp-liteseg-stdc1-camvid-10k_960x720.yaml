@@ -1,0 +1,85 @@
+name: pp-liteseg-stdc1-camvid-10k_960x720
+display_name: pp_liteseg_stdc1_camvid_960x720_10k
+task: semantic_segmentation
+reference: https://github.com/PaddlePaddle/PaddleSeg/blob/release/2.8/configs/pp_liteseg/pp_liteseg_stdc1_camvid_960x720_10k.yml
+license: Apache-2.0
+description: PaddleSeg pp_liteseg_stdc1_camvid_960x720_10k semantic segmentation model evaluated with the CamVid dataset and
+  960x720 input.
+macs: 16.16 GMACs
+params: 8.04 M
+evaluator:
+  type: semantic_segmentation
+inputs:
+- name: x
+  shape:
+  - 1
+  - 3
+  - 720
+  - 960
+  dtype: float32
+  layout: NCHW
+preprocessing:
+- type: convertcolor
+  form: BGR2RGB
+- type: resize
+  width: 960
+  height: 720
+- type: div
+  x: 255
+- type: normalize
+  mean:
+  - 0.485
+  - 0.456
+  - 0.406
+  std:
+  - 0.229
+  - 0.224
+  - 0.225
+- type: transpose
+  axis:
+  - 2
+  - 0
+  - 1
+- type: expanddim
+  axis: 0
+postprocessing:
+- type: segmentation_argmax
+dataset:
+  type: CamVid
+  eval_path: ${DATA_ROOT}/camvid
+  split: test
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
+
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      calibration: *calibration
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      calibration: *calibration
+    runtime:
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
+    runtime:
+      device: 0

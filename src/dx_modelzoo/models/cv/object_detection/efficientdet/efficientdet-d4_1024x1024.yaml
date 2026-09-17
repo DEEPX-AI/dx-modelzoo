@@ -2,6 +2,7 @@ name: efficientdet-d4_1024x1024
 display_name: EfficientDet-D4
 task: object_detection
 reference: https://github.com/zylo117/Yet-Another-EfficientDet-Pytorch
+license: Apache-2.0
 description: >-
   EfficientDet object detector taking a 1024x1024 RGB image (NCHW) and producing dense
   box/class predictions. Postprocessing (efficientdet_decode) decodes the raw outputs
@@ -49,6 +50,11 @@ dataset:
   eval_path: ${DATA_ROOT}/COCO
 artifacts:
   path: ${MODEL_ROOT}/${MODEL_NAME}
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
+
 profiles:
   onnx:
     target: onnx
@@ -59,27 +65,21 @@ profiles:
     target: dxnn
     compile:
       opt_level: 0
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-lite:
     target: dxnn
     compile:
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-pro:
     target: dxnn
     compile:
-      quantization:
-        pro:
-          num_samples: 1024
-          method: ema
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
     runtime:
       device: 0

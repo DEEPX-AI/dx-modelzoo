@@ -2,13 +2,14 @@ name: ulfgfd-rfb_480x640
 display_name: ULFGFD-RFB (480x640)
 task: face_detection
 reference: https://github.com/Linzaer/Ultra-Light-Fast-Generic-Face-Detector-1MB
+license: MIT
 description: >-
   Ultra-Light-Fast-Generic face detector on a 480x640 RGB input that predicts face
   bounding boxes (with landmarks) and confidences. Postprocessing (ulfgfd_decode)
   decodes anchors/priors and applies NMS. Evaluated on the WiderFace benchmark reporting
   Average Precision (AP).
-macs: 769.65 MMACs
-params: 281.10 K
+macs: 0.77 GMACs
+params: 0.28 M
 inputs:
 - name: input
   shape:
@@ -50,6 +51,11 @@ dataset:
   eval_path: ${DATA_ROOT}/widerface
 artifacts:
   path: ${MODEL_ROOT}/${MODEL_NAME}
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
+
 profiles:
   onnx:
     target: onnx
@@ -60,27 +66,21 @@ profiles:
     target: dxnn
     compile:
       opt_level: 0
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-lite:
     target: dxnn
     compile:
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-pro:
     target: dxnn
     compile:
-      quantization:
-        pro:
-          num_samples: 1024
-          method: ema
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
     runtime:
       device: 0

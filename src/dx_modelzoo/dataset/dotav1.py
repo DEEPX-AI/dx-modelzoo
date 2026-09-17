@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 from copy import deepcopy
 from glob import glob
+from pathlib import Path
 from typing import Tuple
 
 import cv2
@@ -80,3 +81,29 @@ class DOTAv1(DatasetBase):
         origin_img = deepcopy(img)
         img = self.preprocessing(img)
         return img, origin_img.shape, self.ids[idx]
+
+    def validate(self) -> None:
+        """Validate the dataset's integrity and structure.
+
+        Raises:
+            RuntimeError: If the dataset is invalid or corrupted.
+        """
+        image_dir = Path(self.data_dir, "images")
+        label_dir = Path(self.data_dir, "labels")
+        # directory structure
+        is_correct_structure = Path(self.data_dir).is_dir() and image_dir.is_dir() and label_dir.is_dir()
+        if not is_correct_structure:
+            raise RuntimeError(
+                "Dataset directory structure is invalid. Expected 'images' and 'labels' directories under"
+                f" {self.data_dir}."
+            )
+
+        # file existence
+        NUM_DATA = 2806
+        NUM_LABELS = 3738
+        num_images = len(list(image_dir.rglob("*.[jp][pn]g")))
+        num_labels = len(list(label_dir.rglob("*.txt")))
+        if num_images != NUM_DATA:
+            raise RuntimeError(f"Expected {NUM_DATA} images in {image_dir}, but found {num_images}.")
+        if num_labels != NUM_LABELS:
+            raise RuntimeError(f"Expected {NUM_LABELS} labels in {label_dir}, but found {num_labels}.")

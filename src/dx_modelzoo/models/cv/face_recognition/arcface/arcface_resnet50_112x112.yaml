@@ -2,6 +2,7 @@ name: arcface_resnet50_112x112
 display_name: ArcFace ResNet-50
 task: face_recognition
 reference: https://github.com/deepinsight/insightface
+license: MIT
 description: >-
   ArcFace face recognition model with a ResNet-50 backbone on a 112x112 aligned face
   crop, producing a 512-dimensional embedding (postprocessing is identity). Embeddings
@@ -47,6 +48,11 @@ dataset:
   eval_path: ${DATA_ROOT}/LFW
 artifacts:
   path: ${MODEL_ROOT}/${MODEL_NAME}
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
+
 profiles:
   onnx:
     target: onnx
@@ -57,27 +63,21 @@ profiles:
     target: dxnn
     compile:
       opt_level: 0
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-lite:
     target: dxnn
     compile:
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-pro:
     target: dxnn
     compile:
-      quantization:
-        pro:
-          num_samples: 1024
-          method: ema
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
     runtime:
       device: 0

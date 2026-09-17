@@ -1,10 +1,9 @@
 """Tests for dx_modelzoo.loader.model_builder."""
 
-import yaml
 import pytest
+import yaml
 
 from dx_modelzoo.loader.model_builder import ModelBuilder
-
 
 MINIMAL_YAML = {
     "name": "test_model_224x224",
@@ -24,7 +23,7 @@ MINIMAL_YAML = {
         "onnx": {"target": "onnx", "runtime": {"device": "gpu", "batch_size": 1}},
         "q-lite": {
             "target": "dxnn",
-            "compile": {"quantization": {"lite": {"method": "ema", "num_samples": 100}}},
+            "compile": {"calibration": {"method": "ema", "num": 100, "seed": 42}},
             "runtime": {"device": 0},
         },
     },
@@ -78,6 +77,7 @@ class TestModelBuilder:
         builder = ModelBuilder(yaml_path, resolve_env=False)
         prep = builder.build_preprocessing("onnx")
         import numpy as np
+
         img = (np.random.rand(300, 300, 3) * 255).astype(np.uint8)
         result = prep(img)
         assert result.shape == (1, 3, 224, 224)
@@ -87,33 +87,55 @@ class TestModelBuilder:
         builder = ModelBuilder(yaml_path, resolve_env=False)
         post = builder.build_postprocessing()
         import numpy as np
+
         logits = [np.random.rand(1, 1000).astype(np.float32)]
         result = post(logits)
         assert result.shape[-1] == 5  # top-5
 
     def test_build_dataset(self, tmp_path, monkeypatch):
         monkeypatch.setenv("DATA_ROOT", str(tmp_path))
+        from dx_modelzoo.dataset.imagenet import ILSVRC2012
+
+        # ponytail: builder wires the real dataset; skip full-count validation for this unit test
+        monkeypatch.setattr(ILSVRC2012, "validate", lambda self: None)
         yaml_path = self._write_yaml(tmp_path)
         builder = ModelBuilder(yaml_path, resolve_env=False)
         # build_dataset with explicit path (won't check if dir exists at this level)
         ds = builder.build_dataset(data_dir=str(tmp_path))
         from dx_modelzoo.common.dataloader import DatasetBase
+
         assert isinstance(ds, DatasetBase)
 
     def test_build_evaluator(self, tmp_path):
         yaml_path = self._write_yaml(tmp_path)
         builder = ModelBuilder(yaml_path, resolve_env=False)
         from dx_modelzoo.session import SessionBase
+
         class FakeSess(SessionBase):
-            def __init__(self): super().__init__("/fake.onnx")
-            def run(self, inputs): return [inputs]
+            def __init__(self):
+                super().__init__("/fake.onnx")
+
+            def run(self, inputs):
+                return [inputs]
+
         from dx_modelzoo.common.dataloader import DatasetBase
+
         class FakeDs(DatasetBase):
-            def __init__(self): super().__init__("/f")
-            def __len__(self): return 1
-            def __getitem__(self, i): return None, None
+            def validate(self) -> None:  # ponytail: test double, nothing to validate
+                pass
+
+            def __init__(self):
+                super().__init__("/f")
+
+            def __len__(self):
+                return 1
+
+            def __getitem__(self, i):
+                return None, None
+
         ev = builder.build_evaluator(FakeSess(), FakeDs(), "onnx")
         from dx_modelzoo.evaluator import EvaluatorBase
+
         assert isinstance(ev, EvaluatorBase)
 
 
@@ -173,6 +195,7 @@ class TestModelBuilderPipeline:
         builder = ModelBuilder(yaml_path, resolve_env=False)
         prep = builder.build_preprocessing("onnx", stage="det")
         import numpy as np
+
         img = (np.random.rand(800, 800, 3) * 255).astype(np.uint8)
         result = prep(img)
         assert result.shape[-2:] == (640, 640) or result.shape[0] == 640

@@ -1,0 +1,95 @@
+name: patchcore_224x224
+display_name: PatchCore 224x224
+task: anomaly_detection
+reference: https://github.com/amazon-science/patchcore-inspection
+license: Apache-2.0
+description: >-
+  PatchCore anomaly detector with a 224x224 RGB input (NCHW). A frozen
+  WideResNet-50 backbone emits two intermediate feature maps (feat_layer2
+  [1,512,28,28] and feat_layer3 [1,1024,14,14]). At evaluation time a
+  per-category memory bank is built from MVTec AD train/good patch features
+  (local 3x3 aggregation + concatenation, random coreset subsample); the
+  anomaly score of a test patch is its nearest-neighbour distance to the
+  bank and the image score is the maximum patch distance. Evaluated on the
+  MVTec Anomaly Detection dataset reporting image- and pixel-level AUROC.
+macs: 9.22 GMACs
+params: 24.84 M
+
+inputs:
+- name: image
+  shape:
+  - 1
+  - 3
+  - 224
+  - 224
+  dtype: float32
+  layout: NCHW
+preprocessing:
+- type: resize
+  mode: default
+  size:
+  - 224
+  - 224
+- type: convertcolor
+  form: BGR2RGB
+- type: div
+  x: 255
+- type: normalize
+  mean:
+  - 0.485
+  - 0.456
+  - 0.406
+  std:
+  - 0.229
+  - 0.224
+  - 0.225
+- type: transpose
+  axis:
+  - 2
+  - 0
+  - 1
+- type: expanddim
+  axis: 0
+postprocessing: []
+appendix:
+  method: patchcore
+dataset:
+  type: MVTecAD
+  eval_path: ${DATA_ROOT}/mvtec
+  category:
+  max_train_images: 100
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
+
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      calibration: *calibration
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      calibration: *calibration
+    runtime:
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
+    runtime:
+      device: 0

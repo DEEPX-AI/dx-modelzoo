@@ -55,3 +55,29 @@ class LOL(DatasetBase):
             raise FileNotFoundError(f"Failed to load image: {self.high_files[idx]}")
         low_img = self.preprocessing(low_img)
         return low_img, high_img
+
+    def validate(self) -> None:
+        """Validate the dataset's integrity and structure.
+
+        Raises:
+            RuntimeError: If the dataset is invalid or corrupted.
+        """
+        # directory structure
+        eval_dir = os.path.join(self.data_dir, "eval15")
+        low_dir = os.path.join(eval_dir, "low")
+        high_dir = os.path.join(eval_dir, "high")
+        is_correct_structure = os.path.isdir(eval_dir) and os.path.isdir(low_dir) and os.path.isdir(high_dir)
+        if not is_correct_structure:
+            raise RuntimeError(
+                "Dataset directory structure is invalid. Expected 'eval15/low' and 'eval15/high' directories under"
+                f" {self.data_dir}."
+            )
+
+        # file existence
+        NUM_DATA = 15
+        num_low_images = len(glob(os.path.join(low_dir, "*.png")))
+        num_high_images = len(glob(os.path.join(high_dir, "*.png")))
+        if num_low_images != NUM_DATA:
+            raise RuntimeError(f"Expected {NUM_DATA} low-light images in {low_dir}, but found {num_low_images}.")
+        if num_high_images != NUM_DATA:
+            raise RuntimeError(f"Expected {NUM_DATA} high-light images in {high_dir}, but found {num_high_images}.")

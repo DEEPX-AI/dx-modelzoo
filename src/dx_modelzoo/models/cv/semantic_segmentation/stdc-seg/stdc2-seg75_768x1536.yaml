@@ -1,0 +1,74 @@
+name: stdc2-seg75_768x1536
+display_name: STDC2-Seg75
+task: semantic_segmentation
+reference: https://github.com/MichaelFan01/STDC-Seg
+license: MIT
+description: >-
+  STDC2-Seg75 semantic segmentation model evaluated on Cityscapes at 0.75
+  scale with a 768x1536 input.
+macs: 54.98 GMACs
+params: 12.45 M
+inputs:
+- name: x
+  shape: [1, 3, 768, 1536]
+  dtype: float32
+  layout: NCHW
+preprocessing:
+- type: convertcolor
+  form: BGR2RGB
+- type: resize
+  width: 1536
+  height: 768
+- type: div
+  x: 255
+- type: normalize
+  mean: [0.485, 0.456, 0.406]
+  std: [0.229, 0.224, 0.225]
+- type: transpose
+  axis: [2, 0, 1]
+- type: expanddim
+  axis: 0
+postprocessing:
+- type: segmentation_argmax
+  target_size: [1024, 2048]
+dataset:
+  type: Cityscapes
+  eval_path: ${DATA_ROOT}/cityscapes
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
+
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      calibration: *calibration
+    runtime:
+      buffer_count: 1
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      calibration: *calibration
+    runtime:
+      buffer_count: 1
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
+    runtime:
+      buffer_count: 1
+      device: 0
