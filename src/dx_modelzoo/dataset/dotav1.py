@@ -22,7 +22,7 @@ _INSTALL_GUIDE = """\
        DOTAv1/
          images/
            val/
-             P0003.png
+             P0003.jpg
              ...
          labels/
            val/

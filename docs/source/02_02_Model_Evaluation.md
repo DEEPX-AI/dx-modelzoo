@@ -2,22 +2,36 @@
 
 This guide provides a comprehensive overview of model evaluation in DX-ModelZoo, covering evaluation workflows, options, and advanced usage patterns.
 
-!!! note "Prerequisites"
+!!! note "Prerequisites"  
     Before evaluating models, make sure you have [installed DX-ModelZoo](02_01_Installation.md) and reviewed the [Quick Start guide](00_Quick_Start.md).
 
-!!! note "See Also"
-    - [Quick Start](00_Quick_Start.md) - Basic evaluation commands
-    - [YAML Configuration](02_03_YAML_Configuration.md) - Configure evaluation in YAML
-    - [Datasets](02_04_Datasets_Guide.md) - Supported datasets
-    - [CLI Reference](04_01_CLI_Reference.md) - CLI command reference
+## Running an Evaluation
 
-## Basic Usage
+### Basic Usage
+
+The minimal command requires only a model name and profile:
 
 ```bash
 dxmz eval <model_name> --profile <profile> --seed 42
 ```
 
-## Evaluation Flow
+### Evaluation Options
+
+`--data-root`/`--model-root` override the `DATA_ROOT`/`MODEL_ROOT` environment variables, `--model-path` points directly at a model file, and `--seed` makes evaluation reproducible. See [CLI Reference](04_01_CLI_Reference.md#dxmz-eval) for the full option list.
+
+`--save` writes `result/eval_<model>_<profile>.json`.
+
+Multiple models can be evaluated in one command:
+
+```bash
+# Evaluate multiple models sequentially
+dxmz eval resnet50_224x224 mobilenetv2_224x224 --profile onnx --seed 42
+# Results are saved separately for each model when --save is used
+```
+
+### Evaluation Flow
+
+The following sequence diagram shows the internal call flow:
 
 ```mermaid
 sequenceDiagram
@@ -44,31 +58,7 @@ sequenceDiagram
     E-->>CLI: {"metrics": [...], "fps": 624.7}
 ```
 
-## Evaluation Options
-
-```bash
-# Override DATA_ROOT and MODEL_ROOT when environment variables are not set.
-# Use --model-path to provide a model file directly.
-# --seed makes evaluation reproducible.
-dxmz eval resnet50_224x224 --profile onnx \
-  --data-root /data/datasets \
-  --model-root /data/models \
-  --model-path /path/to/model.onnx \
-  --seed 42 \
-  --save
-```
-
-`--save` writes `result/eval_<model>_<profile>.json`.
-
-Multiple models can be evaluated in one command:
-
-```bash
-# Evaluate multiple models sequentially
-dxmz eval resnet50_224x224 mobilenetv2_224x224 --profile onnx --seed 42
-# Results are saved separately for each model when --save is used
-```
-
-## Sync vs Async Evaluation
+### Sync vs Async Evaluation
 
 The evaluator automatically selects the mode based on the session's async support:
 
@@ -98,7 +88,7 @@ The evaluator automatically selects the mode based on the session's async suppor
     - Loader prefetch depth is bounded by `workers × 4`
     - In-flight inference requests are bounded by `device_count × 4`
 
-## Batch Size
+### Batch Size
 
 ONNX profiles support adjustable `batch_size`:
 
@@ -111,10 +101,14 @@ profiles:
       batch_size: 4    # Batch size 4
 ```
 
-!!! warning "dxnn Profiles"
+!!! warning "dxnn Profiles"  
     Profiles with `target: dxnn` are always forced to `batch_size=1`. Any other value set in the YAML is ignored.
 
-## Result Format
+## Evaluation Output
+
+### Result Format
+
+Evaluation results are structured as follows:
 
 ```json
 {
@@ -131,13 +125,13 @@ profiles:
 }
 ```
 
-!!! note "FPS Calculation"
+!!! note "FPS Calculation"  
     FPS (Frames Per Second) is calculated as: `total_images / inference_time`
 
     - Excludes data loading time
     - Includes preprocessing and postprocessing
 
-## Time Breakdown
+### Time Breakdown
 
 A time breakdown is automatically printed after evaluation:
 
@@ -152,6 +146,10 @@ Time breakdown — load: 12.3s (15%) | infer: 65.2s (79%) | post: 4.8s (6%)
 | `post` | Postprocessing + metric update time |
 
 ## Built-in Evaluators
+
+Common evaluators include the following (see the
+[Evaluator API](04_06_Evaluator_API.md#built-in-evaluators) for the complete
+list of all built-in evaluators):
 
 | Evaluator | Task | Metrics |
 |-----------|------|---------|

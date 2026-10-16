@@ -4,14 +4,7 @@ The preprocessing pipeline in DX-ModelZoo transforms input data into the format 
 
 **Module:** `dx_modelzoo.preprocessing`
 
-!!! note "See Also"
-    - [YAML Configuration](02_03_YAML_Configuration.md) - Preprocessing configuration in YAML
-    - [Custom Models](02_05_Custom_Models.md) - Creating custom preprocessing operations
-    - [ModelBuilder](04_02_ModelBuilder_API.md) - How to build preprocessing pipelines
-
-## Overview
-
-### PreprocessingPipeline
+## PreprocessingPipeline
 
 A pipeline that sequentially executes preprocessing operations defined in YAML.
 
@@ -51,7 +44,7 @@ When `npu_mode=True`, operations whose types are included in this set are
 skipped for `uint8` runtime input. For `float32` input, arithmetic operations
 remain unless `appendix.npu_skip_arithmetic` overrides the behavior.
 
-!!! warning "NPU Mode Caution"
+!!! warning "NPU Mode Caution"  
     For `target: dxnn`, arithmetic operations are skipped when runtime input
     dtype is `uint8`; they remain for `float32` input. Set
     `appendix.npu_skip_arithmetic` to override this behavior. Spatial
@@ -285,7 +278,7 @@ preprocessing:
     param: 20
 ```
 
-!!! note "NPU Skip for Custom Operations"
+!!! note "NPU Skip for Custom Operations"  
     Custom operations are not skipped in NPU mode by default, as they are not included in `NPU_SKIP_DEFAULT`. If your custom operation is an arithmetic operation that should be skipped on the NPU, you must add it to the set manually.
 
 For detailed usage, refer to the [Custom Models](02_05_Custom_Models.md) guide.

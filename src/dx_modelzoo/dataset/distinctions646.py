@@ -54,10 +54,14 @@ class Distinctions646(DatasetBase):
         self,
         data_dir: str,
         split: str = "val",
-        background_dir: str = "/mnt/datasets/PascalVOC/VOCdevkit/VOC2012/JPEGImages",
+        background_dir: str | None = None,
     ) -> None:
         self.ensure_exists(data_dir, _INSTALL_GUIDE)
-        self.background_dir = Path(background_dir)
+        self.background_dir = (
+            Path(background_dir)
+            if background_dir is not None
+            else Path(data_dir).parent / "PascalVOC" / "VOCdevkit" / "VOC2012" / "JPEGImages"
+        )
         super().__init__(data_dir)
 
         test_dir = Path(data_dir, "Test")

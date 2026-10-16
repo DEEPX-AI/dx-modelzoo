@@ -34,12 +34,11 @@ site_url: 'https://developer.deepx.ai/'
 nav:
   - Quick Start: 00_Quick_Start.md
   - DX-ModelZoo Overview: 01_DX-ModelZoo_Overview.md
-  - Getting Started:
-      - Installation: 02_01_Installation.md
+  - Installation: 02_01_Installation.md
   - Workflows:
       - Model Evaluation: 02_02_Model_Evaluation.md
       - YAML Configuration: 02_03_YAML_Configuration.md
-      - Datasets: 02_04_Datasets_Guide.md
+      - Datasets Guide: 02_04_Datasets_Guide.md
       - Custom Models: 02_05_Custom_Models.md
       - Custom Datasets: 02_06_Custom_Datasets.md
   - Architecture:
@@ -51,7 +50,7 @@ nav:
       - ModelBuilder: 04_02_ModelBuilder_API.md
       - Session: 04_03_Session_API.md
       - DataLoader: 04_04_DataLoader_API.md
-      - Datasets: 04_05_Datasets_API.md
+      - Datasets API: 04_05_Datasets_API.md
       - Evaluator: 04_06_Evaluator_API.md
       - Preprocessing: 04_07_Preprocessing_API.md
       - Postprocessing: 04_08_Postprocessing_API.md
@@ -103,6 +102,4 @@ markdown_extensions:
       alternate_style: true
   - attr_list
   - md_in_html
-# extra_javascript:
-#  - https://polyfill.io/v3/polyfill.min.js?features=es6
 copyright: ⓒ Copyright 2026 <a href="http://deepx.ai">DEEPX</a>. All Rights Reserved.
