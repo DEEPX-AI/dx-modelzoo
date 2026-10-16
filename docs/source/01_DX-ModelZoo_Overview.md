@@ -4,48 +4,17 @@ A unified framework for managing model preprocessing, postprocessing, evaluation
 
 ## Key Features
 
-<div class="grid cards" markdown>
-
--   📄 **YAML-Centric Configuration**
-
-    ---
-
-    Define entire model pipelines in a single YAML file — no Python code required. Preprocessing, postprocessing, and runtime profiles are all declared in one place.
-
--   🔌 **Extensible Registry System**
-
-    ---
-
-    Add custom preprocessing, postprocessing, datasets, and evaluators instantly using the `@REGISTRY.register()` decorator.
-
--   � **Auto-Discovery of Custom Ops**
-
-    ---
-
-    Place a `custom_ops.py` in your model directory; it's automatically imported and registered.
-
--   🚀 **Multi-Profile Execution**
-
-    ---
-
-    Manage multiple runtime profiles — ONNX, NPU/dxnn, and more — within a single YAML configuration.
-
--   🎯 **300+ Built-in Models**
-
-    ---
-
-    Production-ready CV models spanning classification, detection, segmentation, and beyond.
-
-</div>
+- **YAML-Centric Configuration**: Define entire model pipelines in a single YAML file — no Python code required. Preprocessing, postprocessing, and runtime profiles are all declared in one place.  
+- **Extensible Registry System**: Add custom preprocessing, postprocessing, datasets, and evaluators instantly using the `@REGISTRY.register()` decorator.  
+- **Auto-Discovery of Custom Ops**: Place a `custom_ops.py` in your model directory; it's automatically imported and registered.  
+- **Multi-Profile Execution**: Manage multiple runtime profiles — ONNX, NPU/dxnn, and more — within a single YAML configuration.  
+- **300+ Built-in Models**: Production-ready CV models spanning classification, detection, segmentation, and beyond.  
 
 ## Prerequisites
 
-**Requirements**
+See [Installation](02_01_Installation.md#prerequisites) for the required Python version and DeepX Components.
 
-- **Python**: 3.8+
-- **DeepX Components**: DX-RT ≥ 3.0.0, DX-Compiler ≥ 2.4.0
-
-## Quick Start
+## Get Started
 
 ```bash
 # Install DeepX Components
@@ -104,6 +73,6 @@ See [Quick Start Guide](00_Quick_Start.md) for step-by-step instructions and [In
 |---|---|
 | [Quick Start](00_Quick_Start.md) | Quick introduction and step-by-step usage |
 | [Installation](02_01_Installation.md) | Detailed installation and environment setup |
-| [Guides](02_03_YAML_Configuration.md) | YAML config, evaluation, datasets, custom model authoring |
+| [Guides](02_02_Model_Evaluation.md) | Model evaluation workflows and CLI usage |
 | [Architecture](03_01_Architecture_Overview.md) | Internal design, Registry pattern, pipeline flow |
 | [API Reference](04_01_CLI_Reference.md) | CLI, ModelBuilder, Pre/Post-processing, Evaluator, etc. |

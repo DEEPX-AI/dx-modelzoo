@@ -2,19 +2,14 @@
 
 This guide explains how to create and integrate custom datasets into DX-ModelZoo for your specific evaluation needs.
 
-!!! note "Prerequisites"
+!!! note "Prerequisites"  
     Before creating custom datasets, make sure you have:
 
     - [Installed DX-ModelZoo](02_01_Installation.md) with development dependencies
     - Basic understanding of Python classes and abstract base classes
     - Familiarity with the [evaluation workflow](02_02_Model_Evaluation.md)
 
-!!! note "See Also"
-    - [Datasets Reference](02_04_Datasets_Guide.md) - Built-in datasets and structure
-    - [Model Evaluation](02_02_Model_Evaluation.md) - How datasets are used in evaluation
-    - [YAML Configuration](02_03_YAML_Configuration.md) - Dataset configuration options
-
-## Overview
+**Overview**  
 
 ```mermaid
 graph LR
@@ -60,6 +55,23 @@ class DatasetBase(ABC):
         """Validate dataset files and directory structure"""
         ...
 ```
+
+## Evaluator Compatibility
+
+The return format of `__getitem__` must match the Evaluator's `extract_inputs` method:
+
+| Evaluator | Return Format | Description |
+|-----------|---------------|-------------|
+| `image_classification` | `(image, label)` | label: int |
+| `coco` | `(image, annotation)` | annotation: dict (COCO format) |
+| `segmentation` | `(image, mask)` | mask: np.ndarray |
+| `depth_estimation` | `(image, depth_map)` | depth_map: np.ndarray |
+| `face_detection` | `(image, boxes)` | boxes: np.ndarray |
+
+!!! note "Compatibility with Built-in Evaluators"
+    To use a built-in Evaluator, your dataset's return format must match exactly what that Evaluator's `extract_inputs` expects.
+
+---
 
 ## Implementation
 
@@ -130,14 +142,13 @@ class MyCustomDataset(DatasetBase):
         return img, label
 ```
 
-!!! note "Where to Apply `preprocessing`"
+!!! note "Where to Apply `preprocessing`"  
     `self.preprocessing` is automatically configured by the Evaluator via `set_preprocessing()`. The standard pattern is to apply it in `__getitem__` after loading the image.
 
 ## Registration
 
 Dataset modules are imported from `src/dx_modelzoo/dataset/__init__.py` to
-trigger registry registration. Add an import for the new module there; placing a
-file in the directory alone does not register it.
+trigger registry registration. Add an import for the new module there; placing a file in the directory alone does not register it.
 
 ### Reference in YAML
 
@@ -168,31 +179,16 @@ export DATA_ROOT=/data
 dxmz eval MyModel --profile onnx --data-root /data
 ```
 
-**What happens:**
+**What happens:**  
 
-1. DX-ModelZoo loads your YAML configuration
-2. Finds `dataset.type: my_custom_dataset` in the YAML
-3. Resolves `dataset.type: my_custom_dataset` through `DATASET_REGISTRY`
-4. Instantiates `MyCustomDataset` and runs `validate()`
-5. Creates DataLoader with your dataset
-6. Runs evaluation
+- Step 1. DX-ModelZoo loads your YAML configuration
+- Step 2. Finds `dataset.type: my_custom_dataset` in the YAML
+- Step 3. Resolves `dataset.type: my_custom_dataset` through `DATASET_REGISTRY`
+- Step 4. Instantiates `MyCustomDataset` and runs `validate()`
+- Step 5. Creates DataLoader with your dataset
+- Step 6. Runs evaluation
 
-## Evaluator Compatibility
-
-The return format of `__getitem__` must match the Evaluator's `extract_inputs` method:
-
-| Evaluator | Return Format | Description |
-|-----------|---------------|-------------|
-| `image_classification` | `(image, label)` | label: int |
-| `coco` | `(image, annotation)` | annotation: dict (COCO format) |
-| `segmentation` | `(image, mask)` | mask: np.ndarray |
-| `depth_estimation` | `(image, depth_map)` | depth_map: np.ndarray |
-| `face_detection` | `(image, boxes)` | boxes: np.ndarray |
-
-!!! note "Compatibility with Built-in Evaluators"
-    To use a built-in Evaluator, your dataset's return format must match exactly what that Evaluator's `extract_inputs` expects.
-
-## Multi-Input Datasets
+## COCO-Format Example
 
 A full example implementing a COCO-format custom dataset:
 
@@ -266,7 +262,7 @@ evaluator:
   type: coco
 ```
 
-### DataLoader Integration
+## DataLoader Integration
 
 Datasets are automatically batched by the `DataLoader`:
 
@@ -281,7 +277,7 @@ for batch in loader:
     # images: np.ndarray (batch_size, ...)
 ```
 
-!!! warning "NumPy-Based"
+!!! warning "NumPy-Based"  
     The DataLoader is implemented in pure Python/NumPy. PyTorch is NOT required for the DataLoader itself, though torchvision is used by the preprocessing pipeline for dx_com fusion compatibility. Ensure that `__getitem__` returns NumPy arrays.
 
 ## Troubleshooting

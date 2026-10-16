@@ -2,14 +2,9 @@
 
 The DX-ModelZoo preprocessing and postprocessing pipelines execute operations sequentially in the order defined in YAML configuration.
 
-!!! note "See Also"
-    - [Overview](03_01_Architecture_Overview.md) - Architecture overview and design principles
-    - [Registry](03_03_Registry.md) - Registry pattern and component registration
-    - [Preprocessing](04_07_Preprocessing_API.md) - Preprocessing operations reference
-    - [Postprocessing](04_08_Postprocessing_API.md) - Postprocessing operations reference
-    - [YAML Configuration](02_03_YAML_Configuration.md) - Pipeline configuration in YAML
-
 ## Pipeline Overview
+
+The following diagram shows how preprocessing, inference, and postprocessing connect:
 
 ```mermaid
 graph TB
@@ -106,17 +101,9 @@ dtype is `uint8`; it remains for `float32` input unless
 
 ### NPU_SKIP_DEFAULT
 
-```python
-NPU_SKIP_DEFAULT = {
-    "div",
-    "normalize",
-    "transpose",
-    "expanddim",
-    "mul",
-    "add",
-    "subtract",
-}
-```
+Arithmetic operations skipped on the NPU are defined in `NPU_SKIP_DEFAULT`:
+`div`, `normalize`, `transpose`, `expanddim`, `mul`, `add`, `subtract` — see
+[Preprocessing API](04_07_Preprocessing_API.md#npu_skip_default) for the full definition.
 
 ### Behavior Comparison
 
@@ -177,29 +164,24 @@ class PostprocessingPipeline:
 ```yaml title="Detection Model Example"
 postprocessing:
   - type: nms
-    variant: yolo
+    conf_thres: 0.001
+    iou_thres: 0.7
 ```
 
 ```python
 # Transformed result
 pipeline = PostprocessingPipeline(
-    steps=[NMS(variant="yolo")]
+    steps=[NMS(conf_thres=0.001, iou_thres=0.7)]
 )
 ```
 
 ### Postprocessing Patterns by Task
 
-| Task | Postprocessing Type | Description |
-|------|-------------------|-------------|
-| Classification | `topk` | Top-k classes |
-| Detection | `nms` | Non-maximum suppression |
-| Segmentation | `segmentation_argmax` | Per-pixel argmax |
-| Face Detection | `face_detection` | Face bounding box decoding |
-| Pose Estimation | `pose_estimation` | Keypoint decoding |
-| Instance Seg | `instance_seg` | Instance masks |
-| Other | `identity` | No postprocessing |
+See [Postprocessing Guide by Task](04_08_Postprocessing_API.md#postprocessing-guide-by-task) for the full task-to-postprocessing mapping.
 
 ## Full Execution Flow
+
+The following sequence diagram shows the complete evaluation flow, from raw data to final metrics:
 
 ```mermaid
 sequenceDiagram
@@ -254,7 +236,7 @@ preprocessing:
     x: 255
 ```
 
-!!! note "Pipeline Debugging"
+!!! note "Pipeline Debugging"  
     Print the shape before and after each step's `__call__` to trace the data transformation process:
     ```python
     for step in pipeline.steps:

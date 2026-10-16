@@ -4,18 +4,13 @@ Session in DX-ModelZoo is a runtime interface for performing model inference. It
 
 **Module:** `dx_modelzoo.session`
 
-!!! note "See Also"
-    - [YAML Configuration](02_03_YAML_Configuration.md) - Profile and runtime configuration
-    - [ModelBuilder](04_02_ModelBuilder_API.md) - How to build sessions from profiles
-    - [Evaluator](04_06_Evaluator_API.md) - Session usage in evaluation pipeline
-
 ## SessionBase
 
 Abstract base class that all sessions inherit from.
 
 ```python
 class SessionBase(ABC):
-    def __init__(self, path: str, device_count: int = 1)
+    def __init__(self, path: str, device_count: int = 1, runtime_config: Optional[RuntimeConfig] = None)
 
     @abstractmethod
     def run(self, inputs: np.ndarray) -> list[np.ndarray]
@@ -40,6 +35,7 @@ class SessionBase(ABC):
 |-----------|------|-------------|
 | `path` | `str` | Path to the model file |
 | `device_count` | `int` | Number of devices to use |
+| `runtime_config` | `RuntimeConfig \| None` | Runtime options (device, batch size, async mode) |
 
 ### Context Manager
 
@@ -57,7 +53,7 @@ Inference session based on ONNX Runtime.
 
 ```python
 class OnnxRuntimeSession(SessionBase):
-    def __init__(self, path: str)
+    def __init__(self, path: str, runtime_config: Optional[RuntimeConfig] = None)
     def run(self, inputs: np.ndarray) -> list[np.ndarray]
     def run_async(self, inputs: np.ndarray, **kwargs) -> int
     def wait(self, job_id: int) -> list[np.ndarray]
@@ -93,7 +89,7 @@ Inference session based on the DeepX NPU runtime.
 
 ```python
 class DxRuntimeSession(SessionBase):
-    def __init__(self, path: str, device: Union[int, str, list[int], list[str]] = None)
+    def __init__(self, path: str, runtime_config: Optional[RuntimeConfig] = None)
     def run(self, inputs: np.ndarray) -> list[np.ndarray]
     def run_async(self, inputs: np.ndarray, **kwargs) -> int
     def wait(self, job_id: int) -> list[np.ndarray]
@@ -109,16 +105,17 @@ class DxRuntimeSession(SessionBase):
 
 - Uses the `dx_engine` library
 - Native support for asynchronous inference
-- Device selection: constructor `device` parameter or `DXNN_DEVICES` environment variable
+- Device selection: `runtime_config.device` or the `DXNN_DEVICES` environment variable
 - Fixed `batch_size=1`
 
 ### Usage Example
 
 ```python
 from dx_modelzoo.session.dx_session import DxRuntimeSession
+from dx_modelzoo.session.runtime_config import DxnnRuntimeConfig
 
 # Use device 0
-session = DxRuntimeSession("model.dxnn", device=0)
+session = DxRuntimeSession("model.dxnn", runtime_config=DxnnRuntimeConfig(device=0))
 
 # Asynchronous inference
 job_id = session.run_async(input_tensor)
@@ -129,9 +126,9 @@ session.close()
 
 !!! note "Device Selection"
     ```python
-    # Specify via constructor
-    session = DxRuntimeSession("model.dxnn", device=0)
-    session = DxRuntimeSession("model.dxnn", device=[0, 1])  # Multi-device
+    # Specify via runtime_config
+    session = DxRuntimeSession("model.dxnn", runtime_config=DxnnRuntimeConfig(device=0))
+    session = DxRuntimeSession("model.dxnn", runtime_config=DxnnRuntimeConfig(device=[0, 1]))  # Multi-device
 
     # Specify via environment variable
     # export DXNN_DEVICES=0,1
@@ -185,10 +182,12 @@ session = create_session("onnx", builder=builder)
 # → Downloads https://models.example.com/modelzoo/onnx/resnet50_224x224.onnx
 ```
 
-!!! warning "Network Required"
+!!! warning "Network Required"  
     Automatic download only works when `DXMZ_MODEL_URL` is set and the model file is not available locally. In offline environments, model files must be prepared in advance.
 
 ## Sync vs Async Comparison
+
+The following compares synchronous and asynchronous inference:
 
 === "Sync"
 
@@ -233,6 +232,7 @@ class RuntimeConfig:
     device: Any = None
     batch_size: int = 1
     async_mode: Optional[bool] = None
+    start_method: str = "auto"
 ```
 
 | Field | Description |
@@ -240,6 +240,7 @@ class RuntimeConfig:
 | `device` | Device selection (`cpu`/`gpu` for ONNX, device IDs for DXNN) |
 | `batch_size` | Evaluation batch size carried from YAML runtime config |
 | `async_mode` | Explicit async override from YAML `runtime.async` |
+| `start_method` | Multiprocessing start method for the DataLoader: `auto`, `forkserver`, or `spawn` |
 
 `RuntimeConfig.use_async` resolves `async_mode` to the backend default when the
 YAML omits `runtime.async`.
@@ -306,10 +307,7 @@ This maps to:
 
 ## Environment Variables
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `DXMZ_MODEL_URL` | URL for automatic model download | `https://models.example.com/modelzoo` |
-| `DXNN_DEVICES` | DxRuntime devices (comma-separated) | `0,1` |
+`DXMZ_MODEL_URL` and `DXNN_DEVICES` are relevant to session creation — see [CLI Reference](04_01_CLI_Reference.md#environment-variables) for the full list of environment variables.
 
 ## Integration with ModelBuilder
 

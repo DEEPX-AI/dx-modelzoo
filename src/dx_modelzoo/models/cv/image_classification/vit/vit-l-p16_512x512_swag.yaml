@@ -61,14 +61,14 @@ profiles:
       opt_level: 0
       calibration: *calibration
     runtime:
-      buffer_count: 1
+      buffer_count: 6
       device: 0
   q-lite:
     target: dxnn
     compile:
       calibration: *calibration
     runtime:
-      buffer_count: 1
+      buffer_count: 6
       device: 0
   q-pro:
     target: dxnn
@@ -78,5 +78,5 @@ profiles:
         num: 1024
         use_q_pro: true
     runtime:
-      buffer_count: 1
+      buffer_count: 6
       device: 0

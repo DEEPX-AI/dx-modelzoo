@@ -2,11 +2,6 @@
 
 Every model in DX-ModelZoo is defined by a single YAML file. No Python code is needed — preprocessing, postprocessing, evaluation, and compilation settings are all included.
 
-!!! note "See Also"
-    - [Model Evaluation](02_02_Model_Evaluation.md) - Use YAML in evaluation
-    - [Custom Models](02_05_Custom_Models.md) - Create custom model YAML
-    - [ModelBuilder](04_02_ModelBuilder_API.md) - ModelBuilder API reference
-
 ## Full Structure
 
 ```yaml
@@ -33,12 +28,12 @@ postprocessing:               # Postprocessing pipeline
   - type: topk
     k: [1, 5]
 
-evaluator:                    # Evaluator type
-  type: image_classification
-
 dataset:                      # Dataset configuration
   type: ILSVRC2012
   eval_path: ${DATA_ROOT}/ILSVRC2012/val
+
+evaluator:                    # Evaluator type
+  type: image_classification
 
 artifacts:                    # Model file paths
   path: ${MODEL_ROOT}/${MODEL_NAME}
@@ -165,7 +160,7 @@ Built-in preprocessing types:
 | `expanddim` | `axis` | Add dimension (batch) |
 | `bgr_to_y_channel` | — | BGR → Y channel conversion |
 
-!!! note "NPU arithmetic behavior"
+!!! note "NPU arithmetic behavior"  
     For a `target: dxnn` profile, arithmetic operations such as `div`,
     `normalize`, `transpose`, and `expanddim` are skipped when runtime input
     dtype is `uint8`. They remain for `float32` input. Set
@@ -260,7 +255,7 @@ artifacts:
 
 ### `profiles`
 
-Define multiple runtime profiles. Each profile specifies its own target, compilation options, and runtime options.
+Defines multiple runtime profiles. Each profile specifies its own target, compilation options, and runtime options.
 
 ```yaml
 profiles:
@@ -305,7 +300,7 @@ profiles:
       async: true
 ```
 
-!!! note "NOTE"
+!!! note "NOTE"  
     `calibration.use_q_pro: true` enables dx_com's automatic Q-PRO pipeline.
     Calibration settings are passed through the profile's `compile` block.
 
@@ -319,6 +314,8 @@ profiles:
 | `q-pro` | dxnn | NPU profile with `calibration.use_q_pro: true` |
 
 #### Calibration Options
+
+These keys are typically defined once in a top-level `calibration:` block (using a YAML anchor, e.g. `calibration: &calibration`) and reused across profiles via `calibration: *calibration`, as shown in [Full Structure](#full-structure).
 
 | Key | Description |
 |-------|-------------|
@@ -377,17 +374,17 @@ Special variables:
 
 | Variable | Description | Example |
 |----------|-------------|----------|
-| `${DATA_ROOT}` | Dataset root directory | `download/datasets` |
-| `${MODEL_ROOT}` | Model artifact root directory | `download/models` |
-| `${MODEL_NAME}` | Value of the YAML `name` field | `resnet50_224x224` |
-| `${DXMZ_MODEL_URL}` | Auto-download server base URL | `https://sdk.deepx.ai/modelzoo` |
+| `${MODEL_NAME}` | Value of the YAML `name` field (not an OS environment variable) | `resnet50_224x224` |
+
+`${DATA_ROOT}`, `${MODEL_ROOT}`, and `${DXMZ_MODEL_URL}` follow the same `${VAR_NAME}` substitution syntax — see [CLI Reference](04_01_CLI_Reference.md#environment-variables) for the full list and how to set them.
 
 `DXMZ_MODEL_URL` is used by the session factory to construct download URLs:
 
 - ONNX: `${DXMZ_MODEL_URL}/onnx/<model_name>.onnx`
 - DXNN: `${DXMZ_MODEL_URL}/<profile>-dxnn/latest/<model_name>_<profile>.dxnn`
 
-These values can be set via:
+These values can be set via:  
+
 - Environment variables: `export DATA_ROOT=/data/datasets`
 - `.env` file in the project root
 - Command-line options: `dxmz eval ... --data-root /data/datasets`

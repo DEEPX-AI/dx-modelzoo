@@ -2,14 +2,6 @@
 
 The DX-ModelZoo uses the **Registry pattern** to manage all extensible components. The `type` field in YAML maps to classes registered in a Registry, enabling object creation from strings alone.
 
-!!! note "See Also"
-    - [Overview](03_01_Architecture_Overview.md) - Architecture overview and registry system
-    - [Pipeline](03_02_Execution_Pipeline.md) - Pipeline execution using registered components
-    - [Custom Models](02_05_Custom_Models.md) - Creating custom registered components
-    - [Custom Datasets](02_06_Custom_Datasets.md) - Custom dataset registration
-    - [Preprocessing](04_07_Preprocessing_API.md) - Registered preprocessing operations
-    - [Postprocessing](04_08_Postprocessing_API.md) - Registered postprocessing operations
-
 ## Registry Class
 
 `Registry` is a general-purpose class defined in `src/dx_modelzoo/common/registry.py`:
@@ -61,6 +53,8 @@ class Registry:
 
 ## Core Registries
 
+DX-ModelZoo defines four core registries:
+
 | Registry | Location | Purpose |
 |----------|----------|---------|
 | `PREPROCESSING_REGISTRY` | `preprocessing/__init__.py` | Preprocessing operations |
@@ -91,6 +85,8 @@ graph TB
 ```
 
 ## Registration
+
+Registering a custom type follows a two-step pattern:
 
 ### Decorator Pattern (Standard)
 
@@ -151,6 +147,8 @@ def build_preprocessing(self, profile_name, ...):
 ```
 
 ## Registered Types
+
+The following tables list all built-in registered types:
 
 ### PREPROCESSING_REGISTRY
 
@@ -213,22 +211,10 @@ def build_preprocessing(self, profile_name, ...):
 
 ## Adding Custom Types
 
-To add a new type, register it with the appropriate Registry using the `@register()` decorator:
-
-```python
-from dx_modelzoo.dataset import DATASET_REGISTRY
-
-@DATASET_REGISTRY.register("my_dataset")
-class MyDataset(DatasetBase):
-    def __init__(self, data_dir: str):
-        super().__init__(data_dir)
-        # ...
-
-    def __len__(self): ...
-    def __getitem__(self, idx): ...
-```
-
-For more details, see the [Custom Model Guide](02_05_Custom_Models.md) and [Custom Dataset Guide](02_06_Custom_Datasets.md).
+The same decorator pattern shown in [Registration](#registration) applies to any
+registry (`PREPROCESSING_REGISTRY`, `POSTPROCESSING_REGISTRY`, `DATASET_REGISTRY`,
+`EVALUATOR_REGISTRY`). For more details, see the
+[Custom Model Guide](02_05_Custom_Models.md) and [Custom Dataset Guide](02_06_Custom_Datasets.md).
 
 ## Auto-Import via `custom_ops.py`
 

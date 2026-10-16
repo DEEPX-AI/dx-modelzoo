@@ -2,13 +2,9 @@
 
 The DX-ModelZoo architecture is designed around a YAML-centric configuration approach, where `ModelBuilder` and the Registry pattern connect all components for runtime execution.
 
-!!! note "See Also"
-    - [Pipeline](03_02_Execution_Pipeline.md) - Detailed pipeline execution flow
-    - [Registry](03_03_Registry.md) - Registry pattern implementation details
-    - [ModelBuilder](04_02_ModelBuilder_API.md) - ModelBuilder API reference
-    - [YAML Configuration](02_03_YAML_Configuration.md) - YAML configuration guide
-
 ## Architecture Diagram
+
+The following diagram shows how components connect at runtime:
 
 ```mermaid
 flowchart LR
@@ -41,8 +37,8 @@ flowchart LR
 
     subgraph Runtime["Runtime"]
         direction TB
-        PP[PreprocessPipeline]
-        POP[PostprocessPipeline]
+        PP[PreprocessingPipeline]
+        POP[PostprocessingPipeline]
         DS[Dataset]
         DL[DataLoader]
         EV[Evaluator]
@@ -62,6 +58,8 @@ flowchart LR
     PP -.-> DS
     POP -.-> EV
 ```
+
+`ModelBuilder` connects the CLI, Registry, and Runtime layers shown above.
 
 ## Core Design Principles
 
@@ -90,14 +88,14 @@ Four registries manage all extensible components:
 | `DATASET_REGISTRY` | Dataset loaders | `ILSVRC2012`, `COCO`, `PascalVOC2007` |
 | `EVALUATOR_REGISTRY` | Evaluation logic | `image_classification`, `object_detection` |
 
-### Separation of Concerns: Evaluator vs. Postprocessing
+### Postprocessing vs. Evaluator
 
-A key architectural decision is the strict separation between **postprocessing** (model output decoding) and **evaluation** (metric computation):
+DX-ModelZoo strictly separates output decoding from metric computation:
 
-- **Postprocessing** (`custom_ops.py` or shared `postprocessing/`): Transforms raw model tensors into a standardized, task-specific format.
-- **Evaluator**: Consumes the standardized output and computes quality metrics (mAP, accuracy, AUROC, etc.).
-
-This separation allows evaluators to be reused across models with different output formats, as long as a compatible postprocessor is defined.
+| Component | Role |
+|-----------|------|
+| **Postprocessing** (`custom_ops.py` or shared `postprocessing/`) | Transforms raw model tensors into a standardized, task-specific format |
+| **Evaluator** | Consumes the standardized output and computes quality metrics (mAP, accuracy, AUROC, etc.) |
 
 ### Builder Pattern
 
@@ -121,6 +119,8 @@ sequenceDiagram
 ```
 
 ## Source Directory Structure
+
+The corresponding source code is organized as follows:
 
 ```
 src/dx_modelzoo/
@@ -174,5 +174,5 @@ graph TB
 | Postprocessing | PostprocessingPipeline + custom_ops | Task-specific standardized format |
 | Evaluation | Evaluator | metrics dict |
 
-!!! note "NPU Mode"
+!!! note "NPU Mode"  
     When using a `target: dxnn` profile, arithmetic preprocessing operations (`div`, `normalize`, `transpose`, etc.) are automatically skipped. This is because the NPU handles these operations at the hardware level.

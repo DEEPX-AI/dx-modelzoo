@@ -4,12 +4,6 @@ The Evaluator in DX-ModelZoo is an abstract class that encapsulates model evalua
 
 **Module:** `dx_modelzoo.evaluator`
 
-!!! note "See Also"
-    - [Model Evaluation](02_02_Model_Evaluation.md) - Usage examples and evaluation workflow
-    - [DataLoader](04_04_DataLoader_API.md) - Data loading and batching
-    - [Postprocessing](04_08_Postprocessing_API.md) - Output transformation pipeline
-    - [Session](04_03_Session_API.md) - Inference session interface
-
 ## EvaluatorBase
 
 The abstract base class that all evaluators inherit from.
@@ -78,6 +72,8 @@ results = evaluator.eval()
 ```
 
 ## Abstract Methods (Must Be Implemented by Subclasses)
+
+Concrete evaluator subclasses must implement the following 5 methods:
 
 ### `init_metrics`
 
@@ -216,6 +212,8 @@ The Evaluator automatically selects the mode based on the session type:
 
 ## Built-in Evaluators
 
+The following evaluators are available out of the box:
+
 | Registry Name | Task | Key Metrics |
 |---------------|------|-------------|
 | `image_classification` | Classification | Top-1, Top-5 |
@@ -284,6 +282,8 @@ graph LR
 
 ## Writing a Custom Evaluator
 
+Register a custom evaluator with `EVALUATOR_REGISTRY` as follows:
+
 ```python
 from dx_modelzoo.evaluator import EVALUATOR_REGISTRY, EvaluatorBase
 
@@ -319,5 +319,5 @@ evaluator:
   type: my_evaluator
 ```
 
-!!! note "Keep Evaluators Pure"
+!!! note "Keep Evaluators Pure"  
     If your evaluator needs to decode model-specific output formats, put that logic in a `custom_ops.py` file in the model directory instead. The evaluator should only consume the decoded result and compute metrics.

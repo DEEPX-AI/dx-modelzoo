@@ -4,12 +4,7 @@
 
 **Module:** `dx_modelzoo.loader.model_builder`
 
-!!! note "See Also"
-    - [YAML Configuration](02_03_YAML_Configuration.md) - Complete YAML reference
-    - [Model Evaluation](02_02_Model_Evaluation.md) - How to use ModelBuilder for evaluation
-    - [Custom Models](02_05_Custom_Models.md) - Creating custom model configurations
-
-## Overview
+## Method Map
 
 ```mermaid
 graph LR
@@ -62,10 +57,15 @@ print(builder.inputs)    # [{"name": "input", "shape": [1,3,224,224], ...}]
 ### `get_profile`
 
 ```python
-def get_profile(self, profile_name: str) -> dict
+def get_profile(self, profile_name: str, stage: Optional[str] = None) -> dict
 ```
 
 Returns the profile configuration dictionary for the given profile name.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `profile_name` | `str` | Profile name |
+| `stage` | `str \| None` | Pipeline stage name (for multi-stage pipeline YAMLs) |
 
 ```python
 profile = builder.get_profile("onnx")
@@ -80,14 +80,18 @@ def build_preprocessing(
     profile_name: str,
     modal: Optional[str] = None,
     input_dtype: Optional[str] = None,
+    stage: Optional[str] = None,
 ) -> PreprocessingPipeline
 ```
+
+Builds the preprocessing pipeline for the given profile, from the YAML's `preprocessing` section.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `profile_name` | `str` | Profile name (used to determine NPU mode) |
 | `modal` | `str \| None` | Modality selection for multimodal models |
 | `input_dtype` | `str \| None` | Input dtype override |
+| `stage` | `str \| None` | Pipeline stage name (for multi-stage pipeline YAMLs) |
 
 ```python
 preprocessing = builder.build_preprocessing("onnx")
@@ -106,10 +110,14 @@ preprocessing_npu = builder.build_preprocessing("q-lite")
 ### `build_postprocessing`
 
 ```python
-def build_postprocessing(self) -> PostprocessingPipeline
+def build_postprocessing(self, stage: Optional[str] = None) -> PostprocessingPipeline
 ```
 
 Creates a pipeline from the `postprocessing` section of the YAML. Returns the same pipeline regardless of the profile.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `stage` | `str \| None` | Pipeline stage name (for multi-stage pipeline YAMLs) |
 
 ```python
 postprocessing = builder.build_postprocessing()
@@ -128,6 +136,8 @@ def build_session(
 ) -> SessionBase
 ```
 
+Builds the inference session for the given profile (ONNX Runtime or DxRuntime).
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `profile_name` | `str` | Profile name |
@@ -143,7 +153,7 @@ session = builder.build_session("q-lite")
 # DxRuntimeSession("/path/to/resnet50_224x224.dxnn")
 ```
 
-!!! note "Automatic Download"
+!!! note "Automatic Download"  
     If the `DXMZ_MODEL_URL` environment variable is set, the model file is automatically downloaded when it is not available locally.
 
 ### `build_dataset`
@@ -154,6 +164,8 @@ def build_dataset(
     data_dir: Optional[str] = None,
 ) -> DatasetBase
 ```
+
+Builds the dataset instance from the YAML's `dataset` section.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -176,6 +188,8 @@ def build_evaluator(
     profile_name: Optional[str] = None,
 ) -> EvaluatorBase
 ```
+
+Builds the evaluator that ties together the session, dataset, and postprocessing pipeline.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
