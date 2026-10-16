@@ -2,33 +2,28 @@
 
 Quick walkthrough of the core DX-ModelZoo workflow: browse, evaluate, and compile models in minutes.
 
-!!! note "Prerequisites"
+!!! note "Prerequisites"  
     Before running these commands, make sure you have [installed DX-ModelZoo](02_01_Installation.md).
-
-!!! note "See Also"
-    - [Installation](02_01_Installation.md) - Installation prerequisites and setup
-    - [Model Evaluation](02_02_Model_Evaluation.md) - Detailed evaluation guide
-    - [CLI Reference](04_01_CLI_Reference.md) - Complete CLI command reference
 
 ## Quick Start Overview
 
-**Basic Workflow:**
+**Basic Workflow**
 
-1. [Browse Available Models](#step-1-browse-available-models) - Explore pre-configured models
-2. [View Model Information](#step-2-view-model-information) - Check model details and profiles
-3. [Evaluate with ONNX Runtime](#step-3-evaluate-with-onnx-runtime) - Run CPU/GPU inference
-4. [Evaluate with NPU Runtime](#step-4-evaluate-with-npu-runtime) - Run NPU inference (optional)
+- Step 1. [Browse Available Models](#step-1-browse-available-models) - Explore pre-configured models
+- Step 2. [View Model Information](#step-2-view-model-information) - Check model details and profiles
+- Step 3. [Evaluate with ONNX Runtime](#step-3-evaluate-with-onnx-runtime) - Run CPU/GPU inference
+- Step 4. [Evaluate with NPU Runtime](#step-4-evaluate-with-npu-runtime) - Run NPU inference (optional)
 
-**Advanced Options (choose as needed):**
+**Advanced Options (choose as needed)**
 
-- [Compile a Model](#optional-compile-a-model) - Compile for NPU deployment
-- [Benchmark](#optional-benchmark) - Batch evaluation across multiple models
-- [Run with YAML File](#optional-run-with-a-yaml-file-directly) - Use custom configurations
-- [Create a Custom Model](#optional-create-a-custom-model) - Add your own models
+- Optional 1. [Compile a Model](#optional-1-compile-a-model) - Compile for NPU deployment
+- Optional 2. [Benchmark](#optional-2-benchmark) - Batch evaluation across multiple models
+- Optional 3. [Run with YAML File](#optional-3-run-with-a-yaml-file-directly) - Use custom configurations
+- Optional 4. [Create a Custom Model](#optional-4-create-a-custom-model) - Add your own models
 
----
+## Basic Workflow
 
-## Step 1: Browse Available Models
+### Step 1: Browse Available Models
 
 ```bash
 # Interactive TUI browser
@@ -41,7 +36,7 @@ dxmz list --all
 dxmz list --domain cv --task classification
 ```
 
-## Step 2: View Model Information
+### Step 2: View Model Information
 
 ```bash
 dxmz info resnet50_224x224
@@ -55,30 +50,19 @@ Profiles: ['onnx', 'c-lite', 'q-lite', 'q-pro']
 Dataset: {'type': 'ILSVRC2012', 'eval_path': '${DATA_ROOT}/ILSVRC2012/val'}
 ```
 
-!!! note "Available Profiles"
+!!! note "Available Profiles"  
     - **onnx**: ONNX Runtime (CPU/GPU)
     - **c-lite**: Compile profile with `opt_level: 0`
     - **q-lite**: Compile and run on NPU with standard calibration
     - **q-pro**: Compile and run on NPU with `use_q_pro: true`
 
-## Step 3: Evaluate with ONNX Runtime
+### Step 3: Evaluate with ONNX Runtime
 
 ```bash
-# Basic evaluation
-dxmz eval resnet50_224x224 --profile onnx
-
-# Specify data path (required if DATA_ROOT env var is not set)
-dxmz eval resnet50_224x224 --profile onnx --data-root /data/datasets
-
-# Specify a model file
-dxmz eval resnet50_224x224 --profile onnx --model-path /models/resnet50_224x224.onnx
-
-# Save results as JSON
 dxmz eval resnet50_224x224 --profile onnx --save
-
-# With custom seed
-dxmz eval resnet50_224x224 --profile onnx --seed 123
 ```
+
+See [CLI Reference](04_01_CLI_Reference.md#dxmz-eval) for all options (`--data-root`, `--model-path`, `--seed`, etc.).
 
 With `--save`, a JSON file is saved to the `result/` directory:
 
@@ -96,67 +80,40 @@ With `--save`, a JSON file is saved to the `result/` directory:
 }
 ```
 
-## Step 4: Evaluate with NPU Runtime
+### Step 4: Evaluate with NPU Runtime
 
 ```bash
 # Evaluate a compiled dxnn model
 dxmz eval resnet50_224x224 --profile q-lite
 ```
 
-!!! note "Compiled model availability"
+!!! note "Compiled model availability"  
     DX-ModelZoo does not compile a missing model during evaluation. For a
     `target: dxnn` profile, provide the `.dxnn` artifact in the configured
     artifact directory or set `DXMZ_MODEL_URL` so the matching artifact can be
     downloaded. Use `dxmz compile` to create the artifact explicitly.
 
-!!! note "NPU profiles are forced to batch_size=1"
+!!! note "NPU profiles are forced to batch_size=1"  
     Profiles with `target: dxnn` always use `batch_size=1`, regardless of what is set in the YAML.
     Only ONNX profiles support adjustable `batch_size`.
 
-## Environment Variables
+## Advanced Options (choose as needed)
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `DATA_ROOT` | Dataset root path | `/data/datasets` |
-| `MODEL_ROOT` | Model artifact root path | `/data/models` |
-| `DXMZ_MODEL_URL` | Auto-download server URL | `https://sdk.deepx.ai/modelzoo` |
-
-Settings can be placed in a `.env` file for automatic loading:
-
-```bash title=".env"
-DATA_ROOT=/data/datasets
-MODEL_ROOT=/data/models
-DXMZ_MODEL_URL=https://sdk.deepx.ai/modelzoo
-```
-
-## Optional: Compile a Model
+### Optional 1: Compile a Model
 
 ```bash
-# Quantized compilation for NPU
 dxmz compile resnet50_224x224 --profile q-lite
-
-# Specify output directory
-dxmz compile resnet50_224x224 --profile q-lite --output ./compiled/
-
-# Q-PRO calibration for NPU deployment
-dxmz compile resnet50_224x224 --profile q-pro
 ```
 
-## Optional: Benchmark
+See [CLI Reference](04_01_CLI_Reference.md#dxmz-compile) for all options (`--output`, `--profile q-pro`, etc.).
+
+### Optional 2: Benchmark
 
 ```bash
-# Benchmark all models with a profile
-dxmz benchmark --profile onnx
-
-# Filter by domain
-dxmz benchmark --profile onnx --domain cv
-
-# Benchmark across multiple NPU devices in parallel
-dxmz benchmark --profile q-lite --devices 0,1,2,3
-
-# Save results as JSON
 dxmz benchmark --profile onnx --save
 ```
+
+See [CLI Reference](04_01_CLI_Reference.md#dxmz-benchmark) for domain/task filters and multi-device options (`--domain`, `--devices`, etc.).
 
 Benchmark results are saved in JSON format:
 
@@ -179,9 +136,7 @@ result/benchmark_<profile>_<timestamp>.json
 ]
 ```
 
-## Optional: Run with a YAML File Directly
-
-You can pass a YAML file path instead of a model name:
+### Optional 3: Run with a YAML File Directly
 
 ```bash
 # Evaluate with a custom YAML
@@ -191,15 +146,25 @@ dxmz eval ./my_models/custom_model.yaml --profile onnx
 dxmz compile ./my_models/custom_model.yaml --profile q-lite
 ```
 
-## Optional: Create a Custom Model
+### Optional 4: Create a Custom Model
 
 ```bash
 # Scaffold a new custom model (interactive wizard)
 dxmz create
 ```
 
-This creates a template in the `./custom/` directory with:
+This creates a template in the `./custom/` directory with:  
 
-- YAML configuration file
-- Custom preprocessing/postprocessing stubs
-- Dataset loader template
+- YAML configuration file  
+- Custom preprocessing/postprocessing stubs  
+- Dataset loader template  
+
+## Environment Variables
+
+See [CLI Reference](04_01_CLI_Reference.md#environment-variables) for the full list of environment variables. The most common ones can be placed in a `.env` file for automatic loading:
+
+```bash title=".env"
+DATA_ROOT=/data/datasets
+MODEL_ROOT=/data/models
+DXMZ_MODEL_URL=https://sdk.deepx.ai/modelzoo
+```

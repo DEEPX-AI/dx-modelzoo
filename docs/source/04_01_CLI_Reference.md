@@ -2,18 +2,17 @@
 
 DX-ModelZoo performs all operations through the `dxmz` CLI tool. It is built on [Typer](https://typer.tiangolo.com/).
 
-!!! note "See Also"
-    - [Quick Start](00_Quick_Start.md) - Basic CLI usage examples
-    - [Model Evaluation](02_02_Model_Evaluation.md) - Detailed evaluation guide
-    - [YAML Configuration](02_03_YAML_Configuration.md) - Model configuration reference
-
 ## Installation Verification
+
+Confirm the CLI is installed and accessible:
 
 ```bash
 dxmz --help
 ```
 
 ## Command Overview
+
+DX-ModelZoo provides the following commands:
 
 | Command | Description |
 |---------|-------------|
@@ -45,7 +44,7 @@ dxmz eval <model> [<model2> ...] --profile <profile> [options]
 | `--profile` | Runtime profile | (required) |
 | `--data-root` | Dataset root directory (overrides `DATA_ROOT`) | Environment variable |
 | `--model-root` | Model file root directory (overrides `MODEL_ROOT`) | Environment variable |
-| `--model-path` | Explicit path to the model file | — |
+| `--model-path` | Explicit path to the model file | `None` (falls back to `artifacts.path` in YAML) |
 | `--save` | Save results as JSON | `False` |
 | `--seed` | Random seed for reproducible evaluation | `42` |
 
@@ -93,7 +92,7 @@ dxmz compile <model> --profile <profile> [options]
 |--------|-------------|---------|
 | `--profile` | Compilation profile (`c-lite`, `q-lite`, `q-pro`) | (required) |
 | `--output` | Output directory or file path | Auto-generated |
-| `--model-path` | Source ONNX model path | — |
+| `--model-path` | Source ONNX model path | `None` (falls back to `artifacts.path` in YAML) |
 | `--data-root` | Calibration data path | Environment variable |
 | `--model-root` | Model file root | Environment variable |
 
@@ -132,7 +131,7 @@ dxmz benchmark --profile <profile> [options]
 | `--model-root` | Model file root | Environment variable |
 | `--domain` | Domain filter (e.g., `cv`) | All |
 | `--task` | Task filter (e.g., `image_classification`) | All |
-| `--devices` | Comma-separated device IDs for parallel execution | — |
+| `--devices` | Comma-separated device IDs for parallel execution | `None` (sequential execution) |
 | `--save` | Save results to JSON file | `False` |
 
 ### Examples
@@ -232,13 +231,15 @@ Key environment variables used by the CLI:
 |----------|-------------|-------------|
 | `DATA_ROOT` | Dataset root directory | `--data-root` |
 | `MODEL_ROOT` | Model file root directory | `--model-root` |
-| `DXMZ_MODEL_URL` | Model auto-download base URL | — |
-| `DXNN_DEVICES` | DxRuntime device specification | — |
+| `DXMZ_MODEL_URL` | Model auto-download base URL | None |
+| `DXNN_DEVICES` | DxRuntime device specification | None |
 
 !!! warning "Environment Variable Precedence"
     When CLI options (`--data-root`, `--model-root`) are specified, they take precedence over environment variables.
 
 ## Profile Types
+
+The following runtime profiles are available across commands:
 
 | Profile | Target | Description |
 |---------|--------|-------------|

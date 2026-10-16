@@ -20,7 +20,7 @@ DX-ModelZoo is a unified framework for managing model preprocessing, postprocess
   - [DeepX Compiler (DX-Compiler)](https://github.com/DEEPX-AI/dx-compiler) ≥ 2.4.0
 - **GPU** (optional): NVIDIA GPU with CUDA 12.2+ for GPU inference
 
-> See the [Installation Guide](source/getting-started/installation.md) for detailed setup instructions including WSL2 and GPU configuration.
+> See the [Installation Guide](docs/source/02_01_Installation.md) for detailed setup instructions including WSL2 and GPU configuration.
 
 ## Installation
 
@@ -78,8 +78,6 @@ dxmz eval resnet50_224x224 --profile onnx
 dxmz compile resnet50_224x224 --profile q-lite
 ```
 
-
-
 ## Configuration
 
 Every model is defined by a single YAML file containing preprocessing, postprocessing, dataset, and runtime profiles.
@@ -93,7 +91,7 @@ Every model is defined by a single YAML file containing preprocessing, postproce
 
 **Environment Variables:** Use `${DATA_ROOT}`, `${MODEL_ROOT}`, and `${DXMZ_MODEL_URL}` in YAML files for path configuration.
 
-See the [YAML Configuration Guide](docs/source/guides/yaml-config.md) for complete details and examples.
+See the [YAML Configuration Guide](docs/source/02_03_YAML_Configuration.md) for complete details and examples.
 
 ## Documentation
 
@@ -101,13 +99,13 @@ For detailed guides, please refer to the full documentation:
 
 | Topic | Link |
 |-------|------|
-| Installation | [docs/source/getting-started/installation.md](docs/source/getting-started/installation.md) |
-| Quick Start | [docs/source/getting-started/quickstart.md](docs/source/getting-started/quickstart.md) |
-| YAML Configuration | [docs/source/guides/yaml-config.md](docs/source/guides/yaml-config.md) |
-| Model Evaluation | [docs/source/guides/evaluation.md](docs/source/guides/evaluation.md) |
-| Custom Models | [docs/source/guides/custom-models.md](docs/source/guides/custom-models.md) |
-| Architecture | [docs/source/architecture/overview.md](docs/source/architecture/overview.md) |
-| Registry & Custom Ops | [docs/source/architecture/registry.md](docs/source/architecture/registry.md) |
+| Installation | [docs/source/02_01_Installation.md](docs/source/02_01_Installation.md) |
+| Quick Start | [docs/source/00_Quick_Start.md](docs/source/00_Quick_Start.md) |
+| YAML Configuration | [docs/source/02_03_YAML_Configuration.md](docs/source/02_03_YAML_Configuration.md) |
+| Model Evaluation | [docs/source/02_02_Model_Evaluation.md](docs/source/02_02_Model_Evaluation.md) |
+| Custom Models | [docs/source/02_05_Custom_Models.md](docs/source/02_05_Custom_Models.md) |
+| Architecture | [docs/source/03_01_Architecture_Overview.md](docs/source/03_01_Architecture_Overview.md) |
+| Registry & Custom Ops | [docs/source/03_03_Registry.md](docs/source/03_03_Registry.md) |
 
 
 ## License

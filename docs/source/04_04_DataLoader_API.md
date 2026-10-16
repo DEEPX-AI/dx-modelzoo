@@ -4,12 +4,6 @@ DX-ModelZoo provides a pure Python/NumPy DataLoader for efficient batch loading 
 
 **Module:** `dx_modelzoo.common.dataloader`
 
-!!! note "See Also"
-    - [Datasets](02_04_Datasets_Guide.md) - Supported datasets and usage
-    - [Custom Datasets](02_06_Custom_Datasets.md) - Creating custom dataset classes
-    - [Evaluator](04_06_Evaluator_API.md) - DataLoader integration with evaluation pipeline
-    - [Preprocessing](04_07_Preprocessing_API.md) - Data preprocessing pipeline
-
 ## DatasetBase
 
 An abstract base class that all datasets must inherit from.
@@ -202,6 +196,8 @@ loader = DataLoader(dataset, batch_size=4, collate_fn=my_collate)
 
 ## Differences from PyTorch
 
+The following table summarizes the key differences:
+
 | Feature | DX ModelZoo DataLoader | PyTorch DataLoader |
 |---------|----------------------|-------------------|
 | Dependencies | Pure Python/NumPy (DataLoader), torchvision for preprocessing fusion | Requires PyTorch |
@@ -212,7 +208,7 @@ loader = DataLoader(dataset, batch_size=4, collate_fn=my_collate)
 | drop_last | ❌ | ✅ |
 | Multi-process | Python `multiprocessing` | Custom implementation |
 
-!!! note "Design Philosophy"
+!!! note "Design Philosophy"  
     DX-ModelZoo is designed for lightweight deployment in NPU environments. The DataLoader is implemented in pure Python/NumPy. PyTorch is NOT required for the DataLoader itself, though torchvision is used by the preprocessing pipeline for dx_com fusion compatibility.
 
 ## Integration with Evaluator

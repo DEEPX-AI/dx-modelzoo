@@ -2,7 +2,7 @@
 
 This guide explains how to add a new model to DX-ModelZoo. All you need is a single YAML file and, optionally, custom preprocessing/postprocessing operations.
 
-!!! note "Prerequisites"
+!!! note "Prerequisites"  
     Before creating custom models, make sure you have:
 
     - [Installed DX-ModelZoo](02_01_Installation.md) with development dependencies
@@ -10,12 +10,7 @@ This guide explains how to add a new model to DX-ModelZoo. All you need is a sin
     - Model file in ONNX format (or other supported formats)
     - Familiarity with preprocessing/postprocessing concepts
 
-!!! note "See Also"
-    - [YAML Configuration](02_03_YAML_Configuration.md) - Complete YAML reference
-    - [Model Evaluation](02_02_Model_Evaluation.md) - How to evaluate your custom model
-    - [Custom Datasets](02_06_Custom_Datasets.md) - Create custom datasets for your model
-
-## Overview
+**Decision Flow**  
 
 ```mermaid
 graph LR
@@ -25,6 +20,8 @@ graph LR
     D --> E[Register with @REGISTRY]
     E --> C
 ```
+
+Creating a model involves the following 3 steps:
 
 ## Step 1: Creating YAML File
 
@@ -50,51 +47,22 @@ src/dx_modelzoo/models/
 
 ### Environment Variables in YAML
 
-DX-ModelZoo supports environment variable substitution in YAML files:
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `${DATA_ROOT}` | Dataset root directory | `/data/datasets` |
-| `${MODEL_ROOT}` | Model artifacts root | `/data/models` |
-| `${MODEL_NAME}` | Current model name | `MyModel_v1` |
-| `${DXMZ_MODEL_URL}` | Auto-download server URL | `https://sdk.deepx.ai/modelzoo` |
-
-For more details, see [YAML Configuration](02_03_YAML_Configuration.md#environment-variable-substitution).
+DX-ModelZoo supports environment variable substitution in YAML files (e.g. `${DATA_ROOT}`, `${MODEL_ROOT}`, `${MODEL_NAME}`, `${DXMZ_MODEL_URL}`). See [YAML Configuration](02_03_YAML_Configuration.md#environment-variable-substitution) for the full list and syntax.
 
 ### Minimal YAML Example
 
 ```yaml title="MyModel_v1.yaml"
 name: MyModel_v1
 task: image_classification
-reference: https://arxiv.org/abs/xxxx.xxxxx
-description: >
-  My custom classification model
 
 inputs:
   - name: input
     shape: [1, 3, 224, 224]
     dtype: float32
-    layout: NCHW
 
 preprocessing:
   - type: resize
-    size: [256, 256]
-    mode: torchvision
-    interpolation: BILINEAR
-  - type: centercrop
-    height: 224
-    width: 224
-  - type: convertcolor
-    form: BGR2RGB
-  - type: div
-    x: 255
-  - type: normalize
-    mean: [0.485, 0.456, 0.406]
-    std: [0.229, 0.224, 0.225]
-  - type: transpose
-    axis: [2, 0, 1]
-  - type: expanddim
-    axis: 0
+    size: [224, 224]
 
 postprocessing:
   - type: topk
@@ -110,37 +78,17 @@ dataset:
 artifacts:
   path: ${MODEL_ROOT}/${MODEL_NAME}
 
-calibration: &calibration
-  method: ema
-  num: 100
-  seed: 42
-
 profiles:
   onnx:
     target: onnx
     runtime:
       device: gpu
       batch_size: 1
-  q-lite:
-    target: dxnn
-    compile:
-      calibration: *calibration
-    runtime:
-      device: 0
-      async: true
-  q-pro:
-    target: dxnn
-    compile:
-      calibration:
-        <<: *calibration
-        num: 1024
-        use_q_pro: true
-    runtime:
-      device: 0
-      async: true
 ```
 
-!!! note "Leverage Built-in Types"
+See [YAML Configuration](02_03_YAML_Configuration.md#full-structure) for the complete field reference, including multi-step preprocessing pipelines, NPU (`q-lite`/`q-pro`) profiles, and calibration settings.
+
+!!! note "Leverage Built-in Types"  
     When using built-in types for preprocessing, postprocessing, datasets, and evaluators, the model can be fully defined in YAML alone — no Python code required.
 
 ## Step 2: Custom Operations
@@ -224,10 +172,12 @@ postprocessing:
     conf_threshold: 0.3
 ```
 
-!!! note "Auto-Import"
+!!! note "Auto-Import"  
     `custom_ops.py` placed in the same directory as the model YAML is automatically imported by `ModelBuilder`. No manual import is needed — just define your classes with `@REGISTRY.register()` and they become available in the YAML configuration.
 
 ## Step 3: Verification
+
+Run the evaluation to confirm the model works as expected:
 
 ```bash
 # Run by model name
@@ -327,9 +277,9 @@ profiles:
 
 For models that require custom decoding of model outputs (e.g., pose estimation, text detection), the recommended pattern is:
 
-1. Define the decoder in `custom_ops.py` with `@POSTPROCESSING_REGISTRY.register()`
-2. Reference it in the YAML `postprocessing` section
-3. The evaluator receives the decoded output in `process_batch_result()`
+- Step 1. Define the decoder in `custom_ops.py` with `@POSTPROCESSING_REGISTRY.register()`
+- Step 2. Reference it in the YAML `postprocessing` section
+- Step 3. The evaluator receives the decoded output in `process_batch_result()`
 
 ```mermaid
 graph LR

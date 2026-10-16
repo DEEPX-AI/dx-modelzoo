@@ -4,12 +4,6 @@ The postprocessing pipeline in DX-ModelZoo transforms raw model outputs into str
 
 **Module:** `dx_modelzoo.postprocessing`
 
-!!! note "See Also"
-    - [YAML Configuration](02_03_YAML_Configuration.md) - Postprocessing configuration in YAML
-    - [Custom Models](02_05_Custom_Models.md) - Creating custom postprocessing operations
-    - [ModelBuilder](04_02_ModelBuilder_API.md) - How to build postprocessing pipelines
-    - [Preprocessing](04_07_Preprocessing_API.md) - Input data preprocessing (compare NPU skip behavior)
-
 ## PostprocessingPipeline
 
 Sequentially executes postprocessing operations defined in a YAML configuration.
@@ -70,9 +64,10 @@ postprocessing:
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `k` | `list[int]` | Number of top predictions to extract (e.g., `[1, 5]` → Top-1, Top-5) |
+| `skip_background` | `bool` | Drop index 0 (background class) before ranking (default: `False`) |
 
 **Input:** `list[np.ndarray]` — Model output (logits/probabilities)
-**Output:** Top-k indices and values
+**Output:** Top-k class indices, sorted by confidence descending
 
 ### `nms`
 
@@ -81,12 +76,20 @@ Applies Non-Maximum Suppression to remove duplicate detections.
 ```yaml
 postprocessing:
   - type: nms
-    variant: yolo
+    conf_thres: 0.001
+    iou_thres: 0.7
+    max_output_boxes: 300
 ```
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `variant` | `str` | NMS variant (e.g., `yolo`, `ssd`, depending on the model architecture) |
+| `conf_thres` | `float` | Confidence threshold to keep a detection (default: `0.001`) |
+| `iou_thres` | `float` | IoU threshold above which overlapping boxes are suppressed (default: `0.7`) |
+| `max_output_boxes` | `int` | Maximum number of boxes to keep per image (default: `300`) |
+| `pad_resize` | `bool` | Whether to rescale coordinates for letterbox/pad-resize preprocessing (default: `True`) |
+
+**Input:** `dict` — `{"boxes": [N,4] xyxy, "scores": [N], "class_ids": [N]}` from a model-specific decode step
+**Output:** `np.ndarray` of shape `[M, 6]` — `(x1, y1, x2, y2, score, class_id)`
 
 **Task:** Object Detection
 
@@ -97,9 +100,14 @@ Applies argmax along the channel axis to the output of a segmentation model.
 ```yaml
 postprocessing:
   - type: segmentation_argmax
+    layout: nchw
+    target_size: [512, 512]
 ```
 
-No parameters.
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `layout` | `str` | Input layout, `nchw` or `nhwc` (default: `nchw`) |
+| `target_size` | `list[int] \| None` | Optional `[H, W]` to resize the output via nearest interpolation (default: `None`) |
 
 **Input:** Logits of shape `(1, num_classes, H, W)`
 **Output:** Class index map of shape `(H, W)`
@@ -108,10 +116,12 @@ No parameters.
 
 ## Postprocessing Guide by Task
 
+The following table maps common tasks to their typical postprocessing:
+
 | Task | Recommended Postprocessing | YAML Example |
 |------|---------------------------|--------------|
 | Image Classification | `topk` | `type: topk, k: [1, 5]` |
-| Object Detection | model-specific decode + shared `nms` | `type: yolov8_decode` → `type: nms, variant: yolo` |
+| Object Detection | model-specific decode + shared `nms` | `type: yolov8_decode` → `type: nms, conf_thres: 0.001, iou_thres: 0.7` |
 | Semantic Segmentation | `segmentation_argmax` | `type: segmentation_argmax` |
 | Instance Segmentation | model-specific decode | `type: yolact_decode` |
 | Face Detection | model-specific decode | `type: retinaface_decode` |
@@ -120,6 +130,8 @@ No parameters.
 | Depth Estimation | `identity` | `type: identity` |
 
 ## Adding Custom Postprocessing
+
+Register a custom postprocessing operation the same way as preprocessing:
 
 ```python
 from dx_modelzoo.postprocessing import POSTPROCESSING_REGISTRY
@@ -152,10 +164,11 @@ Multiple postprocessing operations can be chained sequentially:
 postprocessing:
   - type: yolov8_decode       # Step 1: model-specific decode
   - type: nms                 # Step 2: shared NMS
-    variant: yolo
+    conf_thres: 0.001
+    iou_thres: 0.7
 ```
 
-!!! note "Postprocessing Order"
+!!! note "Postprocessing Order"  
     Postprocessing operations are executed in the order they are defined in the YAML configuration. The output of each step becomes the input to the next, so ordering matters.
 
 For detailed usage, refer to the [Custom Models](02_05_Custom_Models.md) guide.
