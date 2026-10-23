@@ -10,13 +10,32 @@ Sequentially executes postprocessing operations defined in a YAML configuration.
 
 ```python
 class PostprocessingPipeline:
-    def __init__(self, steps: list)
-    def __call__(self, outputs) -> Any
+    def __init__(self, steps_config: list[dict])
+    def __call__(self, outputs, **kwargs) -> Any
 ```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `steps_config` | `list[dict]` | Step **configuration** dicts (`{"type": ..., **params}`), i.e. the YAML `postprocessing:` block |
 
 | Attribute | Type | Description |
 |-----------|------|-------------|
-| `steps` | `list` | List of postprocessing operation instances |
+| `steps` | `list` | Instantiated postprocessing operation objects built from `steps_config` |
+
+!!! warning  
+    The constructor argument is `steps_config` and takes **config dicts**, not
+    operation instances. Using `steps=` raises `TypeError`; passing built objects
+    raises `AttributeError: 'TopK' object has no attribute 'get'`.
+
+Context keyword arguments (`runtime_target`, and for detection models
+`origin_hw` / `input_hw`) are forwarded to every step — see
+[Adding Custom Postprocessing](#adding-custom-postprocessing).
+
+```python
+from dx_modelzoo.postprocessing import PostprocessingPipeline
+
+postprocessing = PostprocessingPipeline(steps_config=[{"type": "topk", "k": 5}])
+```
 
 ### Usage Example
 
@@ -143,11 +162,38 @@ class MyPostprocess:
     def __init__(self, threshold: float = 0.5):
         self.threshold = threshold
 
-    def __call__(self, outputs: list[np.ndarray]) -> dict:
+    def __call__(self, outputs: list[np.ndarray], **kwargs) -> dict:
         # outputs: list of raw model outputs
+        # kwargs carries pipeline context (see table below) — always accept **kwargs
         result = outputs[0]
         mask = result > self.threshold
         return {"predictions": result[mask]}
+```
+
+!!! warning "`__call__` must accept `**kwargs`"  
+    `PostprocessingPipeline.__call__(outputs, **kwargs)` forwards its context to
+    every step. A step defined as `__call__(self, outputs)` raises
+    `TypeError: __call__() got an unexpected keyword argument 'runtime_target'`.
+
+| Keyword | Provided by | Meaning |
+|---------|-------------|---------|
+| `runtime_target` | all evaluators | `"onnx"` / `"npu"` — the active runtime |
+| `origin_hw` | detection-style evaluators | `(H, W)` of the original image |
+| `input_hw` | detection-style evaluators | `(H, W)` of the model input |
+
+Steps producing coordinates (boxes, keypoints) must map model-input pixel space
+back to original image coordinates using `origin_hw` / `input_hw`:
+
+```python
+from dx_modelzoo.postprocessing.coord_scaler import unpad_and_scale
+
+@POSTPROCESSING_REGISTRY.register("my_box_postprocess")
+class MyBoxPostprocess:
+    def __call__(self, outputs, origin_hw=None, input_hw=None, **kwargs):
+        boxes = outputs[0]  # [M, 6] (x1, y1, x2, y2, score, class_id) in input space
+        if origin_hw is not None and input_hw is not None:
+            boxes[:, :4] = unpad_and_scale(boxes[:, :4], input_hw, origin_hw)
+        return boxes
 ```
 
 ```yaml

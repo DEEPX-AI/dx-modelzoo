@@ -171,8 +171,9 @@ postprocessing:
 ```python
 # Transformed result
 pipeline = PostprocessingPipeline(
-    steps=[NMS(conf_thres=0.001, iou_thres=0.7)]
+    steps_config=[{"type": "nms", "conf_thres": 0.001, "iou_thres": 0.7}]
 )
+# pipeline.steps -> [NMS(conf_thres=0.001, iou_thres=0.7)]
 ```
 
 ### Postprocessing Patterns by Task

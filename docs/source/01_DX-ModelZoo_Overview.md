@@ -41,30 +41,46 @@ dxmz compile resnet50_224x224 --profile q-lite
 See [Quick Start Guide](00_Quick_Start.md) for step-by-step instructions and [Installation Guide](02_01_Installation.md) for detailed setup.
 
 <!-- BEGIN:SUPPORTED_TASKS -->
-<!-- This section is auto-generated. Do not edit manually. -->
+<!-- Counts are YAML variant counts under src/dx_modelzoo/models/cv. -->
 ## Supported Tasks
 
-| Category | Task | Models |
+| Category | Task | Model Variants |
 |---|---|---:|
-| **Classification** | Image Classification | 102 |
-| **Object Detection** | Object Detection | 112 |
+| **Classification** | Image Classification | 137 |
+|  | Zero-Shot Image Classification | 6 |
+|  | Image Retrieval | 1 |
+| **Object Detection** | Object Detection | 124 |
+|  | Face Detection | 18 |
 |  | Oriented Object Detection | 5 |
-| **Segmentation** | Semantic Segmentation | 8 |
-|  | Instance Segmentation | 14 |
-| **Pose / Landmark** | Pose Estimation | 10 |
-|  | 3D Face Landmark | 2 |
+|  | Mainbody Detection | 2 |
+|  | Hand Detection | 1 |
+|  | 3D Object Detection | 1 |
+| **Segmentation** | Instance Segmentation | 35 |
+|  | Semantic Segmentation | 24 |
+|  | Zero-Shot Instance Segmentation | 1 |
+|  | Panoptic Driving Perception | 1 |
+| **Pose / Landmark** | Pose Estimation | 21 |
+|  | Face Landmark | 2 |
 |  | Hand Landmark | 1 |
-| **Face** | Face Detection | 17 |
-|  | Face Recognition | 4 |
+|  | Keypoint Detection | 1 |
+|  | Object Pose Estimation | 1 |
+| **Face / Person** | Face Recognition | 4 |
+|  | Person Attribute | 2 |
 |  | Face Attribute | 1 |
-| **Person** | Pedestrian Attribute | 2 |
-| **Image Restoration** | Image Denoising | 6 |
-|  | Super Resolution | 3 |
-|  | Low-Light Enhancement | 1 |
-| **Depth** | Depth Estimation | 2 |
-| **Other** | Zero Shot Instance Segmentation | 1 |
+|  | Person Re-Identification | 1 |
+| **Image Restoration** | Super Resolution | 6 |
+|  | Image Denoising | 5 |
+|  | Low-Light Enhancement | 2 |
+|  | Image Matting | 2 |
+| **Other** | Depth Estimation | 10 |
+|  | Anomaly Detection | 4 |
+|  | Visual Place Recognition | 3 |
 
-> **300+ models** across 17 CV tasks — all configurable via YAML.
+> **422 model variants** across **29 CV tasks** — all configurable via YAML.
+>
+> Counts are YAML definitions (variants) under `src/dx_modelzoo/models/cv`, not
+> distinct architectures. A single architecture may ship several variants
+> (different input sizes, decode options, or PPU / pre-optimized builds).
 <!-- END:SUPPORTED_TASKS -->
 
 ## Documentation Guide

@@ -9,15 +9,39 @@ The preprocessing pipeline in DX-ModelZoo transforms input data into the format 
 A pipeline that sequentially executes preprocessing operations defined in YAML.
 
 ```python
-class PreprocessingPipeline:
-    def __init__(self, steps: list, npu_mode: bool = False)
+class PreprocessingPipeline(Compose):
+    def __init__(
+        self,
+        steps_config: list[dict] | dict[str, list[dict]],
+        npu_mode: bool = False,
+    )
     def __call__(self, img: np.ndarray) -> np.ndarray
 ```
 
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `steps_config` | `list[dict]` \| `dict[str, list[dict]]` | Step **configuration** dicts (`{"type": ..., **params}`), i.e. the YAML `preprocessing:` block. Use a dict keyed by input name for multi-input models |
+| `npu_mode` | `bool` | NPU mode (skips `NPU_SKIP_DEFAULT` operations when True) |
+
 | Attribute | Type | Description |
 |-----------|------|-------------|
-| `steps` | `list` | List of preprocessing operation instances |
-| `npu_mode` | `bool` | NPU mode (skips `NPU_SKIP_DEFAULT` operations when True) |
+| `steps` | `list` | Instantiated preprocessing operation objects built from `steps_config` |
+
+!!! warning  
+    The constructor argument is `steps_config` and takes **config dicts**, not
+    operation instances. `steps` is the built result and is read-only output —
+    passing objects (or using `steps=`) raises `TypeError` / `AttributeError`.
+
+```python
+from dx_modelzoo.preprocessing import PreprocessingPipeline
+
+pipeline = PreprocessingPipeline(
+    steps_config=[
+        {"type": "resize", "size": [256, 256]},
+        {"type": "centercrop", "size": [224, 224]},
+    ]
+)
+```
 
 ### Usage Example
 
@@ -91,15 +115,26 @@ Resize an image.
 ```yaml
 - type: resize
   size: [256, 256]          # [H, W]
-  mode: torchvision         # torchvision | opencv | letterbox
+  mode: default             # torchvision | default | pad | pycls
   interpolation: BILINEAR   # BILINEAR | BICUBIC | NEAREST | AREA
 ```
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `size` | `list[int]` | (required) | Target size [H, W] |
-| `mode` | `str` | `"torchvision"` | Resize mode |
+| `mode` | `str` | `"default"` | Resize mode |
 | `interpolation` | `str` | `"BILINEAR"` | Interpolation method |
+
+| Mode | Backend | Behavior |
+|------|---------|----------|
+| `default` | OpenCV (`cv2.resize`) | Plain OpenCV resize to the target size |
+| `torchvision` | PIL / torchvision | Matches `torchvision.transforms.Resize` semantics |
+| `pad` | OpenCV | Aspect-ratio preserving resize + padding (letterbox); tune with `align_side`, `scale_method`, `pad_location`, `pad_value` |
+| `pycls` | OpenCV | pycls-style resize convention |
+
+!!! note  
+    There is no `opencv` or `letterbox` mode. Use `default` for OpenCV resize and
+    `pad` for letterbox-style resize. Any other value raises `ValueError: Invalid mode: ...`.
 
 ### `centercrop`
 

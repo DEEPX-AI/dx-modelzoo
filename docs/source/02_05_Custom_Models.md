@@ -147,11 +147,20 @@ class MyDecode:
     def __init__(self, conf_threshold: float = 0.25):
         self.conf_threshold = conf_threshold
 
-    def __call__(self, outputs: list[np.ndarray]) -> dict:
+    def __call__(self, outputs: list[np.ndarray], **kwargs) -> dict:
+        # kwargs carries pipeline context (runtime_target, and origin_hw/input_hw
+        # for detection models) — always accept **kwargs
         predictions = outputs[0]
         mask = predictions[..., 4] > self.conf_threshold
         return {"detections": predictions[mask]}
 ```
+
+!!! warning  
+    `PostprocessingPipeline` forwards context keyword arguments to every step.
+    A `__call__(self, outputs)` signature raises
+    `TypeError: __call__() got an unexpected keyword argument 'runtime_target'`.
+    For coordinate outputs, rescale with `origin_hw` / `input_hw` — see
+    [Postprocessing API](04_08_Postprocessing_API.md#adding-custom-postprocessing).
 
 ### Using Custom Operations in YAML
 
@@ -313,7 +322,14 @@ evaluator:
   type: text_detection
 ```
 
-The `TextDetectionEvaluator` then receives `polygons` directly and only computes IoU-based precision/recall metrics.
+The evaluator then receives `polygons` directly and only computes IoU-based precision/recall metrics.
+
+!!! warning "`text_detection` is not a built-in evaluator"  
+    There is no registered `text_detection` evaluator (nor a `TextDetectionEvaluator`)
+    in v1.0.0. The example above assumes **you register your own** evaluator under
+    that key with `@EVALUATOR_REGISTRY.register("text_detection")`; otherwise the
+    build fails with an unknown-evaluator error. See
+    [Evaluator API — Writing a Custom Evaluator](04_06_Evaluator_API.md#writing-a-custom-evaluator).
 
 ### Pipeline Evaluators (Multi-Model)
 

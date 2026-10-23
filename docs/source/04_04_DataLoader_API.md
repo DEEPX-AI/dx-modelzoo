@@ -54,6 +54,12 @@ class MyDataset(DatasetBase):
         super().__init__(data_dir)
         self.files = sorted(Path(data_dir).glob("*.jpg"))
 
+    def validate(self) -> None:
+        # Required abstract method — without it the class cannot be instantiated
+        self.ensure_exists(self.data_dir, "Place *.jpg files under this directory.")
+        if not self.files:
+            raise RuntimeError(f"No *.jpg files found under {self.data_dir}")
+
     def __len__(self):
         return len(self.files)
 
@@ -63,6 +69,11 @@ class MyDataset(DatasetBase):
             img = self.preprocessing(img)
         return img, idx
 ```
+
+!!! warning  
+    `__len__`, `__getitem__` **and** `validate` are abstract. Omitting `validate`
+    raises `TypeError: Can't instantiate abstract class MyDataset without an
+    implementation for abstract method 'validate'`.
 
 ## DataLoader
 
@@ -120,11 +131,19 @@ loader = DataLoader(
 print(len(loader))  # Total number of batches
 
 for batch in loader:
-    images, labels = batch
-    # images: np.ndarray (4, 3, 224, 224)
-    # labels: np.ndarray (4,)
-    results = session.run(images)
+    # Default collate does not stack tuple samples:
+    #   batch_size == 1 -> the sample itself, e.g. (img, label)
+    #   batch_size > 1  -> list of samples, e.g. [(img, label), ...]
+    for img, label in batch:
+        # img: np.ndarray (3, 224, 224), label: int
+        results = session.run(np.expand_dims(img, 0))
 ```
+
+!!! note "Default collate behavior"  
+    Only `Mapping` samples are merged into batched numpy arrays. Tuple samples
+    are returned as a Python `list` (or the single sample when `batch_size=1`),
+    so integer labels stay `int` inside a `list` — they are **not** converted to
+    `np.ndarray`. Pass a custom `collate_fn` if you need stacked arrays.
 
 ### Single / Multi-Process Modes
 

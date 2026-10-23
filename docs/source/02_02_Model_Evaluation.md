@@ -126,10 +126,17 @@ Evaluation results are structured as follows:
 ```
 
 !!! note "FPS Calculation"  
-    FPS (Frames Per Second) is calculated as: `total_images / inference_time`
+    FPS is reported differently for the sync and async evaluation paths, so the
+    two numbers are **not** directly comparable.
 
-    - Excludes data loading time
-    - Includes preprocessing and postprocessing
+    | Path | Formula | Included | Excluded |
+    |------|---------|----------|----------|
+    | Sync (default) | `images / inference_time` | Inference only (`run_inference`, incl. model input extraction) | Data loading, pre/postprocessing |
+    | Async (session `use_async`) | `images / wall_time` | Everything: loader wait, inference, postprocessing | — |
+
+    The sync path measures the inference section per batch; the async path uses
+    total wall time of the pipeline. Use the **Time Breakdown** below to see how
+    much load / infer / post each contributes.
 
 ### Time Breakdown
 

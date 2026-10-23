@@ -35,11 +35,11 @@ Before installing DX-ModelZoo, ensure you have the following:
 
 - Step 1. [Install DeepX Components](#step-1-install-deepx-components) - DX-RT & DX-Compiler
 - Step 2. [Clone Repository](#step-2-clone-repository) - Get the source code
-- Step 3. [Basic Installation](#step-3-basic-installation-cpu-inference) - CPU inference setup
+- Step 3. [Basic Installation](#step-3-basic-installation-choose-cpu-or-gpu) - CPU or GPU inference setup
 
 **Optional Steps (choose as needed)**  
 
-- Optional 1. [GPU Inference](#optional-1-gpu-inference-cuda) - For CUDA acceleration
+- Optional 1. [GPU Inference](#optional-1-gpu-inference-cuda-environment-setup) - For CUDA acceleration
 - Optional 2. [Development Environment](#optional-2-development-environment) - For contributors
 - Optional 3. [Documentation Build](#optional-3-documentation-build) - To build docs locally
 - Optional 4. [Full Installation](#optional-4-full-installation-cpu-dev-docs) - All features at once
@@ -66,21 +66,40 @@ git clone https://github.com/DEEPX-AI/dx-modelzoo.git
 cd dx-modelzoo
 ```
 
-### Step 3: Basic Installation (CPU Inference)
+### Step 3: Basic Installation — choose CPU **or** GPU
+
+Pick exactly one ONNX Runtime backend. `onnxruntime` and `onnxruntime-gpu` must
+not be installed in the same environment ([ONNX Runtime install guide](https://onnxruntime.ai/docs/get-started/with-python.html)).
 
 ```bash
+# CPU inference
 pip install -e ".[cpu]"
 ```
 
-This installs ONNX Runtime CPU and all core dependencies.
+```bash
+# GPU inference (CUDA) — see the CUDA note under Optional Installation
+pip install -e ".[gpu]"
+```
+
+This installs the selected ONNX Runtime build and all core dependencies.
+
+!!! warning "Switching between CPU and GPU"  
+    Remove the other distribution before switching, otherwise both remain
+    installed and provider resolution becomes undefined:
+
+    ```bash
+    # CPU -> GPU
+    pip uninstall -y onnxruntime && pip install -e ".[gpu]"
+
+    # GPU -> CPU
+    pip uninstall -y onnxruntime-gpu && pip install -e ".[cpu]"
+    ```
+
+    Verify with `pip list | grep onnxruntime` — exactly one entry should remain.
 
 ## Optional Installation
 
-### Optional 1: GPU Inference (CUDA)
-
-```bash
-pip install -e ".[gpu]"
-```
+### Optional 1: GPU Inference (CUDA) environment setup
 
 !!! note "CUDA Environment Setup"  
     See [GPU Requirements](#prerequisites) above for driver/CUDA/cuDNN versions.

@@ -33,7 +33,7 @@ dxmz list
 dxmz list --all
 
 # Filter by domain/task
-dxmz list --domain cv --task classification
+dxmz list --domain cv --task image_classification
 ```
 
 ### Step 2: View Model Information

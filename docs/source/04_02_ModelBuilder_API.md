@@ -95,11 +95,11 @@ Builds the preprocessing pipeline for the given profile, from the YAML's `prepro
 
 ```python
 preprocessing = builder.build_preprocessing("onnx")
-# PreprocessingPipeline(steps=[Resize(...), CenterCrop(...), ...], npu_mode=False)
+# -> PreprocessingPipeline with .steps == [Resize(...), CenterCrop(...), ...], npu_mode=False
 
 # NPU uint8 input → arithmetic operations skipped
 preprocessing_npu = builder.build_preprocessing("q-lite")
-# PreprocessingPipeline(steps=[Resize(...), CenterCrop(...)], npu_mode=True)
+# -> PreprocessingPipeline with .steps == [Resize(...), CenterCrop(...)], npu_mode=True
 ```
 
 !!! note "Automatic NPU Mode Detection"
@@ -121,7 +121,7 @@ Creates a pipeline from the `postprocessing` section of the YAML. Returns the sa
 
 ```python
 postprocessing = builder.build_postprocessing()
-# PostprocessingPipeline(steps=[TopK(k=[1, 5])])
+# -> PostprocessingPipeline with .steps == [TopK(k=[1, 5])]
 ```
 
 ### `build_session`
