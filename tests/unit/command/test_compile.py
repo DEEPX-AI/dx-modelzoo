@@ -136,3 +136,41 @@ def test_compile_passes_profile_attributes_unchanged(monkeypatch, tmp_path):
     assert captured["use_gpu"] is True
     assert captured["calibration"] == {"num": 7, "method": "ema"}
     assert captured["pre_optimize_config"] == [{"custom_pass": {"enabled": True}}]
+
+
+def test_compile_defaults_export_html_to_true(monkeypatch, tmp_path):
+    captured = {}
+
+    def compile_fn(**kwargs):
+        captured.update(kwargs)
+
+    monkeypatch.setitem(sys.modules, "dx_com", SimpleNamespace(compile=compile_fn))
+
+    class Builder:
+        name = "test_model"
+        yaml_path = tmp_path / "test_model.yaml"
+        model_dir = tmp_path
+        is_pipeline = False
+        config = {
+            "artifacts": {"path": str(tmp_path)},
+            "preprocessing": [],
+            "inputs": [{"name": "input", "shape": [1, 3, 2, 2], "dtype": "float32"}],
+        }
+
+        def get_profile(self, profile_name):
+            return {"compile": {}}
+
+        def build_dataset(self):
+            class Dataset:
+                preprocessing = None
+
+                def __len__(self):
+                    return 0
+
+            return Dataset()
+
+    onnx_path = tmp_path / "test_model.onnx"
+    onnx_path.touch()
+    compile_model(Builder(), "q-lite", model_path=str(onnx_path))
+
+    assert captured["export_html"] is True
