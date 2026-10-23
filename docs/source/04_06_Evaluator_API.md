@@ -120,11 +120,20 @@ def process_batch_result(
 
 Processes the result of a single batch and updates the metrics state.
 
+!!! warning "`output` is already postprocessed"  
+    `EvaluatorBase` calls `postprocess_output()` **before** `process_batch_result()`
+    and passes the result in as `output`. Calling `self.postprocessing(output)`
+    again applies the pipeline twice, which corrupts metrics for non-idempotent
+    steps (or raises on an unexpected input shape).
+
+    The per-batch order is:
+    `extract_inputs` → `run_inference` → `postprocess_output` → `process_batch_result`.
+
 ```python
 # Example: Update Top-1/Top-5 accuracy
 def process_batch_result(self, batch_data, output, metrics_state):
     images, labels = batch_data
-    predictions = self.postprocessing(output)
+    predictions = output  # already postprocessed
 
     for pred, label in zip(predictions, labels):
         if pred["top1"] == label:
@@ -298,7 +307,7 @@ class MyEvaluator(EvaluatorBase):
 
     def process_batch_result(self, batch_data, output, metrics_state):
         _, targets = batch_data
-        predictions = self.postprocessing(output)
+        predictions = output  # already postprocessed by the base evaluator
         error = np.mean(np.abs(predictions - targets))
         metrics_state["total_error"] += error
         metrics_state["count"] += 1

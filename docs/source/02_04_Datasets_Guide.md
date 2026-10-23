@@ -127,7 +127,7 @@ PascalVOC/
 ### COCO 2017
 
 - **Download**: [COCO 2017](https://cocodataset.org/#download)
-- **License**: CC BY 4.0 (free for research and commercial use)
+- **License**: Annotations under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); images remain under their original owners' rights and Flickr Terms of Use. See [COCO Terms of Use](https://cocodataset.org/#termsofuse).
 
 **Dataset classes:**
 

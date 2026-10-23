@@ -260,7 +260,7 @@ class COCO(DatasetBase):
 #### Resources
 
 - **Download**: [COCO 2017](https://cocodataset.org/#download)
-- **License**: CC BY 4.0 (free for research and commercial use)
+- **License**: Annotations under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); images remain under their original owners' rights and Flickr Terms of Use. See [COCO Terms of Use](https://cocodataset.org/#termsofuse).
 
 ### Cityscapes
 
@@ -496,7 +496,7 @@ class COCOPose(DatasetBase):
 #### Resources
 
 - **Download**: [COCOPose](https://cocodataset.org/#download)
-- **License**: CC BY 4.0 (free for research and commercial use)
+- **License**: Annotations under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); images remain under their original owners' rights and Flickr Terms of Use. See [COCO Terms of Use](https://cocodataset.org/#termsofuse).
 
 ### COCOPoseTopDown
 
@@ -551,7 +551,7 @@ class COCOPoseTopDown(DatasetBase):
 #### Resources
 
 - **Download**: [COCO 2017](https://cocodataset.org/#download)
-- **License**: CC BY 4.0 (free for research and commercial use)
+- **License**: Annotations under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); images remain under their original owners' rights and Flickr Terms of Use. See [COCO Terms of Use](https://cocodataset.org/#termsofuse).
 
 ### HOPE
 
@@ -851,7 +851,7 @@ class COCOPersonSeg(DatasetBase):
 #### Resources
 
 - **Download**: [COCO 2017](https://cocodataset.org/#download)
-- **License**: CC BY 4.0 (free for research and commercial use)
+- **License**: Annotations under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); images remain under their original owners' rights and Flickr Terms of Use. See [COCO Terms of Use](https://cocodataset.org/#termsofuse).
 
 ## Image Restoration
 
@@ -1044,6 +1044,11 @@ class Market1501(DatasetBase):
 | `[0]` | `img` |
 | `[1]` | `idx` |
 
+#### Resources
+
+- **Download**: [Market-1501](https://zheng-lab.cecs.anu.edu.au/Project/project_reid.html)
+- **License**: Research use only
+
 ### Distinctions-646
 
 **Module:** `dx_modelzoo.dataset.distinctions646`
@@ -1129,8 +1134,3 @@ class MVTecADDataset(DatasetBase):
 
 - **Download**: [MVTec AD](https://www.mvtec.com/company/research/datasets/mvtec-ad)
 - **License**: Non-commercial research/education use only
-
-#### Resources
-
-- **Download**: [Market-1501](https://zheng-lab.cecs.anu.edu.au/Project/project_reid.html)
-- **License**: Research use only

@@ -60,16 +60,23 @@ class DatasetBase(ABC):
 
 The return format of `__getitem__` must match the Evaluator's `extract_inputs` method:
 
-| Evaluator | Return Format | Description |
+| Evaluator (registry key) | Return Format | Description |
 |-----------|---------------|-------------|
 | `image_classification` | `(image, label)` | label: int |
-| `coco` | `(image, annotation)` | annotation: dict (COCO format) |
-| `segmentation` | `(image, mask)` | mask: np.ndarray |
+| `object_detection` | `(image, origin_shape, image_id)` | Dataset must also expose `coco_annotation` and `remap_class_id()` |
+| `instance_segmentation` | `(image, origin_shape, image_id)` | Same contract as `object_detection` |
+| `semantic_segmentation` | `(image, mask)` | mask: np.ndarray |
 | `depth_estimation` | `(image, depth_map)` | depth_map: np.ndarray |
 | `face_detection` | `(image, boxes)` | boxes: np.ndarray |
 
 !!! note "Compatibility with Built-in Evaluators"
     To use a built-in Evaluator, your dataset's return format must match exactly what that Evaluator's `extract_inputs` expects.
+
+!!! warning "There is no `coco` or `segmentation` evaluator key"  
+    Registry keys are exact. Use `object_detection` for COCO-style detection and
+    `semantic_segmentation` for segmentation. Run `dxmz list` / check
+    `src/dx_modelzoo/evaluator/` for the full set of registered keys; an unknown
+    key fails at build time.
 
 ---
 
@@ -205,13 +212,12 @@ from dx_modelzoo.dataset import DATASET_REGISTRY
 
 @DATASET_REGISTRY.register("my_coco_format")
 class MyCocoDataset(DatasetBase):
-    """Custom dataset in COCO JSON format"""
+    """Custom dataset in COCO JSON format, compatible with `object_detection`"""
 
     def __init__(self, data_dir: str):
         super().__init__(data_dir)
         self._coco = self._load_annotations()
-        self._images = self._coco["images"]
-        self._build_index()
+        self._images = self._coco.dataset["images"]
 
     def validate(self) -> None:
         self.ensure_exists(
@@ -222,16 +228,18 @@ class MyCocoDataset(DatasetBase):
             raise FileNotFoundError(f"Missing annotation file: {Path(self.data_dir) / 'annotations.json'}")
 
     def _load_annotations(self):
-        anno_path = Path(self.data_dir) / "annotations.json"
-        with anno_path.open(encoding="utf-8") as f:
-            return json.load(f)
+        from faster_coco_eval import COCO as COCOApi
 
-    def _build_index(self):
-        """Build image_id to annotations mapping"""
-        self._img_to_anns = {}
-        for ann in self._coco["annotations"]:
-            img_id = ann["image_id"]
-            self._img_to_anns.setdefault(img_id, []).append(ann)
+        return COCOApi(str(Path(self.data_dir) / "annotations.json"))
+
+    @property
+    def coco_annotation(self):
+        """Ground truth in COCO API form — required by ObjectDetectionEvaluator."""
+        return self._coco
+
+    def remap_class_id(self, model_class_id: int) -> int:
+        """Map a model class index to the dataset's category ID."""
+        return int(model_class_id)
 
     def __len__(self) -> int:
         return len(self._images)
@@ -240,17 +248,13 @@ class MyCocoDataset(DatasetBase):
         img_info = self._images[idx]
         img_path = Path(self.data_dir) / img_info["file_name"]
         img = cv2.imread(str(img_path))
+        origin_shape = (img.shape[0], img.shape[1])
 
         if self._preprocessing is not None:
             img = self._preprocessing(img)
 
-        annotation = {
-            "image_id": img_info["id"],
-            "annotations": self._img_to_anns.get(img_info["id"], []),
-            "width": img_info["width"],
-            "height": img_info["height"],
-        }
-        return img, annotation
+        # ObjectDetectionEvaluator expects exactly (image, origin_shape, image_id)
+        return img, origin_shape, img_info["id"]
 ```
 
 ```yaml title="Corresponding YAML configuration"
@@ -259,8 +263,14 @@ dataset:
   eval_path: ${DATA_ROOT}/my_coco_data
 
 evaluator:
-  type: coco
+  type: object_detection
 ```
+
+!!! warning  
+    Returning `(image, annotation)` raises
+    `ValueError: not enough values to unpack (expected 3, got 2)` inside the
+    evaluator's postprocessing-context builder. `origin_shape` is `(H, W)` of the
+    **original** image and is used to map boxes back from model input space.
 
 ## DataLoader Integration
 

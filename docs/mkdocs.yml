@@ -79,7 +79,7 @@ markdown_extensions:
   - toc:
         permalink: "true"
         baselevel: 1
-        separator: ">_"
+        separator: "-"
         toc_depth: 3
   - pymdownx.critic
   - pymdownx.caret

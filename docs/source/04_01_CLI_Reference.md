@@ -55,7 +55,7 @@ dxmz eval <model> [<model2> ...] --profile <profile> [options]
 dxmz eval resnet50_224x224 --profile onnx
 
 # Multiple models
-dxmz eval resnet50_224x224 mobilenetv3-small_224x224 --profile onnx
+dxmz eval resnet50_224x224 mobilenetv3-large_224x224 --profile onnx
 
 # Specify data/model paths
 dxmz eval resnet50_224x224 --profile onnx \
@@ -84,7 +84,7 @@ dxmz compile <model> --profile <profile> [options]
 
 | Argument | Description | Example |
 |----------|-------------|---------|
-| `model` | Model name or YAML path | `yolov8n_640x640` |
+| `model` | Model name or YAML path | `yolov8-n_640x640` |
 
 ### Options
 
@@ -106,7 +106,7 @@ dxmz compile resnet50_224x224 --profile q-lite
 dxmz compile resnet50_224x224 --profile q-pro --output ./compiled/
 
 # NPU compilation with q-lite calibration
-dxmz compile yolov8n_640x640 --profile q-lite
+dxmz compile yolov8-n_640x640 --profile q-lite
 
 # Pipeline model with stage paths
 dxmz compile ocr_pipeline.yaml --profile q-lite \
