@@ -112,6 +112,7 @@ def compile_model(
         for key, value in compile_config.items()
         if key not in {"model", "output_dir", "config", "dataloader"}
     }
+    compile_params.setdefault("export_html", True)
     compile_params.update(fixed_params)
 
     dx_compile(**compile_params)
