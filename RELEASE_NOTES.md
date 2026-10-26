@@ -1,5 +1,31 @@
 # RELEASE_NOTES
 
+## DX-MODELZOO v1.0.0 / 2026-10-23
+
+### 1. Changed
+- Compile YAML structure migrated from `compile.quantization` to `compile.calibration`.
+- Compile profile parameters are now propagated to `dx_com.compile()`.
+- PPU and pre-optimized model configuration structure reorganized.
+- DXNN model download paths standardized to use the latest version.
+- Removed the public `--use-gpu` CLI option.
+
+### 2. Fixed
+- Strengthened dataset structure, file, and label validation.
+- Improved model YAML metadata and compile configuration consistency.
+- Added CLIP embedding generation, caching, and reuse support.
+
+### 3. Added
+- YAML-driven model registry improvements.
+- Expanded model coverage:
+  - YOLO26 depth, pose, classification, and segmentation
+  - PaddlePaddle models
+  - CLIP image and text encoders
+  - Anomaly detection and person re-identification
+- New datasets and evaluation support, including MVTec AD.
+- Dataset integrity validation and model input contract validation.
+
+---
+
 ## DX-MODELZOO v0.10.2 / 2026-08-05
 
 ### 1. Changed

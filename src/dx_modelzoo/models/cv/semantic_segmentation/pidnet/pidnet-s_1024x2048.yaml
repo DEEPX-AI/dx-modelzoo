@@ -2,8 +2,10 @@ name: pidnet-s_1024x2048
 display_name: PIDNet-S
 task: semantic_segmentation
 reference: https://github.com/XuJiacong/PIDNet
+license: MIT
 description: >-
-  PIDNet-S: real-time semantic segmentation model evaluated at full 1024x2048 resolution on Cityscapes. Output logits (1/8 scale) are upsampled to the label resolution for evaluation.
+  PIDNet-S: real-time semantic segmentation model evaluated at full 1024x2048 resolution on Cityscapes. Output logits (1/8
+  scale) are upsampled to the label resolution for evaluation.
 macs: 47.86 GMACs
 params: 7.62 M
 inputs:
@@ -49,6 +51,11 @@ dataset:
   eval_path: ${DATA_ROOT}/cityscapes
 artifacts:
   path: ${MODEL_ROOT}/${MODEL_NAME}
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
+
 profiles:
   onnx:
     target: onnx
@@ -59,27 +66,21 @@ profiles:
     target: dxnn
     compile:
       opt_level: 0
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-lite:
     target: dxnn
     compile:
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-pro:
     target: dxnn
     compile:
-      quantization:
-        pro:
-          num_samples: 1024
-          method: ema
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
     runtime:
       device: 0

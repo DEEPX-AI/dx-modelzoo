@@ -2,13 +2,14 @@ name: dncnn-25_512x512
 display_name: DnCNN-25
 task: image_denoising
 reference: https://github.com/cszn/DnCNN
+license: BSD-3-Clause
 description: >-
   DnCNN residual-learning denoising CNN trained for noise level sigma=25 on a 512x512
   grayscale input that predicts the residual noise to recover a clean image
   (postprocessing is identity). Evaluated on the BSD68 benchmark reporting PSNR and
   SSIM.
 macs: 145.79 GMACs
-params: 555.14 K
+params: 0.56 M
 inputs:
 - name: input
   shape:
@@ -43,6 +44,11 @@ artifacts:
   path: ${MODEL_ROOT}/${MODEL_NAME}
 appendix:
   noise_level: 25
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
+
 profiles:
   onnx:
     target: onnx
@@ -53,27 +59,21 @@ profiles:
     target: dxnn
     compile:
       opt_level: 0
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-lite:
     target: dxnn
     compile:
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-pro:
     target: dxnn
     compile:
-      quantization:
-        pro:
-          num_samples: 1024
-          method: ema
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
     runtime:
       device: 0

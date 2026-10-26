@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Tuple
 
+import cv2
 import numpy as np
 
 from dx_modelzoo.common.dataloader import DatasetBase
@@ -58,6 +59,12 @@ class SegmentationEvaluator(EvaluatorBase):
         # Remove batch dimension if present
         while output.ndim > label.ndim:
             output = output[0]
+        if output.shape != label.shape:
+            output = cv2.resize(
+                output.astype(np.int32),
+                (label.shape[1], label.shape[0]),
+                interpolation=cv2.INTER_NEAREST,
+            )
         mask = (label >= 0) & (label < self.num_class)
         label_masked = self.num_class * label[mask].astype("int") + output[mask]
         bin_count = np.bincount(label_masked, minlength=self.num_class**2)
@@ -65,9 +72,7 @@ class SegmentationEvaluator(EvaluatorBase):
         return confusion_matrix
 
     def calculate_miou(self, confusion_matrix: np.ndarray) -> float:
-        denominator = (
-            np.sum(confusion_matrix, axis=1) + np.sum(confusion_matrix, axis=0) - np.diag(confusion_matrix)
-        )
+        denominator = np.sum(confusion_matrix, axis=1) + np.sum(confusion_matrix, axis=0) - np.diag(confusion_matrix)
         valid = denominator > 0
         if not np.any(valid):
             return 0.0

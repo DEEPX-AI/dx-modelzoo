@@ -39,6 +39,7 @@ class TestRegistryMapping:
         expected_tasks = [
             "image_classification",
             "object_detection",
+            "mainbody_detection",
             "semantic_segmentation",
             "instance_segmentation",
             "depth_estimation",

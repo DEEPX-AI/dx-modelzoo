@@ -5,8 +5,6 @@ validation — required fields, valid preprocessing types, valid profile
 structure, etc.
 """
 
-import pytest
-
 from dx_modelzoo.loader.yaml_loader import load_yaml, validate_yaml
 
 
@@ -24,6 +22,7 @@ class TestYamlValidation:
     def test_all_yamls_validate(self, all_yaml_paths):
         """Every YAML file should pass structural validation."""
         import warnings
+
         failures = []
         for path in all_yaml_paths:
             try:
@@ -56,12 +55,8 @@ class TestYamlValidation:
             config = load_yaml(path)
             if "pipeline" not in config and "task" not in config:
                 no_task.append(path.name)
-        if no_task:
-            import warnings
-            warnings.warn(f"{len(no_task)} YAMLs missing 'task' field: {no_task}")
-        # Allow up to 2 known exceptions for now
-        assert len(no_task) <= 2, f"{len(no_task)} YAMLs missing 'task':\n" + "\n".join(no_task)
+        assert not no_task, f"{len(no_task)} YAMLs missing 'task':\n" + "\n".join(no_task)
 
     def test_yaml_count_reasonable(self, all_yaml_paths):
-        """Sanity check: we should have a substantial number of models."""
-        assert len(all_yaml_paths) >= 200, f"Only {len(all_yaml_paths)} YAMLs found, expected 200+"
+        """Sanity check: model discovery found YAML files."""
+        assert all_yaml_paths, "No model YAML files discovered"

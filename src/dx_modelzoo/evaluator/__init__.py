@@ -94,13 +94,30 @@ class EvaluatorBase(ABC):
         return self.postprocessing(output, **kwargs)
 
     def make_loader(self):
+        runtime_config = getattr(self.session, "runtime_config", None)
+        start_method = getattr(runtime_config, "start_method", "auto")
         return DataLoader(
             self.dataset,
             batch_size=self.batch_size,
             shuffle=False,
             num_workers=self.workers,
             prefetch_factor=2,
+            start_method=start_method,
         )
+
+    def _extract_model_inputs(self, batch_data: Any) -> Any:
+        """Preserve named multi-input mappings through evaluator inference."""
+        if isinstance(batch_data, dict):
+            return batch_data
+        if isinstance(batch_data, (tuple, list)) and batch_data and isinstance(batch_data[0], dict):
+            return batch_data[0]
+        return self.extract_inputs(batch_data)
+
+    def run_inference(self, inputs: Any, batch_data: Any) -> Any:
+        return self.session.run(inputs)
+
+    def postprocess_output(self, output: Any, batch_data: Any) -> Any:
+        return self._run_postprocessing(output, batch_data)
 
     def eval(self) -> dict:
         self._start_time = datetime.now()
@@ -146,15 +163,15 @@ class EvaluatorBase(ABC):
             total_load_time += load_time
 
             infer_start = time.time()
-            inputs = self.extract_inputs(batch_data)
-            output = self.session.run(inputs)
+            inputs = self._extract_model_inputs(batch_data)
+            output = self.run_inference(inputs, batch_data)
             inference_time = time.time() - infer_start
 
             self.recent_inference_times.append(inference_time)
             self.total_inference_time += inference_time
 
             post_start = time.time()
-            output = self._run_postprocessing(output, batch_data)
+            output = self.postprocess_output(output, batch_data)
             metrics_state = self.process_batch_result(batch_data, output, metrics_state)
             total_post_time += time.time() - post_start
 
@@ -169,7 +186,7 @@ class EvaluatorBase(ABC):
         wall_total = total_load_time + self.total_inference_time + total_post_time
         if wall_total > 0:
             logger.info(
-                f"Time breakdown — "
+                "Time breakdown — "
                 f"load: {total_load_time:.1f}s ({total_load_time / wall_total * 100:.0f}%) | "
                 f"infer: {self.total_inference_time:.1f}s ({self.total_inference_time / wall_total * 100:.0f}%) | "
                 f"post: {total_post_time:.1f}s ({total_post_time / wall_total * 100:.0f}%)"
@@ -265,7 +282,7 @@ class EvaluatorBase(ABC):
                         items_done = True
                         break
                     idx, batch_data = item
-                    inputs = self.extract_inputs(batch_data)
+                    inputs = self._extract_model_inputs(batch_data)
                     job_id = self.session.run_async(inputs)
                     inflight.append((job_id, idx, batch_data))
 
@@ -302,9 +319,7 @@ class EvaluatorBase(ABC):
         self.total_inference_time = time.time() - wall_start
         if self.total_inference_time > 0:
             throughput = total / self.total_inference_time
-            logger.info(
-                f"Async eval — wall: {self.total_inference_time:.1f}s | " f"throughput: {throughput:.1f} samples/s"
-            )
+            logger.info(f"Async eval — wall: {self.total_inference_time:.1f}s | throughput: {throughput:.1f} samples/s")
         return self.compute_final_metrics(metrics_state)
 
     def _build_result(
@@ -376,6 +391,7 @@ class EvaluatorBase(ABC):
         ...
 
 
+from dx_modelzoo.evaluator import anomaly_detection_evaluator  # noqa: F401, E402
 from dx_modelzoo.evaluator import depth_estimation_evaluator  # noqa: F401, E402
 from dx_modelzoo.evaluator import face_attribute_evaluator  # noqa: F401, E402
 from dx_modelzoo.evaluator import face_detection_evaluator  # noqa: F401, E402
@@ -385,15 +401,19 @@ from dx_modelzoo.evaluator import hand_detection_evaluator  # noqa: F401, E402
 from dx_modelzoo.evaluator import hand_landmark_evaluator  # noqa: F401, E402
 from dx_modelzoo.evaluator import image_classification_evaluator  # noqa: F401, E402
 from dx_modelzoo.evaluator import image_denoising_evaluator  # noqa: F401, E402
+from dx_modelzoo.evaluator import image_matting_evaluator  # noqa: F401, E402
+from dx_modelzoo.evaluator import image_retrieval_evaluator  # noqa: F401, E402
 from dx_modelzoo.evaluator import instance_segmentation_evaluator  # noqa: F401, E402
 from dx_modelzoo.evaluator import keypoint_detection_evaluator  # noqa: F401, E402
 from dx_modelzoo.evaluator import low_light_enhancement_evaluator  # noqa: F401, E402
+from dx_modelzoo.evaluator import mainbody_detection_evaluator  # noqa: F401, E402
 from dx_modelzoo.evaluator import object_detection_3d_evaluator  # noqa: F401, E402
 from dx_modelzoo.evaluator import object_detection_evaluator  # noqa: F401, E402
 from dx_modelzoo.evaluator import object_pose_estimation_evaluator  # noqa: F401, E402
 from dx_modelzoo.evaluator import oriented_object_detection_evaluator  # noqa: F401, E402
 from dx_modelzoo.evaluator import panoptic_driving_perception_evaluator  # noqa: F401, E402
 from dx_modelzoo.evaluator import person_attribute_evaluator  # noqa: F401, E402
+from dx_modelzoo.evaluator import person_reid_evaluator  # noqa: F401, E402
 from dx_modelzoo.evaluator import pose_estimation_evaluator  # noqa: F401, E402
 from dx_modelzoo.evaluator import pose_estimation_topdown_evaluator  # noqa: F401, E402
 from dx_modelzoo.evaluator import semantic_segmentation_evaluator  # noqa: F401, E402

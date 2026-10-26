@@ -2,6 +2,7 @@ name: deeplabv3_mobilenetv2_513x513_nodilation
 display_name: DeepLabV3 (MobileNetV2, no-dilation)
 task: semantic_segmentation
 reference: https://github.com/pytorch/vision
+license: BSD-3-Clause
 description: >-
   DeepLabV3 atrous segmentation network for semantic segmentation on a 513x513 RGB
   input, producing per-pixel class logits. Postprocessing applies a per-pixel argmax to
@@ -12,33 +13,32 @@ params: 2.10 M
 
 evaluator:
   type: semantic_segmentation
-
 inputs:
-  - name: input
-    shape: [1, 513, 513, 3]
-    dtype: float32
-    layout: NHWC
+- name: input
+  shape: [1, 513, 513, 3]
+  dtype: float32
+  layout: NHWC
 
 preprocessing:
-  - type: convertcolor
-    form: BGR2RGB
-  - type: resize
-    mode: torchvision
-    size: 513
-    interpolation: NEAREST
-  - type: centercrop
-    height: 513
-    width: 513
-  - type: div
-    x: 255
-  - type: normalize
-    mean: [0.485, 0.456, 0.406]
-    std: [0.229, 0.224, 0.225]
-  - type: expanddim
-    axis: 0
+- type: convertcolor
+  form: BGR2RGB
+- type: resize
+  mode: torchvision
+  size: 513
+  interpolation: NEAREST
+- type: centercrop
+  height: 513
+  width: 513
+- type: div
+  x: 255
+- type: normalize
+  mean: [0.485, 0.456, 0.406]
+  std: [0.229, 0.224, 0.225]
+- type: expanddim
+  axis: 0
 
 postprocessing:
-  - type: segmentation_argmax
+- type: segmentation_argmax
 
 dataset:
   type: PascalVOC2012
@@ -46,16 +46,20 @@ dataset:
 
 appendix:
   label_preprocessing:
-    - type: resize
-      mode: torchvision
-      size: 513
-      interpolation: NEAREST
-    - type: centercrop
-      height: 513
-      width: 513
+  - type: resize
+    mode: torchvision
+    size: 513
+    interpolation: NEAREST
+  - type: centercrop
+    height: 513
+    width: 513
 
 artifacts:
   path: ${MODEL_ROOT}/${MODEL_NAME}
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
 
 profiles:
   onnx:
@@ -67,27 +71,21 @@ profiles:
     target: dxnn
     compile:
       opt_level: 0
-      quantization:
-        lite:
-          num_samples: 100
-          method: ema
+      calibration: *calibration
     runtime:
       device: 0
   q-lite:
     target: dxnn
     compile:
-      quantization:
-        lite:
-          num_samples: 100
-          method: ema
+      calibration: *calibration
     runtime:
       device: 0
   q-pro:
     target: dxnn
     compile:
-      quantization:
-        pro:
-          num_samples: 1024
-          method: ema
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
     runtime:
       device: 0

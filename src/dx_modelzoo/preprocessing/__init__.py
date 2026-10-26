@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Any, Dict, List, Union
 
 import numpy as np
@@ -42,28 +43,33 @@ class PreprocessingPipeline(Compose):
         from dx_modelzoo.preprocessing.converter import yaml_to_compose_transforms
 
         tv_transforms = yaml_to_compose_transforms(steps_config)
-        super().__init__(tv_transforms)
+        super().__init__(tv_transforms if isinstance(tv_transforms, list) else [])
 
-        # Flatten dict → list for sequential step execution
+        self._steps_by_input: Dict[str, List[Any]] = {}
         if isinstance(steps_config, dict):
-            flat: List[Dict[str, Any]] = []
-            for modal_steps in steps_config.values():
+            for input_name, modal_steps in steps_config.items():
                 if isinstance(modal_steps, list):
-                    flat.extend(modal_steps)
-            steps_config = flat
+                    self._steps_by_input[input_name] = self._build_steps(modal_steps, npu_mode)
+            self._steps_config = steps_config
+            self.steps = [step for steps in self._steps_by_input.values() for step in steps]
+        else:
+            self._steps_config = steps_config
+            self.steps = self._build_steps(steps_config, npu_mode)
 
-        self._steps_config = steps_config
-        self.steps = []
+    @staticmethod
+    def _build_steps(steps_config, npu_mode):
+        result = []
         for step_cfg in steps_config:
             step_type = step_cfg["type"]
             if npu_mode and step_type in NPU_SKIP_DEFAULT:
                 continue
             cls = PREPROCESSING_REGISTRY.get(step_type)
             params = {k: v for k, v in step_cfg.items() if k != "type"}
-            self.steps.append(cls(**params))
+            result.append(cls(**params))
+        return result
 
     @property
-    def steps_config(self) -> List[Dict[str, Any]]:
+    def steps_config(self) -> Union[List[Dict[str, Any]], Dict[str, List[Dict[str, Any]]]]:
         """Original YAML step dicts used to build this pipeline."""
         return self._steps_config
 
@@ -77,8 +83,23 @@ class PreprocessingPipeline(Compose):
             return yaml_to_compose_multi_dict(self._raw_config)
         return self
 
-    def __call__(self, inputs: np.ndarray) -> np.ndarray:
-        for step in self.steps:
+    def __call__(self, inputs: Union[np.ndarray, Mapping]) -> Union[np.ndarray, Dict[str, np.ndarray]]:
+        if self._steps_by_input:
+            if not isinstance(inputs, Mapping):
+                raise TypeError("Multi-input preprocessing requires mapping input")
+            expected = set(self._steps_by_input)
+            provided = set(inputs)
+            if provided != expected:
+                raise ValueError(
+                    f"Preprocessing input keys mismatch. Missing: {sorted(expected - provided)}; "
+                    f"unknown: {sorted(provided - expected)}"
+                )
+            return {name: self._apply_steps(inputs[name], self._steps_by_input[name]) for name in self._steps_by_input}
+        return self._apply_steps(inputs, self.steps)
+
+    @staticmethod
+    def _apply_steps(inputs, steps):
+        for step in steps:
             inputs = step(inputs)
         return inputs
 

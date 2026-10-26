@@ -6,7 +6,7 @@ import pytest
 import yaml
 from typer.testing import CliRunner
 
-from dx_modelzoo.main import app, _apply_env_overrides, _parse_model_path
+from dx_modelzoo.main import _apply_env_overrides, _parse_model_path, app
 
 runner = CliRunner()
 
@@ -43,6 +43,7 @@ class TestParseModelPath:
 
     def test_invalid_format_raises(self):
         import typer
+
         with pytest.raises(typer.BadParameter):
             _parse_model_path("det=/a,bad_format")
 
@@ -62,6 +63,7 @@ class TestCLIInfo:
     def test_info_with_yaml(self, tmp_path):
         yaml_cfg = {
             "name": "testmodel",
+            "task": "image_classification",
             "inputs": [{"name": "input", "shape": [1, 3, 224, 224], "dtype": "float32"}],
             "preprocessing": [{"type": "div", "x": 255}],
             "dataset": {"type": "ILSVRC2012", "eval_path": "/data"},
@@ -78,5 +80,5 @@ class TestCLIInfo:
 class TestAppExists:
     def test_app_is_typer(self):
         import typer
-        assert isinstance(app, typer.Typer)
 
+        assert isinstance(app, typer.Typer)

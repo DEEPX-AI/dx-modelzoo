@@ -2,6 +2,7 @@ name: yolov8-s-pose_640x640
 display_name: Ultralytics YOLOv8-s-pose
 task: pose_estimation
 reference: https://github.com/ultralytics/ultralytics
+license: AGPL-3.0
 description: >-
   YOLOv8-Pose human pose estimation model on a 640x640 RGB input that jointly detects
   people and regresses 17 COCO body keypoints with confidences. Postprocessing
@@ -45,6 +46,11 @@ dataset:
   eval_path: ${DATA_ROOT}/COCO
 artifacts:
   path: ${MODEL_ROOT}/${MODEL_NAME}
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
+
 profiles:
   onnx:
     target: onnx
@@ -55,27 +61,21 @@ profiles:
     target: dxnn
     compile:
       opt_level: 0
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-lite:
     target: dxnn
     compile:
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-pro:
     target: dxnn
     compile:
-      quantization:
-        pro:
-          num_samples: 1024
-          method: ema
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
     runtime:
       device: 0

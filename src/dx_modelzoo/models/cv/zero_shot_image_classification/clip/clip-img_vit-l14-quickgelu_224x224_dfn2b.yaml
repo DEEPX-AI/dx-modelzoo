@@ -2,6 +2,7 @@ name: clip-img_vit-l14-quickgelu_224x224_dfn2b
 display_name: CLIP ViT-L/14 QuickGELU (DFN-2B)
 task: zero_shot_image_classification
 reference: https://github.com/mlfoundations/open_clip
+license: MIT
 description: >-
   CLIP image-encoder branch with a ViT-L/14 QuickGELU image encoder (DFN-2B weights) on
   a 224x224 RGB input, producing an image embedding aligned to CLIP text embeddings.
@@ -57,6 +58,11 @@ dataset:
   eval_path: ${DATA_ROOT}/ILSVRC2012/val
 artifacts:
   path: ${MODEL_ROOT}/${MODEL_NAME}
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
+
 profiles:
   onnx:
     target: onnx
@@ -67,27 +73,21 @@ profiles:
     target: dxnn
     compile:
       opt_level: 0
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-lite:
     target: dxnn
     compile:
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-pro:
     target: dxnn
     compile:
-      quantization:
-        pro:
-          num_samples: 1024
-          method: ema
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
     runtime:
       device: 0

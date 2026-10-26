@@ -2,6 +2,7 @@ name: yolov7-w6-face_1280x1280_tta
 display_name: YOLOv7-w6-face (TTA)
 task: face_detection
 reference: https://github.com/derronqi/yolov7-face
+license: GPL-3.0
 description: >-
   YOLOv7-Face detector on a 1280x1280 RGB input that predicts face bounding boxes (with
   landmarks) and confidences. Postprocessing (yolov7_face_decode) decodes anchors/priors
@@ -48,6 +49,11 @@ dataset:
   eval_path: ${DATA_ROOT}/widerface
 artifacts:
   path: ${MODEL_ROOT}/${MODEL_NAME}
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
+
 profiles:
   onnx:
     target: onnx
@@ -58,27 +64,21 @@ profiles:
     target: dxnn
     compile:
       opt_level: 0
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-lite:
     target: dxnn
     compile:
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-pro:
     target: dxnn
     compile:
-      quantization:
-        pro:
-          num_samples: 1024
-          method: ema
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
     runtime:
       device: 0

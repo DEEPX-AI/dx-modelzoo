@@ -2,11 +2,12 @@ name: fastdepth_224x224
 display_name: FastDepth
 task: depth_estimation
 reference: https://github.com/dwofk/fast-depth
+license: MIT
 description: >-
   FastDepth efficient encoder-decoder monocular depth estimation model on a 224x224 RGB
   input, regressing a dense per-pixel depth map (postprocessing is identity). Evaluated
   on the NYU Depth v2 benchmark reporting Root-Mean-Square Error (RMSE).
-macs: 547.19 MMACs
+macs: 0.55 GMACs
 params: 1.38 M
 inputs:
 - name: input
@@ -62,6 +63,11 @@ dataset:
   eval_path: ${DATA_ROOT}/nyudepthv2
 artifacts:
   path: ${MODEL_ROOT}/${MODEL_NAME}
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
+
 profiles:
   onnx:
     target: onnx
@@ -72,27 +78,21 @@ profiles:
     target: dxnn
     compile:
       opt_level: 0
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-lite:
     target: dxnn
     compile:
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-pro:
     target: dxnn
     compile:
-      quantization:
-        pro:
-          num_samples: 1024
-          method: ema
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
     runtime:
       device: 0

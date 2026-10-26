@@ -2,6 +2,7 @@ name: clip-img_resnet50x16_384x384_openai-wit
 display_name: CLIP ResNet-50x16 (OpenAI WIT)
 task: zero_shot_image_classification
 reference: https://github.com/mlfoundations/open_clip
+license: MIT
 description: >-
   CLIP image-encoder branch with a ResNet-50x16 image encoder (OpenAI WIT weights) on a
   384x384 RGB input, producing an image embedding aligned to CLIP text embeddings. Zero-
@@ -55,6 +56,11 @@ dataset:
   eval_path: ${DATA_ROOT}/ILSVRC2012/val
 artifacts:
   path: ${MODEL_ROOT}/${MODEL_NAME}
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
+
 profiles:
   onnx:
     target: onnx
@@ -65,27 +71,21 @@ profiles:
     target: dxnn
     compile:
       opt_level: 0
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-lite:
     target: dxnn
     compile:
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-pro:
     target: dxnn
     compile:
-      quantization:
-        pro:
-          num_samples: 1024
-          method: ema
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
     runtime:
       device: 0

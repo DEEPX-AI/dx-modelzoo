@@ -11,7 +11,7 @@ article#doc-cover {
   display: block;
   page-break-after: always;
   /* 1. 표지 밀림 방지: 상단 여백 대폭 축소 */
-  padding-top: 20mm;
+  padding-top: 20mm; 
   box-sizing: border-box;
 
   & > .wrapper {
@@ -20,10 +20,10 @@ article#doc-cover {
 
     &.upper {
       /* 2. 로고와 타이틀 사이 간격 축소 */
-      margin-bottom: 20mm;
+      margin-bottom: 20mm; 
 
       > .logo {
-        width: 140px;
+        width: 140px;  
         height: 140px;
         margin: 0 auto;
         background-position: center bottom;
@@ -48,12 +48,12 @@ article#doc-cover {
 
   & > .properties {
     /* 3. 하단 저작권 정보 여백 축소하여 1페이지 안에 쏙 들어오게 맞춤 */
-    margin-top: 40mm;
+    margin-top: 40mm; 
     text-align: right;
     padding: 0 2rem;
 
     p#copyright {
-      font-size: 10pt;
+      font-size: 10pt; 
     }
   }
 }
@@ -62,9 +62,12 @@ article#doc-cover {
 /* 일반 본문 요소 스타일                                 */
 /* ==================================================== */
 article {
-  h1 { border-bottom: 2px solid #06b; page-break-after: avoid; }
-  h2 { border-bottom: 1px solid #5ad; page-break-after: avoid; }
-  h3 { border-bottom: 0.5px solid #eee; page-break-after: avoid; }
+  h1 { border-bottom: 2px solid #06b; }
+  h2 { border-bottom: 1px solid #5ad; }
+  h3 { border-bottom: 0.5px solid #eee; }
+
+  /* WeasyPrint 62 drops all remaining content when heading break-avoid chains leave no break point */
+  h1, h2, h3, h4, h5, h6 { page-break-after: auto !important; }
 
   h1 > .pdf-order,
   h2 > .pdf-order,
@@ -128,7 +131,7 @@ article#doc-back_cover {
       background-color: #fff;
 
       img {
-        width: 120px;
+        width: 120px; 
         height: auto;
       }
     }
@@ -155,7 +158,7 @@ article#doc-back_cover {
     h3 { font-size: 14pt !important; margin-top: 1.1em; margin-bottom: 0.4em; }
     h4 { font-size: 12pt !important; }
     h5, h6 { font-size: 11pt !important; }
-
+    
     h1, h2, h3, h4, h5, h6 {
       font-family: 'Noto Sans Display';
     }
@@ -172,11 +175,11 @@ article#doc-back_cover {
     }
 
     pre code, pre var, pre samp, pre kbd, pre tt {
-      font-size: 100% !important;
+      font-size: 100% !important; 
     }
 
     .admonition, details {
-      font-size: 10.5pt !important;
+      font-size: 10.5pt !important; 
     }
     .admonition-title, summary {
       font-size: 11pt !important;

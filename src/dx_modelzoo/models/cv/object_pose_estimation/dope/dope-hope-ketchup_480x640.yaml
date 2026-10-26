@@ -2,6 +2,7 @@ name: dope-hope-ketchup_480x640
 display_name: DOPE (HOPE Ketchup)
 task: object_pose_estimation
 reference: https://github.com/NVlabs/Deep_Object_Pose
+license: BSD-3-Clause
 description: >-
   NVIDIA Isaac ROS DOPE (Deep Object Pose Estimation) — single-object 6-DoF pose for
   the HOPE 'Ketchup' class. The network emits one [1,25,50,50] tensor (input
@@ -49,6 +50,11 @@ evaluator:
     type: single
 artifacts:
   path: ${MODEL_ROOT}/${MODEL_NAME}
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
+
 profiles:
   onnx:
     target: onnx
@@ -59,28 +65,22 @@ profiles:
     target: dxnn
     compile:
       opt_level: 0
-      quantization:
-        lite:
-          num_samples: 100
-          method: ema
+      calibration: *calibration
     runtime:
       device: 0
   q-lite:
     target: dxnn
     compile:
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
 
   q-pro:
     target: dxnn
     compile:
-      quantization:
-        pro:
-          num_samples: 1024
-          method: ema
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
     runtime:
       device: 0

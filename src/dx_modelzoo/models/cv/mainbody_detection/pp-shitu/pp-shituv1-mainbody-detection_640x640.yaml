@@ -1,0 +1,85 @@
+name: pp-shituv1-mainbody-detection_640x640
+display_name: PP-ShiTuV1_mainbody_detection
+task: mainbody_detection
+reference: https://paddle-imagenet-models-name.bj.bcebos.com/dygraph/rec/models/inference/picodet_PPLCNet_x2_5_mainbody_lite_v1.0_infer.tar
+license: Apache-2.0
+description: Paddle PP-ShiTuV1 mainbody detector evaluated as a one-class foreground model on COCO-derived annotations with
+  a 640x640 input.
+macs: 11.45 GMACs
+params: 7.09 M
+evaluator:
+  type: mainbody_detection
+inputs:
+- name: image
+  shape:
+  - 1
+  - 3
+  - 640
+  - 640
+  dtype: float32
+  layout: NCHW
+preprocessing:
+- type: resize
+  width: 640
+  height: 640
+- type: convertcolor
+  form: BGR2RGB
+- type: div
+  x: 255
+- type: normalize
+  mean:
+  - 0.485
+  - 0.456
+  - 0.406
+  std:
+  - 0.229
+  - 0.224
+  - 0.225
+- type: transpose
+  axis:
+  - 2
+  - 0
+  - 1
+- type: expanddim
+  axis: 0
+postprocessing:
+- type: pp_shitu_decode
+  pad_location: direct
+dataset:
+  type: COCO
+  eval_path: ${DATA_ROOT}/COCO
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
+
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      calibration: *calibration
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      calibration: *calibration
+    runtime:
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
+    runtime:
+      device: 0

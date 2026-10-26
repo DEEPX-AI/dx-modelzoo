@@ -2,7 +2,7 @@
 
 import pytest
 
-from dx_modelzoo.session.factory import SessionCreationError, _detect_target
+from dx_modelzoo.session.factory import SessionCreationError, _detect_target, _try_download
 
 
 class TestDetectTarget:
@@ -20,10 +20,34 @@ class TestDetectTarget:
 class TestCreateSession:
     def test_missing_onnx_file_raises(self, tmp_path):
         from dx_modelzoo.session.factory import create_session
+
         with pytest.raises(SessionCreationError, match="not found"):
             create_session(str(tmp_path / "missing.onnx"))
 
     def test_profile_without_builder_raises(self):
         from dx_modelzoo.session.factory import create_session
+
         with pytest.raises(SessionCreationError, match="not a file path"):
             create_session("q-lite")
+
+
+@pytest.mark.parametrize("profile", ["q-lite", "q-pro", "q-master"])
+def test_dxnn_download_uses_normalized_sdk_url(monkeypatch, tmp_path, profile):
+    downloaded = []
+
+    def record_download(url, dest):
+        downloaded.append((url, dest))
+
+    monkeypatch.setenv("DXMZ_MODEL_URL", "https://sdk.deepx.ai/modelzoo")
+    monkeypatch.setattr("dx_modelzoo.session.factory._download_model", record_download)
+
+    dest = tmp_path / f"resnet18_224x224_{profile}.dxnn"
+    result = _try_download("resnet18_224x224", profile, dest)
+
+    assert result == dest
+    assert downloaded == [
+        (
+            f"https://sdk.deepx.ai/modelzoo/{profile}-dxnn/latest/resnet18_224x224.dxnn",
+            dest,
+        )
+    ]

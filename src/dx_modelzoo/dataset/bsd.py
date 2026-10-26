@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from glob import glob
+from pathlib import Path
 from typing import Tuple
 
 import cv2
@@ -71,6 +72,24 @@ class BSD68(DatasetBase):
             label = cv2.resize(label, (w, h), interpolation=cv2.INTER_AREA)
         return inp, label
 
+    def validate(self) -> None:
+        """Validate the dataset's integrity and structure.
+
+        Raises:
+            RuntimeError: If the dataset is invalid or corrupted.
+        """
+
+        # directory structure
+        is_correct_structure = Path(self.data_dir).is_dir()
+        if not is_correct_structure:
+            raise RuntimeError(f"Dataset directory structure is invalid. Expected a directory under {self.data_dir}.")
+
+        # file existence
+        NUM_DATA = 68
+        num_images = len(list(Path(self.data_dir).glob("*.png")))
+        if num_images != NUM_DATA:
+            raise RuntimeError(f"Expected {NUM_DATA} images, but found {num_images} in {self.data_dir}.")
+
 
 @DATASET_REGISTRY.register
 class BSD100(DatasetBase):
@@ -126,6 +145,31 @@ class BSD100(DatasetBase):
     def set_hr_preprocessing(self, hr_preprocessing) -> None:
         self.hr_preprocessing = hr_preprocessing
 
+    def validate(self) -> None:
+        """Validate the dataset's integrity and structure.
+
+        Raises:
+            RuntimeError: If the dataset is invalid or corrupted.
+        """
+
+        # directory structure
+        is_correct_structure = (
+            Path(self.data_dir).is_dir() and Path(self.data_dir, "HR").is_dir() and Path(self.data_dir, "LR").is_dir()
+        )
+        if not is_correct_structure:
+            raise RuntimeError(
+                f"Dataset directory structure is invalid. Expected 'HR' and 'LR' directories under {self.data_dir}."
+            )
+
+        # file existence
+        NUM_DATA = 100
+        num_hr_images = len(list(Path(self.data_dir, "HR").glob("*")))
+        num_lr_images = len(list(Path(self.data_dir, "LR").glob("*")))
+        if num_hr_images != NUM_DATA:
+            raise RuntimeError(f"Expected {NUM_DATA} HR images, but found {num_hr_images} in {self.data_dir}/HR.")
+        if num_lr_images != NUM_DATA:
+            raise RuntimeError(f"Expected {NUM_DATA} LR images, but found {num_lr_images} in {self.data_dir}/LR.")
+
 
 @DATASET_REGISTRY.register
 class CBSD68(DatasetBase):
@@ -150,3 +194,21 @@ class CBSD68(DatasetBase):
         if label.shape[0] != h or label.shape[1] != w:
             label = cv2.resize(label, (w, h), interpolation=cv2.INTER_AREA)
         return inp, label
+
+    def validate(self) -> None:
+        """Validate the dataset's integrity and structure.
+
+        Raises:
+            RuntimeError: If the dataset is invalid or corrupted.
+        """
+
+        # directory structure
+        is_correct_structure = Path(self.data_dir).is_dir()
+        if not is_correct_structure:
+            raise RuntimeError(f"Dataset directory structure is invalid. Expected a directory under {self.data_dir}.")
+
+        # file existence
+        NUM_DATA = 68
+        num_images = len(list(Path(self.data_dir).glob("*.png")))
+        if num_images != NUM_DATA:
+            raise RuntimeError(f"Expected {NUM_DATA} images, but found {num_images} in {self.data_dir}.")

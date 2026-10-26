@@ -1,8 +1,7 @@
 """Tests for dx_modelzoo.dataset.ade20k."""
 
-import os
-import numpy as np
 import cv2
+import numpy as np
 import pytest
 
 from dx_modelzoo.dataset.ade20k import ADE20K
@@ -10,6 +9,11 @@ from dx_modelzoo.preprocessing import PreprocessingPipeline
 
 
 class TestADE20K:
+    @pytest.fixture(autouse=True)
+    def _skip_validate(self, monkeypatch):
+        # ponytail: unit tests use tiny fixtures; skip full-dataset count validation
+        monkeypatch.setattr(ADE20K, "validate", lambda self: None)
+
     def _setup_data(self, tmp_path):
         img_dir = tmp_path / "images" / "validation"
         ann_dir = tmp_path / "annotations" / "validation"

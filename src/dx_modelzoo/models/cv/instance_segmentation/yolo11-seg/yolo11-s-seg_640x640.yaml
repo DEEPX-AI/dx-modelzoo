@@ -2,6 +2,7 @@ name: yolo11-s-seg_640x640
 display_name: Ultralytics YOLO11-s-seg
 task: instance_segmentation
 reference: https://github.com/ultralytics/ultralytics
+license: AGPL-3.0
 description: >-
   YOLO11 instance segmentation model on a 640x640 RGB input that predicts object boxes,
   classes and per-instance mask coefficients/prototypes. Postprocessing (yolo11_seg_decode)
@@ -10,28 +11,28 @@ description: >-
 macs: 19.09 GMACs
 params: 10.14 M
 inputs:
-  - name: input
-    shape: [1, 3, 640, 640]
-    dtype: float32
-    layout: NCHW
+- name: input
+  shape: [1, 3, 640, 640]
+  dtype: float32
+  layout: NCHW
 
 preprocessing:
-  - type: resize
-    mode: pad
-    size: 640
-    pad_location: edge
-    pad_value: [114, 114, 114]
-  - type: div
-    x: 255
-  - type: convertcolor
-    form: BGR2RGB
-  - type: transpose
-    axis: [2, 0, 1]
-  - type: expanddim
-    axis: 0
+- type: resize
+  mode: pad
+  size: 640
+  pad_location: edge
+  pad_value: [114, 114, 114]
+- type: div
+  x: 255
+- type: convertcolor
+  form: BGR2RGB
+- type: transpose
+  axis: [2, 0, 1]
+- type: expanddim
+  axis: 0
 
 postprocessing:
-  - type: yolo11_seg_decode
+- type: yolo11_seg_decode
 
 dataset:
   type: COCO
@@ -39,6 +40,10 @@ dataset:
 
 artifacts:
   path: ${MODEL_ROOT}/${MODEL_NAME}
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
 
 profiles:
   onnx:
@@ -50,27 +55,21 @@ profiles:
     target: dxnn
     compile:
       opt_level: 0
-      quantization:
-        lite:
-          num_samples: 100
-          method: ema
+      calibration: *calibration
     runtime:
       device: 0
   q-lite:
     target: dxnn
     compile:
-      quantization:
-        lite:
-          num_samples: 100
-          method: ema
+      calibration: *calibration
     runtime:
       device: 0
   q-pro:
     target: dxnn
     compile:
-      quantization:
-        pro:
-          num_samples: 1024
-          method: ema
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
     runtime:
       device: 0

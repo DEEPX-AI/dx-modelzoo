@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from glob import glob
+from pathlib import Path
 from typing import Tuple
 
 import cv2
@@ -70,8 +71,37 @@ class ADE20K(DatasetBase):
         if label is None:
             raise FileNotFoundError(f"Failed to load label: {self.lb_paths[index]}")
         label = self.lb_map[label]
-        label = cv2.resize(
-            label, (self.eval_size, self.eval_size), interpolation=cv2.INTER_NEAREST
-        )
+        label = cv2.resize(label, (self.eval_size, self.eval_size), interpolation=cv2.INTER_NEAREST)
         img = self.preprocessing(img)
         return img, label
+
+    def validate(self) -> None:
+        """Validate the dataset's integrity and structure.
+
+        Raises:
+            RuntimeError: If the dataset is invalid or corrupted.
+        """
+        # directory structure
+        is_correct_structure = (
+            Path(self.data_dir, "images", "validation").is_dir()
+            and Path(self.data_dir, "annotations", "validation").is_dir()
+        )
+        if not is_correct_structure:
+            raise RuntimeError(
+                "Dataset directory structure is invalid. Expected 'images/validation' and "
+                f"'annotations/validation' directories under {self.data_dir}."
+            )
+
+        # file existence
+        NUM_DATA = 2000
+        num_images = len(list(Path(self.data_dir, "images", "validation").glob("*.jpg")))
+        num_annotations = len(list(Path(self.data_dir, "annotations", "validation").glob("*.png")))
+        if num_images != NUM_DATA:
+            raise RuntimeError(
+                f"Expected {NUM_DATA} validation images, but found {num_images} in {self.data_dir}/images/validation."
+            )
+        if num_annotations != NUM_DATA:
+            raise RuntimeError(
+                f"Expected {NUM_DATA} validation annotations, but found {num_annotations} in "
+                f"{self.data_dir}/annotations/validation."
+            )

@@ -2,6 +2,7 @@ name: 3ddfa-v2_mobilenet-0.5_120x120
 display_name: 3DDFA-V2 (MobileNet-0.5)
 task: face_landmark
 reference: https://github.com/cleardusk/3DDFA_V2
+license: MIT
 description: >-
   3DDFA_V2 dense 3D face alignment with a slimmed MobileNet-V1 (width 0.5)
   backbone on a 120x120 RGB face crop (NCHW, scaled by 1/255). The network
@@ -9,8 +10,8 @@ description: >-
   Face Model; the tddfa_decode op reconstructs the dense 3D face and extracts
   the 68 sparse landmarks using the BFM data under AFLW20003D/Code. Evaluated on
   AFLW2000-3D with the face_landmark evaluator (normalized mean error, NME).
-macs: 70.46 MMACs
-params: 861.34 K
+macs: 0.07 GMACs
+params: 0.86 M
 inputs:
 - name: input
   shape:
@@ -45,6 +46,11 @@ dataset:
   eval_path: ${DATA_ROOT}/AFLW20003D
 artifacts:
   path: ${MODEL_ROOT}/${MODEL_NAME}
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
+
 profiles:
   onnx:
     target: onnx
@@ -55,27 +61,21 @@ profiles:
     target: dxnn
     compile:
       opt_level: 0
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-lite:
     target: dxnn
     compile:
-      quantization:
-        lite:
-          method: ema
-          num_samples: 100
+      calibration: *calibration
     runtime:
       device: 0
   q-pro:
     target: dxnn
     compile:
-      quantization:
-        pro:
-          num_samples: 1024
-          method: ema
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
     runtime:
       device: 0

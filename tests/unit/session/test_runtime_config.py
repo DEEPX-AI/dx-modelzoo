@@ -1,10 +1,8 @@
 """Tests for dx_modelzoo.session.runtime_config."""
 
-from dx_modelzoo.session.runtime_config import (
-    DxnnRuntimeConfig,
-    OnnxRuntimeConfig,
-    RuntimeConfig,
-)
+import pytest
+
+from dx_modelzoo.session.runtime_config import DxnnRuntimeConfig, OnnxRuntimeConfig, RuntimeConfig
 
 
 class TestRuntimeConfig:
@@ -44,6 +42,18 @@ class TestRuntimeConfig:
         cfg = RuntimeConfig(device="cpu")
         same = cfg.with_device_override(None)
         assert same is cfg
+
+    def test_start_method_from_profile(self):
+        cfg = RuntimeConfig.from_profile({"target": "onnx", "runtime": {"device": "cpu", "start_method": "spawn"}})
+        assert cfg.start_method == "spawn"
+
+    def test_invalid_start_method_rejected(self):
+        with pytest.raises(Exception, match="start_method"):
+            RuntimeConfig.from_runtime({"start_method": "bad"})
+
+    def test_dxnn_invalid_start_method_rejected(self):
+        with pytest.raises(Exception, match="start_method"):
+            DxnnRuntimeConfig.from_runtime({"start_method": "bad"})
 
 
 class TestDxnnRuntimeConfig:

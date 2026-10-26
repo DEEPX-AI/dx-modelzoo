@@ -1,0 +1,93 @@
+name: yolo11-m-pose_640x640_pre-optimized
+display_name: Ultralytics YOLO11-m-pose (Pre-Optimized)
+task: pose_estimation
+reference: https://github.com/ultralytics/ultralytics
+license: AGPL-3.0
+description: >-
+  Pre-optimized YOLO11-m human pose estimation model on a 640x640 RGB input that
+  detects people and regresses 17 COCO body keypoints. Postprocessing
+  (yolo11_pose_decode) decodes the pre-optimized outputs and applies NMS.
+  Evaluated on the COCO keypoint benchmark reporting OKS-based AP.
+macs: 38.12 GMACs
+params: 20.96 M
+
+inputs:
+- name: input
+  shape: [1, 3, 640, 640]
+  dtype: float32
+  layout: NCHW
+preprocessing:
+- type: resize
+  mode: pad
+  size: 640
+  pad_location: edge
+  pad_value: [114, 114, 114]
+- type: div
+  x: 255
+- type: convertcolor
+  form: BGR2RGB
+- type: transpose
+  axis: [2, 0, 1]
+- type: expanddim
+  axis: 0
+postprocessing:
+- type: yolo11_pose_decode
+dataset:
+  type: COCOPose
+  eval_path: ${DATA_ROOT}/COCO
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
+
+pre_optimize_config: &pre_optimize_config
+- yolo_dfl_postprocess:
+    task: pose
+    layers:
+    - bbox: /model.23/cv2.0/cv2.0.2/Conv_output_0
+      cls_conf: /model.23/cv3.0/cv3.0.2/Conv_output_0
+      kpt: /model.23/cv4.0/cv4.0.2/Conv_output_0
+      kpt_shape: [17, 3]
+    - bbox: /model.23/cv2.1/cv2.1.2/Conv_output_0
+      cls_conf: /model.23/cv3.1/cv3.1.2/Conv_output_0
+      kpt: /model.23/cv4.1/cv4.1.2/Conv_output_0
+      kpt_shape: [17, 3]
+    - bbox: /model.23/cv2.2/cv2.2.2/Conv_output_0
+      cls_conf: /model.23/cv3.2/cv3.2.2/Conv_output_0
+      kpt: /model.23/cv4.2/cv4.2.2/Conv_output_0
+      kpt_shape: [17, 3]
+    num_classes: 1
+    topk: 300
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      calibration: *calibration
+      pre_optimize_config: *pre_optimize_config
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      calibration: *calibration
+      pre_optimize_config: *pre_optimize_config
+    runtime:
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
+      pre_optimize_config: *pre_optimize_config
+    runtime:
+      device: 0

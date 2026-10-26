@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import xml.etree.ElementTree as ET
+from pathlib import Path
 from typing import Callable, List, Tuple
 
 import cv2
@@ -52,7 +53,7 @@ def get_image_label_path_list(data_dir: str) -> Tuple[List[str], List[str]]:
     image_dir = os.path.join(data_dir, "JPEGImages")
     labels_dir = os.path.join(data_dir, "SegmentationClass")
     file_name_txt = os.path.join(data_dir, "ImageSets", "Segmentation", "val.txt")
-    with open(file_name_txt, "r") as f:
+    with open(file_name_txt, "r", encoding="utf-8") as f:
         file_names = f.read().splitlines()
     image_file_list = [os.path.join(image_dir, fn + ".jpg") for fn in file_names]
     label_file_list = [os.path.join(labels_dir, fn + ".png") for fn in file_names]
@@ -91,6 +92,37 @@ class PascalVOC2012(DatasetBase):
         if self._label_preprocessing is not None:
             label = self.label_preprocessing(label)
         return img, label
+
+    def validate(self) -> None:
+        """Validate the dataset's integrity and structure.
+
+        Raises:
+            RuntimeError: If the dataset is invalid or corrupted.
+        """
+        # directory structure
+        is_correct_structure = (
+            Path(self.data_dir).is_dir()
+            and Path(self.data_dir, "JPEGImages").is_dir()
+            and Path(self.data_dir, "SegmentationClass").is_dir()
+            and Path(self.data_dir, "ImageSets", "Segmentation", "val.txt").is_file()
+        )
+        if not is_correct_structure:
+            raise RuntimeError(
+                "Dataset directory structure is invalid. Expected 'JPEGImages', 'SegmentationClass' directories and"
+                f" 'ImageSets/Segmentation/val.txt' file under {self.data_dir}."
+            )
+
+        # file existence
+        NUM_DATA = 17125
+        NUM_LABELS = 2913
+        num_images = len(list(Path(self.data_dir, "JPEGImages").glob("*.jpg")))
+        num_labels = len(list(Path(self.data_dir, "SegmentationClass").glob("*.png")))
+        if num_images != NUM_DATA:
+            raise RuntimeError(f"Expected {NUM_DATA} images in {self.data_dir}/JPEGImages, but found {num_images}.")
+        if num_labels != NUM_LABELS:
+            raise RuntimeError(
+                f"Expected {NUM_LABELS} labels in {self.data_dir}/SegmentationClass, but found {num_labels}."
+            )
 
 
 @DATASET_REGISTRY.register
@@ -184,7 +216,7 @@ class PascalVOC2007(DatasetBase):
 
     def _get_data_ids(self) -> List[str]:
         ids_file = os.path.join(self.data_dir, "ImageSets/Main/test.txt")
-        with open(ids_file) as f:
+        with open(ids_file, encoding="utf-8") as f:
             return [line.rstrip() for line in f]
 
     def __getitem__(self, idx: int) -> Tuple:
@@ -245,3 +277,39 @@ class PascalVOC2007(DatasetBase):
             np.array(labels, dtype=np.int64),
             np.array(is_difficult, dtype=np.uint8),
         )
+
+    def validate(self) -> None:
+        """Validate the dataset's integrity and structure.
+
+        Raises:
+            RuntimeError: If the dataset is invalid or corrupted.
+        """
+        # directory structure for VOC object-detection test split
+        is_correct_structure = (
+            Path(self.data_dir).is_dir()
+            and Path(self.data_dir, "JPEGImages").is_dir()
+            and Path(self.data_dir, "Annotations").is_dir()
+            and Path(self.data_dir, "ImageSets", "Main", "test.txt").is_file()
+        )
+        if not is_correct_structure:
+            raise RuntimeError(
+                "Dataset directory structure is invalid. Expected 'JPEGImages', 'Annotations' directories and"
+                f" 'ImageSets/Main/test.txt' file under {self.data_dir}."
+            )
+
+        with open(Path(self.data_dir, "ImageSets", "Main", "test.txt"), encoding="utf-8") as f:
+            data_ids = [line.strip() for line in f if line.strip()]
+
+        missing_images = [
+            data_id for data_id in data_ids if not Path(self.data_dir, "JPEGImages", f"{data_id}.jpg").is_file()
+        ]
+        missing_annotations = [
+            data_id for data_id in data_ids if not Path(self.data_dir, "Annotations", f"{data_id}.xml").is_file()
+        ]
+        if missing_images or missing_annotations:
+            details = []
+            if missing_images:
+                details.append(f"images: {missing_images[:5]}")
+            if missing_annotations:
+                details.append(f"annotations: {missing_annotations[:5]}")
+            raise RuntimeError("VOC2007 test split has missing files: " + "; ".join(details))

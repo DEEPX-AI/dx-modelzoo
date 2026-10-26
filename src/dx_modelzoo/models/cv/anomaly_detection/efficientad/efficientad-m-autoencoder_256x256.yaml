@@ -1,0 +1,91 @@
+name: efficientad-m-autoencoder_256x256
+display_name: EfficientAD-M Autoencoder
+task: anomaly_detection
+reference: https://github.com/nelson1425/EfficientAD
+license: Apache-2.0
+description: >-
+  EfficientAD-M Autoencoder component with a 256x256 RGB input (NCHW) and
+  reconstructed teacher features [1,384,64,64]. In per-model Hive evaluation,
+  this component is evaluated independently with a PatchCore-style feature
+  memory bank because sibling DXNN artifacts are not available. Evaluated on
+  the MVTec Anomaly Detection dataset reporting image- and pixel-level AUROC.
+macs: 63.30 GMACs
+params: 8.03 M
+inputs:
+- name: image
+  shape:
+  - 1
+  - 3
+  - 256
+  - 256
+  dtype: float32
+  layout: NCHW
+preprocessing:
+- type: resize
+  mode: default
+  size:
+  - 256
+  - 256
+- type: convertcolor
+  form: BGR2RGB
+- type: div
+  x: 255
+- type: normalize
+  mean:
+  - 0.485
+  - 0.456
+  - 0.406
+  std:
+  - 0.229
+  - 0.224
+  - 0.225
+- type: transpose
+  axis:
+  - 2
+  - 0
+  - 1
+- type: expanddim
+  axis: 0
+postprocessing: []
+appendix:
+  method: efficientad_component
+dataset:
+  type: MVTecAD
+  eval_path: ${DATA_ROOT}/mvtec
+  category: bottle
+  max_train_images: 50
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
+
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: gpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      calibration: *calibration
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      calibration: *calibration
+    runtime:
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
+    runtime:
+      device: 0

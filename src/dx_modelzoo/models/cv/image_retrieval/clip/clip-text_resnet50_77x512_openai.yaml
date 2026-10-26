@@ -1,0 +1,69 @@
+name: clip-text_resnet50_77x512_openai
+display_name: CLIP ResNet-50 Text Encoder (OpenAI)
+task: image_retrieval
+evaluator:
+  type: image_retrieval
+reference: https://github.com/mlfoundations/open_clip
+license: MIT
+description: >-
+  CLIP ResNet-50 OpenAI text-transformer branch. The exported graph accepts the
+  77-token, 512-hidden-dimension embedding stream and returns the transformed stream.
+  ImageNet class prompts are transformed into text embeddings and ranked against
+  precomputed RN50 image embeddings for Top-1 and Top-5 image retrieval accuracy.
+macs: 3.08 GMACs
+params: 37.83 M
+inputs:
+- name: x
+  shape:
+  - 1
+  - 77
+  - 512
+  dtype: float32
+  layout: NLC
+preprocessing: []
+postprocessing: []
+appendix:
+  clip_model_name: RN50
+  clip_pretrained: openai
+dataset:
+  type: ImageNetText
+  model_name: RN50
+  pretrained: openai
+artifacts:
+  path: ${MODEL_ROOT}/${MODEL_NAME}
+calibration: &calibration
+  method: ema
+  num: 100
+  seed: 42
+
+profiles:
+  onnx:
+    target: onnx
+    runtime:
+      device: cpu
+      batch_size: 1
+  c-lite:
+    target: dxnn
+    compile:
+      opt_level: 0
+      aggressive_partitioning: true
+      calibration: *calibration
+    runtime:
+      device: 0
+  q-lite:
+    target: dxnn
+    compile:
+      aggressive_partitioning: true
+      calibration: *calibration
+    runtime:
+      device: 0
+  q-pro:
+    target: dxnn
+    compile:
+      aggressive_partitioning: true
+      calibration:
+        <<: *calibration
+        num: 1024
+        use_q_pro: true
+    runtime:
+      device: 0
