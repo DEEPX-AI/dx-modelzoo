@@ -336,12 +336,12 @@ These keys are typically defined once in a top-level `calibration:` block (using
 
 #### `compile.ppu_config`
 
-`ppu_config` is an optional DXNN-only compile block for hardware postprocessing.
+`ppu_config` is an optional DXNN-only compile block for postprocessing. Types `0` and `1` use PPU hardware; type `2` is a CPU-side TopK optimization for DFL-based YOLO models and does not use PPU hardware.
 
 ```yaml
 compile:
   ppu_config:
-    type: 0|1|2         # 0=anchor-based, 1=anchor-free single-head, 2=anchor-free multi-head
+    type: 0|1|2         # 0=anchor-based, 1=anchor-free single-head, 2=DFL-based CPU TopK (deprecated)
     num_classes: 80
     conf_thres: 0.5     # type 0,1 only
     activation: sigmoid # type 0 only
@@ -351,12 +351,15 @@ compile:
 
 | Key | Required For | Description |
 |-----|---------------|-------------|
-| `type` | all | PPU mode: `0` anchor-based, `1` anchor-free single-head, `2` anchor-free multi-head |
+| `type` | all | Mode: `0` anchor-based PPU, `1` anchor-free single-head PPU, `2` DFL-based CPU TopK (no PPU hardware) |
 | `num_classes` | all | Number of classes |
 | `conf_thres` | type `0`, `1` | Confidence threshold |
 | `activation` | type `0` | Activation name such as `sigmoid` |
 | `topk` | type `2` | Top-k candidate count |
 | `layer` | all | Per-layer PPU description (`dict` for type `0`, `list` for type `1`/`2`) |
+
+!!! warning "PPU type 2 is deprecated"
+    DX-Compiler deprecated type `2` in v2.4.0. Use [`dx_com.pre_optimize()`](https://github.com/DEEPX-AI/dx-compiler/blob/main/source/docs/02_09_Pre_Optimize_API.md) for the recommended TopK-first optimization instead.
 
 ## Environment Variable Substitution
 

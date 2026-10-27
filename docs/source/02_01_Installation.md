@@ -8,8 +8,8 @@ Before installing DX-ModelZoo, ensure you have the following:
 
 - **Python**: 3.8+
 - **DeepX Components**:
-  - [DeepX Runtime (DX-RT)](https://github.com/DEEPX-AI/dx-rt) ≥ 3.0.0 (compiled with `USE_ORT=ON`)
-  - [DeepX Compiler (DX-Compiler)](https://github.com/DEEPX-AI/dx-compiler) ≥ 2.4.0
+  - [DeepX Runtime (DX-RT)](https://github.com/DEEPX-AI/dx-rt) ≥ 3.5.0 (compiled with `USE_ORT=ON`)
+  - [DeepX Compiler (DX-Compiler)](https://github.com/DEEPX-AI/dx-compiler) ≥ 2.5.0
 
 !!! note "Windows Users"  
     DX-ModelZoo runs on Windows via WSL2 (Windows Subsystem for Linux).
