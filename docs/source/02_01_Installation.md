@@ -151,7 +151,7 @@ DX-ModelZoo keeps its core dependencies minimal:
 
 ```
 pyyaml>=5.0
-numpy>=1.20,<2.0
+numpy>=1.20,<3.0
 Pillow>=8.0
 opencv-python>=4.5
 python-dotenv>=0.19
