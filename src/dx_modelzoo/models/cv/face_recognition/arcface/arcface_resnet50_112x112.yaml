@@ -2,7 +2,7 @@ name: arcface_resnet50_112x112
 display_name: ArcFace ResNet-50
 task: face_recognition
 reference: https://github.com/deepinsight/insightface
-license: MIT
+license: InsightFace Model License (Non-Commercial Research)
 description: >-
   ArcFace face recognition model with a ResNet-50 backbone on a 112x112 aligned face
   crop, producing a 512-dimensional embedding (postprocessing is identity). Embeddings

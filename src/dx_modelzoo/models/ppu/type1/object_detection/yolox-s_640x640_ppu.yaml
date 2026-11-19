@@ -18,7 +18,7 @@ inputs:
   - 640
   - 640
   dtype: float32
-  layout: NHWC
+  layout: NCHW
 preprocessing:
 - type: resize
   mode: pad

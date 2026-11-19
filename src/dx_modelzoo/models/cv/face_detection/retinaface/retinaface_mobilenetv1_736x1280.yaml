@@ -2,7 +2,7 @@ name: retinaface_mobilenetv1_736x1280
 display_name: RetinaFace (MobileNetV1)
 task: face_detection
 reference: https://github.com/deepinsight/insightface
-license: MIT
+license: InsightFace Model License (Non-Commercial Research)
 description: >-
   RetinaFace single-stage face detector on a 736x1280 RGB input that predicts face
   bounding boxes (with landmarks) and confidences. Postprocessing (retinaface_decode)

@@ -1,4 +1,5 @@
 name: vit-l-p16_512x512_swag
+display_name: ViT-Large/16 (SWAG)
 task: image_classification
 reference: https://pytorch.org/vision/stable/models/generated/torchvision.models.vit_l_16.html
 license: BSD-3-Clause

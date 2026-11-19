@@ -1,7 +1,7 @@
 name: resmlp24_224x224
 display_name: ResMLP-24
 task: image_classification
-reference: https://github.com/facebookresearch/deit
+reference: https://github.com/facebookresearch/deit/blob/main/README_resmlp.md
 license: Apache-2.0
 description: >-
   ResMLP-24 all-MLP architecture image classification model that ingests a 224x224 RGB

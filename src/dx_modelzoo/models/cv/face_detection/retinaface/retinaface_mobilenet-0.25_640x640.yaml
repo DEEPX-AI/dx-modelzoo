@@ -2,7 +2,7 @@ name: retinaface_mobilenet-0.25_640x640
 display_name: RetinaFace (MobileNet-0.25)
 task: face_detection
 reference: https://github.com/deepinsight/insightface
-license: MIT
+license: InsightFace Model License (Non-Commercial Research)
 description: >-
   RetinaFace single-stage face detector on a 640x640 RGB input that predicts face
   bounding boxes (with landmarks) and confidences. Postprocessing (retinaface_decode)

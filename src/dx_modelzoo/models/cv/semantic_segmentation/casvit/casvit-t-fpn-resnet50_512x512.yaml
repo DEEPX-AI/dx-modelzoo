@@ -2,7 +2,7 @@ name: casvit-t-fpn-resnet50_512x512
 display_name: CAS-ViT-T FPN (ResNet-50)
 task: semantic_segmentation
 reference: https://github.com/Tianfang-Zhang/CAS-ViT
-license: Apache-2.0
+license: MIT
 description: >-
   CAS-ViT-T (tiny) backbone with a Semantic FPN decode head (ResNet-50-style
   channel layout) for semantic segmentation. CAS-ViT replaces full self-attention

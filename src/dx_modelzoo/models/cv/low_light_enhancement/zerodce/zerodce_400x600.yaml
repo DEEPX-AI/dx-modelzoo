@@ -2,7 +2,7 @@ name: zerodce_400x600
 display_name: Zero-DCE
 task: low_light_enhancement
 reference: https://github.com/Li-Chongyi/Zero-DCE
-license: MIT
+license: CC-BY-NC-4.0
 description: >-
   Zero-DCE low-light image enhancement model on a 400x600 RGB input that estimates
   pixel-wise light-enhancement curves and applies them iteratively to brighten the image

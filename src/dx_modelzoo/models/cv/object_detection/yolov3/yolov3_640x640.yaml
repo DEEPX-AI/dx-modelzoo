@@ -2,7 +2,7 @@ name: yolov3_640x640
 display_name: YOLOv3 Darknet (640x640)
 task: object_detection
 reference: https://github.com/AlexeyAB/darknet
-license: GPL-3.0
+license: YOLO License
 description: >-
   YOLOv3 object detector taking a 640x640 RGB image (NCHW) and producing dense box/class
   predictions. Postprocessing (yolo_decode, nms) decodes the raw outputs into boxes and

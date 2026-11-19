@@ -126,20 +126,21 @@ profiles:
         #     cls_conf: "output_cls_2"
         #   - bbox: "output_bbox_3"
         #     cls_conf: "output_cls_3"
-      pre_optimize_config:
-      - yolo_dfl_postprocess:
-          num_classes: 80
-          topk: 512
-          layers:
-          - bbox: /model.22/cv2.0/cv2.0.2/Conv_output_0
-            cls_conf: /model.22/cv3.0/cv3.0.2/Conv_output_0
-            mask_coeff: /model.22/cv4.0/cv4.0.2/Conv_output_0
-          - bbox: /model.22/cv2.1/cv2.1.2/Conv_output_0
-            cls_conf: /model.22/cv3.1/cv3.1.2/Conv_output_0
-            mask_coeff: /model.22/cv4.1/cv4.1.2/Conv_output_0
-          - bbox: /model.22/cv2.2/cv2.2.2/Conv_output_0
-            cls_conf: /model.22/cv3.2/cv3.2.2/Conv_output_0
-            mask_coeff: /model.22/cv4.2/cv4.2.2/Conv_output_0
+      # 'pre_optimize' and 'ppu_config' are mutually exclusive — enable only one.
+      # pre_optimize:
+      # - yolo_dfl_postprocess:
+      #     num_classes: 80
+      #     topk: 512
+      #     layers:
+      #     - bbox: /model.22/cv2.0/cv2.0.2/Conv_output_0
+      #       cls_conf: /model.22/cv3.0/cv3.0.2/Conv_output_0
+      #       mask_coeff: /model.22/cv4.0/cv4.0.2/Conv_output_0
+      #     - bbox: /model.22/cv2.1/cv2.1.2/Conv_output_0
+      #       cls_conf: /model.22/cv3.1/cv3.1.2/Conv_output_0
+      #       mask_coeff: /model.22/cv4.1/cv4.1.2/Conv_output_0
+      #     - bbox: /model.22/cv2.2/cv2.2.2/Conv_output_0
+      #       cls_conf: /model.22/cv3.2/cv3.2.2/Conv_output_0
+      #       mask_coeff: /model.22/cv4.2/cv4.2.2/Conv_output_0
 
       qmaster:
         batch_size: 8

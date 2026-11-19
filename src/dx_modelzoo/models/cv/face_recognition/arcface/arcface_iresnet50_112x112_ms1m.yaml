@@ -2,7 +2,7 @@ name: arcface_iresnet50_112x112_ms1m
 display_name: ArcFace IResNet-50 (MS1M)
 task: face_recognition
 reference: https://github.com/deepinsight/insightface
-license: MIT
+license: InsightFace Model License (Non-Commercial Research)
 description: >-
   ArcFace face recognition model with an Improved-ResNet-50 backbone on a 112x112
   aligned face crop, producing a 512-dimensional embedding (postprocessing is identity).

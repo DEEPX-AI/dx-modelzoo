@@ -2,7 +2,7 @@ name: efficientdet-d1_640x640
 display_name: EfficientDet-D1
 task: object_detection
 reference: https://github.com/zylo117/Yet-Another-EfficientDet-Pytorch
-license: Apache-2.0
+license: LGPL-3.0
 description: >-
   EfficientDet object detector taking a 640x640 RGB image (NCHW) and producing dense
   box/class predictions. Postprocessing (efficientdet_decode) decodes the raw outputs

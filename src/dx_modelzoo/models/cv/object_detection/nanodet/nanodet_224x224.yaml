@@ -4,7 +4,7 @@ task: object_detection
 reference: https://github.com/RangiLyu/nanodet
 license: Apache-2.0
 description: >-
-  NanoDet anchor-free object detector taking a 224x224 RGB image (NHWC) and producing
+  NanoDet anchor-free object detector taking a 416x416 RGB image (NCHW) and producing
   dense box/class predictions. Postprocessing (nanodet_decode) decodes the raw outputs
   into boxes and applies non-maximum suppression. Evaluated on the COCO detection
   benchmark reporting mean Average Precision (mAP@0.5:0.95).
@@ -14,11 +14,11 @@ inputs:
 - name: input
   shape:
   - 1
-  - 224
-  - 224
   - 3
+  - 416
+  - 416
   dtype: float32
-  layout: NHWC
+  layout: NCHW
 preprocessing:
 - type: resize
   mode: pad
