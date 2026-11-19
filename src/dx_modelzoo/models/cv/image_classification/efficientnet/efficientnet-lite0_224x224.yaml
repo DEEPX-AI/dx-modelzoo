@@ -5,7 +5,7 @@ reference: https://github.com/huggingface/pytorch-image-models
 license: Apache-2.0
 description: >-
   EfficientNet compound-scaled CNN image classification model that ingests a 224x224 RGB
-  image (NHWC, ImageNet mean/std normalization) and outputs a 1000-way logit vector over
+  image (NCHW, ImageNet mean/std normalization) and outputs a 1000-way logit vector over
   the ImageNet-1k categories. Postprocessing applies top-k selection on the class
   logits. Evaluated on the ImageNet (ILSVRC2012) validation set reporting Top-1 and
   Top-5 classification accuracy.
@@ -15,11 +15,11 @@ inputs:
 - name: input
   shape:
   - 1
-  - 224
-  - 224
   - 3
+  - 224
+  - 224
   dtype: float32
-  layout: NHWC
+  layout: NCHW
 preprocessing:
 - type: resize
   mode: torchvision

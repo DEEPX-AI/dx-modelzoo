@@ -1,8 +1,8 @@
 name: fastvit-sa24_256x256
 display_name: FastViT-SA24
 task: image_classification
-reference: https://github.com/apple/ml-fastvit
-license: MIT
+reference: https://github.com/apple-aiml-research/ml-fastvit
+license: Apple Sample Code License
 description: >-
   FastViT hybrid Vision Transformer image classification model that ingests a 256x256
   RGB image (NCHW, ImageNet mean/std normalization) and outputs a 1000-way logit vector

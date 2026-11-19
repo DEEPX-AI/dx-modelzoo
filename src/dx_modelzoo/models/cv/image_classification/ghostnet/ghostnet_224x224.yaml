@@ -1,7 +1,7 @@
 name: ghostnet_224x224
 display_name: GhostNet
 task: image_classification
-reference: https://github.com/huawei-noah/Efficient-AI-Backbones
+reference: https://github.com/huawei-noah/Efficient-AI-Backbones/tree/master/ghostnet_pytorch
 license: Apache-2.0
 description: >-
   GhostNet lightweight CNN image classification model that ingests a 224x224 RGB image

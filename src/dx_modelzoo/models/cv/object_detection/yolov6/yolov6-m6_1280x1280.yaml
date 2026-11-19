@@ -1,4 +1,5 @@
 name: yolov6-m6_1280x1280
+display_name: YOLOv6-m6
 task: object_detection
 reference: https://github.com/meituan/YOLOv6
 license: GPL-3.0

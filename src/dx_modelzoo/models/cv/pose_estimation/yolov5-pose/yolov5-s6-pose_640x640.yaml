@@ -2,14 +2,14 @@ name: yolov5-s6-pose_640x640
 display_name: Ultralytics YOLOv5-s6-pose
 task: pose_estimation
 reference: https://github.com/ultralytics/yolov5
-license: GPL-3.0
+license: AGPL-3.0
 description: >-
   YOLOv5-Pose human pose estimation model on a 640x640 RGB input that jointly detects
   people and regresses 17 COCO body keypoints with confidences. Postprocessing
   (yolov5_pose_decode) decodes keypoints and applies NMS. Evaluated on the COCO keypoint
   benchmark reporting keypoint Average Precision (OKS-based AP).
-macs: 8.53 GMACs
-params: 7.06 M
+macs: 8.65 GMACs
+params: 19.35 M
 inputs:
 - name: input
   shape:

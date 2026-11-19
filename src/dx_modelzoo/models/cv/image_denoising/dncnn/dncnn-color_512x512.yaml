@@ -1,8 +1,8 @@
 name: dncnn-color_512x512
 display_name: DnCNN-color
 task: image_denoising
-reference: https://github.com/cszn/DnCNN
-license: BSD-3-Clause
+reference: https://github.com/cszn/KAIR
+license: MIT
 description: >-
   DnCNN residual-learning denoising CNN on a 512x512 color (RGB) input that predicts the
   residual noise to recover a clean image (postprocessing is identity). Evaluated on the

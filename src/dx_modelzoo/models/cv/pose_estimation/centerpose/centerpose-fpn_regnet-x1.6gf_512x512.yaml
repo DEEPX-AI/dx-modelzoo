@@ -2,7 +2,7 @@ name: centerpose-fpn_regnet-x1.6gf_512x512
 display_name: CenterPose-FPN (RegNetX-1.6GF)
 task: pose_estimation
 reference: https://github.com/NVlabs/CenterPose
-license: BSD-3-Clause
+license: NVIDIA Source Code License-NC
 description: >-
   CenterPose center-based human pose estimation model on a 512x512 RGB input that
   jointly detects people and regresses 17 COCO body keypoints with confidences.

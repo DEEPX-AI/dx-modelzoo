@@ -35,13 +35,13 @@ class PostprocessingPipeline:
                 raise ValueError(f"Postprocessing step {i}: missing 'type' key")
             if step_type not in POSTPROCESSING_REGISTRY:
                 available = ", ".join(sorted(POSTPROCESSING_REGISTRY.list()))
-                raise ValueError(f"Postprocessing step {i}: unknown type '{step_type}'. " f"Available: {available}")
+                raise ValueError(f"Postprocessing step {i}: unknown type '{step_type}'. Available: {available}")
             cls = POSTPROCESSING_REGISTRY.get(step_type)
             params = {k: v for k, v in step_cfg.items() if k != "type"}
             try:
                 self.steps.append(cls(**params))
             except TypeError as e:
-                raise ValueError(f"Postprocessing step {i} (type='{step_type}'): " f"invalid params — {e}") from e
+                raise ValueError(f"Postprocessing step {i} (type='{step_type}'): invalid params — {e}") from e
 
     def __call__(self, outputs, **kwargs):
         if not self.steps:
@@ -52,4 +52,4 @@ class PostprocessingPipeline:
         return result
 
 
-from dx_modelzoo.postprocessing import identity, masks, nms, segmentation_argmax, topk  # noqa: F401, E402
+from dx_modelzoo.postprocessing import identity, masks, nms, rtdetr, segmentation_argmax, topk  # noqa: F401, E402

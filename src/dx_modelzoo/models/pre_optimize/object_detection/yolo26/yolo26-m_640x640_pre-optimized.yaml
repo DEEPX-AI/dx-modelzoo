@@ -51,7 +51,7 @@ calibration: &calibration
   num: 100
   seed: 42
 
-pre_optimize_config: &pre_optimize_config
+pre_optimize: &pre_optimize
 - yolo_no_dfl_postprocess:
     task: base
     layers:
@@ -75,14 +75,14 @@ profiles:
     compile:
       opt_level: 0
       calibration: *calibration
-      pre_optimize_config: *pre_optimize_config
+      pre_optimize: *pre_optimize
     runtime:
       device: 0
   q-lite:
     target: dxnn
     compile:
       calibration: *calibration
-      pre_optimize_config: *pre_optimize_config
+      pre_optimize: *pre_optimize
     runtime:
       device: 0
   q-pro:
@@ -92,6 +92,6 @@ profiles:
         <<: *calibration
         num: 1024
         use_q_pro: true
-      pre_optimize_config: *pre_optimize_config
+      pre_optimize: *pre_optimize
     runtime:
       device: 0

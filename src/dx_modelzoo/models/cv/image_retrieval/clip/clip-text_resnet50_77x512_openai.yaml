@@ -47,14 +47,18 @@ profiles:
     compile:
       opt_level: 0
       aggressive_partitioning: true
-      calibration: *calibration
+      calibration:
+        <<: *calibration
+        method: iqr
     runtime:
       device: 0
   q-lite:
     target: dxnn
     compile:
       aggressive_partitioning: true
-      calibration: *calibration
+      calibration:
+        <<: *calibration
+        method: iqr
     runtime:
       device: 0
   q-pro:
@@ -63,6 +67,7 @@ profiles:
       aggressive_partitioning: true
       calibration:
         <<: *calibration
+        method: iqr
         num: 1024
         use_q_pro: true
     runtime:

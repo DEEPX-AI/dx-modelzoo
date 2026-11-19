@@ -1,10 +1,10 @@
-name: pp-liteseg-stdc1-camvid-10k_960x720
+name: pp-liteseg-stdc1-camvid-10k_720x960
 display_name: pp_liteseg_stdc1_camvid_960x720_10k
 task: semantic_segmentation
 reference: https://github.com/PaddlePaddle/PaddleSeg/blob/release/2.8/configs/pp_liteseg/pp_liteseg_stdc1_camvid_960x720_10k.yml
 license: Apache-2.0
 description: PaddleSeg pp_liteseg_stdc1_camvid_960x720_10k semantic segmentation model evaluated with the CamVid dataset and
-  960x720 input.
+  720x960 (HxW) input.
 macs: 16.16 GMACs
 params: 8.04 M
 evaluator:

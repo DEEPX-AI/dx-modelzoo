@@ -1,10 +1,11 @@
 name: beit-l-p16_384x384
+display_name: BEiT-Large/16 (384x384)
 task: image_classification
-reference: https://github.com/microsoft/unilm
+reference: https://github.com/microsoft/unilm/tree/master/beit
 license: MIT
 description: beit-l-p16_384x384 image_classification model with 384x384 input.
-macs: 62.76 GMACs
-params: 319.05 M
+macs: 198.04 GMACs
+params: 431.99 M
 inputs:
 - name: input
   shape:

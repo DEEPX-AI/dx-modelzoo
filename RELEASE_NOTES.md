@@ -1,5 +1,17 @@
 # RELEASE_NOTES
 
+## DX-MODELZOO v1.0.1 / 2026-11-18
+
+### 1. Changed
+- Reconfigured clip-text ResNet50 to a pre-optimized profile.
+- Refreshed documentation and removed hard-coded model counts.
+
+### 2. Fixed
+- Corrected model YAML metadata, input shapes, and naming across the model library.
+- Registered RT-DETR postprocessing and improved postprocessing error messages.
+
+---
+
 ## DX-MODELZOO v1.0.0 / 2026-10-23
 
 ### 1. Changed

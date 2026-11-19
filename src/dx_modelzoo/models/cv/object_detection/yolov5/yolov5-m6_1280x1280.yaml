@@ -2,7 +2,7 @@ name: yolov5-m6_1280x1280
 display_name: Ultralytics YOLOv5-m6 (1280x1280)
 task: object_detection
 reference: https://github.com/ultralytics/yolov5
-license: GPL-3.0
+license: AGPL-3.0
 description: >-
   YOLOv5 object detector taking a 1280x1280 RGB image (NCHW) and producing dense
   box/class predictions. Postprocessing (yolov5_decode, nms) decodes the raw outputs
