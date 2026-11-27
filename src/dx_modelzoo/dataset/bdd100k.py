@@ -27,7 +27,8 @@ _PANOPTIC_INSTALL_GUIDE = """\
     - bdd100k_drivable_labels_trainval.zip
     - bdd100k_lane_labels_trainval.zip
 
-  License: BSD 3-Clause. Requires registration.
+  License: BDD100K License — non-commercial research use. Requires registration.
+  See: https://doc.bdd100k.com/license.html
 """
 
 # YOLOPv2 "Traffic Object Detection" evaluates a single merged "vehicle" class.
@@ -74,6 +75,9 @@ class BDD100K(DatasetBase):
     ``drivable`` (``[H, W]`` in ``{0, 1}``) and ``lane`` (``[H, W]`` in
     ``{0, 1}``).
     """
+
+    LICENSE = "BDD100K License (non-commercial)"
+    LICENSE_URL = "https://doc.bdd100k.com/license.html"
 
     num_class = 2
 

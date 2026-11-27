@@ -2,7 +2,9 @@ name: pphgnetv2-b6_224x224
 display_name: PPHGNetV2_B6
 task: image_classification
 reference: https://github.com/PaddlePaddle/PaddleClas/blob/develop/ppcls/arch/backbone/legendary_models/pp_hgnet_v2.py
-license: Apache-2.0
+license:
+  model: Apache-2.0
+  weights: Apache-2.0
 description: PaddleClas PP-HGNetV2 B6 ImageNet classifier.
 macs: 17.52 GMACs
 params: 75.42 M

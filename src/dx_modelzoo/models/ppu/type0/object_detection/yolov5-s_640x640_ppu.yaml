@@ -2,7 +2,9 @@ name: yolov5-s_640x640_ppu
 display_name: Ultralytics YOLOv5-s (PPU)
 task: object_detection
 reference: https://github.com/ultralytics/yolov5
-license: AGPL-3.0
+license:
+  model: AGPL-3.0
+  weights: AGPL-3.0
 description: >-
   YOLOv5 object detector taking a 640x640 RGB image (NCHW) and producing dense box/class
   predictions. Postprocessing (ppu_nms) decodes the raw outputs into boxes and applies

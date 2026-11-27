@@ -35,6 +35,9 @@ _INSTALL_GUIDE = """\
 
 @DATASET_REGISTRY.register
 class AFLW20003D(DatasetBase):
+    LICENSE = None
+    LICENSE_URL = "http://www.cbsr.ia.ac.cn/users/xiangyuzhu/projects/3DDFA/main.htm"
+
     NUM_KEYPOINTS = 68
 
     def __init__(self, data_dir: str) -> None:

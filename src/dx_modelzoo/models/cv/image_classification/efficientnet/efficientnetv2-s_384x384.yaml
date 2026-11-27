@@ -2,7 +2,9 @@ name: efficientnetv2-s_384x384
 display_name: EfficientNetV2-S
 task: image_classification
 reference: https://github.com/pytorch/vision
-license: BSD-3-Clause
+license:
+  model: BSD-3-Clause
+  weights: BSD-3-Clause
 description: >-
   EfficientNetV2 CNN image classification model that ingests a 384x384 RGB image (NCHW,
   ImageNet mean/std normalization) and outputs a 1000-way logit vector over the

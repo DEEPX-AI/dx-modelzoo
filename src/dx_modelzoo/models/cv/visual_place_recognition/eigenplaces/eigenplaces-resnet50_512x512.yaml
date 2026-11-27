@@ -2,7 +2,9 @@ name: eigenplaces-resnet50_512x512
 display_name: EigenPlaces ResNet-50
 task: visual_place_recognition
 reference: https://github.com/gmberton/EigenPlaces
-license: MIT
+license:
+  model: MIT
+  weights: MIT
 description: |
   EigenPlaces Visual Place Recognition (ResNet50 + GeM), 512-dim global descriptor.
   Static input [1,3,512,512]. cuVSLAM loop-closure / re-localization replacement.

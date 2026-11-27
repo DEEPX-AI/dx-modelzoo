@@ -2,7 +2,9 @@ name: fcn8_resnet50_512x512
 display_name: FCN-8s (ResNet-50)
 task: semantic_segmentation
 reference: https://github.com/pytorch/vision
-license: BSD-3-Clause
+license:
+  model: BSD-3-Clause
+  weights: BSD-3-Clause
 description: >-
   FCN-8s fully convolutional network for semantic segmentation on a 512x512 RGB input,
   producing per-pixel class logits. Postprocessing applies a per-pixel argmax to yield

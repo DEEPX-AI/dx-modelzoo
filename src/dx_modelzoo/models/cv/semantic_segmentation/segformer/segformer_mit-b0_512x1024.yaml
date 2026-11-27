@@ -2,7 +2,9 @@ name: segformer_mit-b0_512x1024
 display_name: SegFormer (MiT-B0)
 task: semantic_segmentation
 reference: https://github.com/NVlabs/SegFormer
-license: NVIDIA Source Code License-NC
+license:
+  model: NVIDIA Source Code License-NC
+  weights: NVIDIA Source Code License-NC
 description: >-
   SegFormer transformer segmentation network for semantic segmentation on a 512x1024 RGB
   input, producing per-pixel class logits. Postprocessing applies a per-pixel argmax to

@@ -366,3 +366,38 @@ class TestValidateYaml:
         }
         with pytest.raises(YamlValidationError, match="buffer_count"):
             validate_yaml(config, "test.yaml")
+
+
+class TestValidateLicense:
+    """``license`` is a string or a mapping of model/weights licenses (DXM1-2908)."""
+
+    @pytest.mark.parametrize(
+        "value",
+        [
+            None,
+            "AGPL-3.0",
+            {"weights": "CC-BY-NC-4.0"},
+            {"model": "Apache-2.0", "weights": "CC-BY-NC-4.0"},
+        ],
+    )
+    def test_valid_license(self, value):
+        config = dict(MINIMAL_VALID_CONFIG)
+        if value is not None:
+            config["license"] = value
+        validate_yaml(config, "test.yaml")
+
+    @pytest.mark.parametrize(
+        "value, message",
+        [
+            ("", "license must be a non-empty string"),
+            (["MIT"], "license (string or mapping) must be a mapping"),
+            ({}, "license mapping must define"),
+            ({"dataset": "CC-BY-4.0"}, "unknown keys ['dataset']"),
+            ({"weights": ""}, "license.weights must be a non-empty string"),
+        ],
+    )
+    def test_invalid_license(self, value, message):
+        config = dict(MINIMAL_VALID_CONFIG, license=value)
+        with pytest.raises(YamlValidationError) as excinfo:
+            validate_yaml(config, "test.yaml")
+        assert message in str(excinfo.value)

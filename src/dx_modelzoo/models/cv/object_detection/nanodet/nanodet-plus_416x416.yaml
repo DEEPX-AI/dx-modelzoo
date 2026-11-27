@@ -2,7 +2,9 @@ name: nanodet-plus_416x416
 display_name: NanoDet-Plus
 task: object_detection
 reference: https://github.com/RangiLyu/nanodet
-license: Apache-2.0
+license:
+  model: Apache-2.0
+  weights: Apache-2.0
 description: >-
   NanoDet anchor-free object detector taking a 416x416 RGB image (NCHW) and producing
   dense box/class predictions. Postprocessing (nanodet_decode) decodes the raw outputs

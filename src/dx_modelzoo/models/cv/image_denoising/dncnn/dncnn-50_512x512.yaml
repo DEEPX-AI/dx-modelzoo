@@ -2,7 +2,9 @@ name: dncnn-50_512x512
 display_name: DnCNN-50
 task: image_denoising
 reference: https://github.com/cszn/KAIR
-license: MIT
+license:
+  model: MIT
+  weights: MIT
 description: >-
   DnCNN residual-learning denoising CNN trained for noise level sigma=50 on a 512x512
   grayscale input that predicts the residual noise to recover a clean image

@@ -2,7 +2,9 @@ name: faceattr_resnetv1-18_218x178
 display_name: FaceAttr ResNet-18
 task: face_attribute
 reference: https://github.com/d-li14/face-attribute-prediction
-license: MIT
+license:
+  model: MIT
+  weights: MIT
 description: >-
   Face attribute recognition with a ResNet-V1-18 backbone on a 218x178 aligned
   face image (CelebA native crop size, NCHW, ImageNet mean/std normalization).

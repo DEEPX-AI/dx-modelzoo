@@ -1,6 +1,9 @@
 name: template-model
 task: image_classification
 reference: http://reference-url
+license:
+  model: MIT  # license of the upstream source code
+  weights: MIT  # license of the pretrained weights
 description: 'A brief description of the model, which can be multiple lines.
 
   '

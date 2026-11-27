@@ -19,6 +19,28 @@ from dx_modelzoo.postprocessing import PostprocessingPipeline
 from dx_modelzoo.preprocessing import PreprocessingPipeline
 
 
+def build_license_info(model_license: Any, dataset: Any) -> Dict[str, Optional[str]]:
+    """Combine the YAML ``license`` and the dataset class license for results.
+
+    Args:
+        model_license: The YAML ``license``: a string (one license for both the
+            code and the weights) or a mapping with ``model`` and/or ``weights``.
+            A mapping without ``weights`` uses ``model`` as the weights license, as
+            MODEL_LICENSES.md does.
+        dataset: The dataset instance; its class ``LICENSE`` is the evaluation
+            dataset license.
+
+    Returns:
+        ``{"model": ..., "weights": ..., "dataset": ...}``; unknown values are ``None``.
+    """
+    if isinstance(model_license, dict):
+        model = model_license.get("model")
+        weights = model_license.get("weights") or model
+    else:
+        model = weights = model_license
+    return {"model": model, "weights": weights, "dataset": getattr(dataset, "LICENSE", None)}
+
+
 class ModelBuilder:
     """Builds runnable model components from a YAML config file."""
 
@@ -355,7 +377,7 @@ class ModelBuilder:
             "operations": self.config.get("macs"),
             "parameters": self.config.get("params"),
             "input_resolution": input_resolution,
-            "license": self.config.get("license", None),
+            "license": build_license_info(self.config.get("license"), dataset),
         }
 
         # Apply appendix properties to evaluator (by attribute name)

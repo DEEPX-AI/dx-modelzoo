@@ -1,11 +1,15 @@
 name: deeplabv3plus_mobilenetv1_512x512
-display_name: DeepLabV3+ (MobileNetV1)
+display_name: DeepLabV3+ (MobileNetV2, jfzhang95)
 task: semantic_segmentation
-reference: https://github.com/VainF/DeepLabV3Plus-Pytorch
-license: MIT
+reference: https://github.com/jfzhang95/pytorch-deeplab-xception
+license:
+  model: MIT
+  weights: MIT
 description: >-
-  DeepLabV3+ atrous segmentation network for semantic segmentation on a 512x512 RGB
-  input, producing per-pixel class logits. Postprocessing applies a per-pixel argmax to
+  DeepLabV3+ atrous segmentation network with a MobileNetV2 backbone
+  (jfzhang95/pytorch-deeplab-xception) for semantic segmentation on a 512x512 RGB
+  input, producing per-pixel class logits. The "mobilenetv1" in the model name is
+  historical; the backbone is MobileNetV2. Postprocessing applies a per-pixel argmax to
   yield the segmentation map. Evaluated on the PascalVOC2012 segmentation benchmark
   reporting mean Intersection-over-Union (mIoU).
 macs: 26.62 GMACs

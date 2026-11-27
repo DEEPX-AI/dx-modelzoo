@@ -2,7 +2,9 @@ name: yolov3-gluon_416x416
 display_name: YOLOv3 GluonCV (416x416)
 task: object_detection
 reference: https://github.com/dmlc/gluon-cv
-license: Apache-2.0
+license:
+  model: Apache-2.0
+  weights: Apache-2.0
 description: >-
   GluonCV YOLOv3 object detector taking a 416x416 RGB image (NHWC) and producing dense
   box/class predictions. Postprocessing (yolov3_gluon_decode, nms) decodes the raw

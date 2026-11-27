@@ -2,7 +2,9 @@ name: swin-b_224x224
 display_name: Swin-B 224x224
 task: image_classification
 reference: https://pytorch.org/vision/stable/models/generated/torchvision.models.swin_b.html#torchvision.models.swin_b
-license: BSD-3-Clause
+license:
+  model: BSD-3-Clause
+  weights: BSD-3-Clause
 description: >-
   Swin Transformer (Swin) image classification model that ingests a 224x224 RGB image
   (NCHW, ImageNet mean/std normalization) and outputs a 1000-way logit vector over the

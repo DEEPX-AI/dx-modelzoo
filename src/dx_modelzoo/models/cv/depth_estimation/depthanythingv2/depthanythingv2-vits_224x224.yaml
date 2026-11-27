@@ -2,7 +2,9 @@ name: depthanythingv2-vits_224x224
 display_name: Depth-Anything-V2-ViT-S
 task: depth_estimation
 reference: https://github.com/DepthAnything/Depth-Anything-V2
-license: Apache-2.0
+license:
+  model: Apache-2.0
+  weights: Apache-2.0
 description: >-
   Depth Anything V2 with ViT-Small backbone. Monocular depth estimation model (relative/inverse depth).
 macs: 8.60 GMACs

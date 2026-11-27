@@ -2,7 +2,9 @@ name: efficientformerv2-l_224x224
 display_name: EfficientFormerV2-L
 task: image_classification
 reference: https://github.com/snap-research/EfficientFormer
-license: Apache-2.0
+license:
+  model: MIT
+  weights: MIT
 description: >-
   EfficientFormerV2 hybrid Vision Transformer image classification model that ingests a
   224x224 RGB image (NCHW, ImageNet mean/std normalization) and outputs a 1000-way logit

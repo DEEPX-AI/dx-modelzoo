@@ -2,7 +2,9 @@ name: ulfgfd-slim_240x320_nopp
 display_name: ULFGFD-Slim (no-PP)
 task: face_detection
 reference: https://github.com/Linzaer/Ultra-Light-Fast-Generic-Face-Detector-1MB
-license: MIT
+license:
+  model: MIT
+  weights: MIT
 description: >-
   Ultra-Light-Fast-Generic face detector on a 240x320 RGB input that predicts face
   bounding boxes (with landmarks) and confidences. Postprocessing (ulfgfd_decode)

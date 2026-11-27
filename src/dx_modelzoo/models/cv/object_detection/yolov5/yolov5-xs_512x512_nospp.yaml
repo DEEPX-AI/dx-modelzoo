@@ -1,8 +1,10 @@
 name: yolov5-xs_512x512_nospp
 display_name: Ultralytics YOLOv5-xs (no-SPP)
 task: object_detection
-reference: https://github.com/ultralytics/yolov5
-license: AGPL-3.0
+reference: https://github.com/ultralytics/yolov5/releases/tag/v2.0
+license:
+  model: AGPL-3.0
+  weights: AGPL-3.0
 description: >-
   YOLOv5 object detector taking a 512x512 RGB image (NCHW) and producing dense box/class
   predictions. Postprocessing (yolov5_multiscale_decode, nms) decodes the raw outputs

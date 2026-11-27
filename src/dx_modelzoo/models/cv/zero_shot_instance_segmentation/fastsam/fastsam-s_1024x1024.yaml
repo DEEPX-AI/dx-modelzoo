@@ -2,7 +2,9 @@ name: fastsam-s_1024x1024
 display_name: FastSAM-s
 task: zero_shot_instance_segmentation
 reference: https://github.com/CASIA-IVA-Lab/FastSAM
-license: AGPL-3.0
+license:
+  model: AGPL-3.0
+  weights: AGPL-3.0
 description: >-
   FastSAM-s (Fast Segment Anything Model) — a YOLOv8-seg based CNN that performs
   class-agnostic "segment everything" instance segmentation, trained on 2% of

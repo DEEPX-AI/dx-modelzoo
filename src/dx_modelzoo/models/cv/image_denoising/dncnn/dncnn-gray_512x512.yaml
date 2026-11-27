@@ -2,7 +2,9 @@ name: dncnn-gray_512x512
 display_name: DnCNN-gray
 task: image_denoising
 reference: https://github.com/cszn/KAIR
-license: MIT
+license:
+  model: MIT
+  weights: MIT
 description: >-
   DnCNN residual-learning denoising CNN on a 512x512 grayscale input that predicts the
   residual noise to recover a clean image (postprocessing is identity). Evaluated on the

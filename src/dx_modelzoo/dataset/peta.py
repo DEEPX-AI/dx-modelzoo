@@ -74,6 +74,9 @@ NUM_ATTRIBUTES = 35
 
 @DATASET_REGISTRY.register
 class PETA(DatasetBase):
+    LICENSE = "PETA Terms (research only)"
+    LICENSE_URL = "https://mmlab.ie.cuhk.edu.hk/projects/PETA.html"
+
     def __init__(self, data_dir: str) -> None:
         self.ensure_exists(data_dir, _INSTALL_GUIDE)
         super().__init__(data_dir)

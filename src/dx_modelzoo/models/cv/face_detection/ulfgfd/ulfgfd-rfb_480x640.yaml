@@ -2,7 +2,9 @@ name: ulfgfd-rfb_480x640
 display_name: ULFGFD-RFB (480x640)
 task: face_detection
 reference: https://github.com/Linzaer/Ultra-Light-Fast-Generic-Face-Detector-1MB
-license: MIT
+license:
+  model: MIT
+  weights: MIT
 description: >-
   Ultra-Light-Fast-Generic face detector on a 480x640 RGB input that predicts face
   bounding boxes (with landmarks) and confidences. Postprocessing (ulfgfd_decode)

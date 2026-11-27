@@ -2,7 +2,9 @@ name: deeplabv3plus-drn_512x512
 display_name: DeepLabV3+ (DRN)
 task: semantic_segmentation
 reference: https://github.com/jfzhang95/pytorch-deeplab-xception
-license: MIT
+license:
+  model: MIT
+  weights: MIT
 description: >-
   DeepLabV3+ atrous segmentation network for semantic segmentation on a 512x512 RGB
   input, producing per-pixel class logits. Postprocessing applies a per-pixel argmax to

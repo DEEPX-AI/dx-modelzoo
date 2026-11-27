@@ -37,6 +37,9 @@ _INSTALL_GUIDE = """\
 
 @DATASET_REGISTRY.register
 class NYUDepthv2(DatasetBase):
+    LICENSE = None
+    LICENSE_URL = "https://cs.nyu.edu/~silberman/datasets/nyu_depth_v2.html"
+
     def __init__(self, data_dir: str) -> None:
         self.ensure_exists(data_dir, _INSTALL_GUIDE)
         super().__init__(data_dir)

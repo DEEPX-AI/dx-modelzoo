@@ -2,7 +2,9 @@ name: unet_mobilenetv2_256x256
 display_name: U-Net (MobileNetV2)
 task: semantic_segmentation
 reference: https://github.com/tensorflow/examples
-license: Apache-2.0
+license:
+  model: Apache-2.0
+  weights: Apache-2.0
 description: >-
   U-Net encoder-decoder segmentation network for semantic segmentation on a 256x256 RGB
   input, producing per-pixel class logits. Postprocessing applies a per-pixel argmax to

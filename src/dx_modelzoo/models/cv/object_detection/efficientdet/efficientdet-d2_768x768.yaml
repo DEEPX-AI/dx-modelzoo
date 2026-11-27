@@ -2,7 +2,9 @@ name: efficientdet-d2_768x768
 display_name: EfficientDet-D2
 task: object_detection
 reference: https://github.com/zylo117/Yet-Another-EfficientDet-Pytorch
-license: LGPL-3.0
+license:
+  model: LGPL-3.0
+  weights: LGPL-3.0
 description: >-
   EfficientDet object detector taking a 768x768 RGB image (NCHW) and producing dense
   box/class predictions. Postprocessing (efficientdet_decode) decodes the raw outputs

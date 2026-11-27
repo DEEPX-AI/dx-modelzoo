@@ -2,7 +2,9 @@ name: efficientnet-b3_300x300
 display_name: EfficientNet-B3
 task: image_classification
 reference: https://github.com/pytorch/vision
-license: BSD-3-Clause
+license:
+  model: BSD-3-Clause
+  weights: BSD-3-Clause
 description: >-
   EfficientNet compound-scaled CNN image classification model that ingests a 300x300 RGB
   image (NCHW, ImageNet mean/std normalization) and outputs a 1000-way logit vector over

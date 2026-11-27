@@ -2,7 +2,9 @@ name: pplcnetv2-large_224x224
 display_name: PPLCNetV2_large
 task: image_classification
 reference: https://github.com/PaddlePaddle/PaddleClas/blob/develop/ppcls/arch/backbone/legendary_models/pp_lcnet_v2.py
-license: Apache-2.0
+license:
+  model: Apache-2.0
+  weights: Apache-2.0
 description: PaddleClas PP-LCNetV2 large ImageNet classifier.
 macs: 1.29 GMACs
 params: 10.47 M

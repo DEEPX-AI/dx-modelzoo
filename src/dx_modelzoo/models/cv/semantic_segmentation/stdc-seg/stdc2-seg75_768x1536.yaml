@@ -2,7 +2,9 @@ name: stdc2-seg75_768x1536
 display_name: STDC2-Seg75
 task: semantic_segmentation
 reference: https://github.com/MichaelFan01/STDC-Seg
-license: MIT
+license:
+  model: MIT
+  weights: MIT
 description: >-
   STDC2-Seg75 semantic segmentation model evaluated on Cityscapes at 0.75
   scale with a 768x1536 input.

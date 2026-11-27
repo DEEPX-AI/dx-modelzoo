@@ -2,7 +2,9 @@ name: mobilenetv1_224x224
 display_name: MobileNetV1
 task: image_classification
 reference: https://github.com/osmr/imgclsmob
-license: MIT
+license:
+  model: MIT
+  weights: MIT
 description: >-
   MobileNet-v1 depthwise-separable CNN image classification model that ingests a 224x224
   RGB image (NCHW, ImageNet mean/std normalization) and outputs a 1000-way logit vector

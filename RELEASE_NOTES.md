@@ -1,14 +1,33 @@
 # RELEASE_NOTES
 
-## DX-MODELZOO v1.0.1 / 2026-11-18
+## DX-MODELZOO v1.0.1 / 2026-11-27
 
 ### 1. Changed
-- Reconfigured clip-text ResNet50 to a pre-optimized profile.
+- **Breaking:** Renamed seven models so that the name matches the real model and input size (HxW). The old names no longer work.
+  - `nanodet_224x224` → `nanodet-repvgg-a0_416x416`
+  - `nanodet-plus-1.5x_224x224` → `nanodet-plus-1.5x_416x416`
+  - `nanodet-repvgg-a_224x224` → `nanodet-repvgg-a1_640x640`
+  - `nanodet-repvgg-a12_224x224` → `nanodet-repvgg-a12_640x640`
+  - `yolov5-m6_640x640` → `yolov5-m_640x640_v6.1`
+  - `dark-hrnet-w32_256x192` → `dark-hrnet-w32_192x256`
+  - `pp-liteseg-stdc1-camvid-10k_960x720` → `pp-liteseg-stdc1-camvid-10k_720x960`
+- **Breaking:** In `dxmz eval --save` results, `license` is now an object `{"model", "weights", "dataset"}` instead of a string: the code license, the pretrained weights license, and the evaluation dataset terms.
+- Changed the calibration method to IQR for the c-lite, q-lite and q-pro profiles of clip-text ResNet50 (`clip-text_resnet50_77x512_openai`) and CLIP ViT-B/16 MetaCLIP FullCC (`clip-img_vit-b16-quickgelu_224x224_metaclip-fullcc`).
 - Refreshed documentation and removed hard-coded model counts.
+- The `license` field of every model YAML now states both the code license (`model`) and the pretrained weights license (`weights`). A custom YAML may still use a single string, which is used as both the code and the weights license; any other key is rejected.
 
 ### 2. Fixed
 - Corrected model YAML metadata, input shapes, and naming across the model library.
 - Registered RT-DETR postprocessing and improved postprocessing error messages.
+- Fixed `dxmz compile` failing on pre-optimized models: their YAMLs now use the `compile.pre_optimize` key instead of `pre_optimize_config`.
+- Corrected model licenses and references after tracing each model to its real weights. Commercial use changes for these models:
+  - Now **non-commercial** (Meta SWAG weights, CC-BY-NC-4.0): `regnet-y16gf_384x384`, `regnet-y32gf_384x384`, `vit-l-p16_512x512_swag`
+  - No longer non-commercial (MIT): `centerpose-fpn_regnet-x1.6gf_512x512`, `centerpose_regnet-x800mf_640x640`, `centerpose_repvgg-a0_416x416`, `retinaface_mobilenet-0.25_640x640`
+- Corrected the dataset terms shown in dataset setup messages (BSDS, BDD100K, COCO, HPatches, Hand Keypoints).
+
+### 3. Added
+- `MODEL_LICENSES.md`: the original license of every model, its evaluation dataset and the dataset terms. Non-commercial models are listed first. Check it before commercial use.
+- Built-in dataset classes report their terms through `LICENSE` and `LICENSE_URL`.
 
 ---
 

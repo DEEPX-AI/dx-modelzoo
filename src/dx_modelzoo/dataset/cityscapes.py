@@ -64,6 +64,9 @@ for _id, _tid in _TRAIN_IDS.items():
 
 @DATASET_REGISTRY.register
 class Cityscapes(DatasetBase):
+    LICENSE = "Cityscapes License (non-commercial)"
+    LICENSE_URL = "https://www.cityscapes-dataset.com/license/"
+
     num_class = 19
 
     def __init__(self, data_dir: str) -> None:

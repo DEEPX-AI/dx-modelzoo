@@ -2,7 +2,9 @@ name: efficientad-m-student_256x256
 display_name: EfficientAD-M Student
 task: anomaly_detection
 reference: https://github.com/nelson1425/EfficientAD
-license: Apache-2.0
+license:
+  model: Apache-2.0
+  weights: Apache-2.0
 description: >-
   EfficientAD-M Student component with a 256x256 RGB input (NCHW) and student
   features [1,768,64,64]. In per-model Hive evaluation, this component is

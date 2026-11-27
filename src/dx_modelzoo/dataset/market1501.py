@@ -32,6 +32,9 @@ _INSTALL_GUIDE = """\
 
 @DATASET_REGISTRY.register
 class Market1501(DatasetBase):
+    LICENSE = "Market-1501 Terms (research only)"
+    LICENSE_URL = "https://zheng-lab-anu.github.io/Project/project_reid.html"
+
     def __init__(self, data_dir: str) -> None:
         self.ensure_exists(data_dir, _INSTALL_GUIDE)
         super().__init__(data_dir)

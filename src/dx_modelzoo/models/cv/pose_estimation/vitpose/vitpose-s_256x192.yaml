@@ -2,7 +2,9 @@ name: vitpose-s_256x192
 display_name: ViTPose-S
 task: pose_estimation
 reference: https://github.com/ViTAE-Transformer/ViTPose
-license: Apache-2.0
+license:
+  model: Apache-2.0
+  weights: Apache-2.0
 description: |
   ViTPose-Small top-down pose estimation.
   Input is a person-cropped patch [1,3,256,192]; output is 17 keypoint

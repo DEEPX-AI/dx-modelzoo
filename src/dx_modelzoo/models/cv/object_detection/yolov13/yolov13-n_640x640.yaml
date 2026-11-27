@@ -2,7 +2,9 @@ name: yolov13-n_640x640
 display_name: YOLOv13-n
 task: object_detection
 reference: https://github.com/iMoonLab/yolov13
-license: AGPL-3.0
+license:
+  model: AGPL-3.0
+  weights: AGPL-3.0
 description: >-
   YOLOv13 object detector taking a 640x640 RGB image (NCHW) and producing dense
   box/class predictions. Postprocessing (yolov13_decode, nms) decodes the raw outputs into

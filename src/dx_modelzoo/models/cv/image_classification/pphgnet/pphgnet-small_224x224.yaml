@@ -2,7 +2,9 @@ name: pphgnet-small_224x224
 display_name: PPHGNet_small
 task: image_classification
 reference: https://github.com/PaddlePaddle/PaddleClas/blob/develop/ppcls/arch/backbone/legendary_models/pp_hgnet.py
-license: Apache-2.0
+license:
+  model: Apache-2.0
+  weights: Apache-2.0
 description: PaddleClas PP-HGNet small ImageNet classifier.
 macs: 8.80 GMACs
 params: 24.38 M

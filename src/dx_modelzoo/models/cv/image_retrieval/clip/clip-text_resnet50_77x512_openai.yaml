@@ -4,7 +4,9 @@ task: image_retrieval
 evaluator:
   type: image_retrieval
 reference: https://github.com/mlfoundations/open_clip
-license: MIT
+license:
+  model: MIT
+  weights: MIT
 description: >-
   CLIP ResNet-50 OpenAI text-transformer branch. The exported graph accepts the
   77-token, 512-hidden-dimension embedding stream and returns the transformed stream.

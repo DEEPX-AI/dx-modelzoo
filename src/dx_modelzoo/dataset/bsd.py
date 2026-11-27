@@ -12,7 +12,7 @@ from dx_modelzoo.common.dataloader import DatasetBase
 from dx_modelzoo.dataset import DATASET_REGISTRY
 
 _INSTALL_GUIDE = """\
-  [BSD68] — BSD license (free for research and commercial use)
+  [BSD68] — BSDS terms (non-commercial research and education)
 
   1. Download from https://www2.eecs.berkeley.edu/Research/Projects/CS/vision/bsds/
      or: https://github.com/clausmichele/CBSD68-dataset
@@ -44,12 +44,15 @@ _INSTALL_GUIDE = """\
          0001.png
          ... (68 color images)
 
-  License: BSD — free for research and commercial use.
+  License: non-commercial research and educational purposes (BSDS terms).
 """
 
 
 @DATASET_REGISTRY.register
 class BSD68(DatasetBase):
+    LICENSE = "BSDS Terms (non-commercial research)"
+    LICENSE_URL = "https://www2.eecs.berkeley.edu/Research/Projects/CS/vision/bsds/"
+
     def __init__(self, data_dir: str) -> None:
         self.ensure_exists(data_dir, _INSTALL_GUIDE)
         super().__init__(data_dir)
@@ -93,6 +96,9 @@ class BSD68(DatasetBase):
 
 @DATASET_REGISTRY.register
 class BSD100(DatasetBase):
+    LICENSE = "BSDS Terms (non-commercial research)"
+    LICENSE_URL = "https://www2.eecs.berkeley.edu/Research/Projects/CS/vision/bsds/"
+
     def __init__(self, data_dir: str) -> None:
         self.ensure_exists(data_dir, _INSTALL_GUIDE)
         super().__init__(data_dir)
@@ -173,6 +179,9 @@ class BSD100(DatasetBase):
 
 @DATASET_REGISTRY.register
 class CBSD68(DatasetBase):
+    LICENSE = "BSDS Terms (non-commercial research)"
+    LICENSE_URL = "https://www2.eecs.berkeley.edu/Research/Projects/CS/vision/bsds/"
+
     def __init__(self, data_dir: str) -> None:
         self.ensure_exists(data_dir, _INSTALL_GUIDE)
         super().__init__(data_dir)

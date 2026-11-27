@@ -2,7 +2,9 @@ name: bisenetv1_1024x2048
 display_name: BiSeNetV1
 task: semantic_segmentation
 reference: https://github.com/CoinCheung/BiSeNet
-license: MIT
+license:
+  model: MIT
+  weights: MIT
 description: >-
   BiSeNet-V1 bilateral segmentation network for semantic segmentation on a 1024x2048 RGB
   input, producing per-pixel class logits. Postprocessing applies a per-pixel argmax to

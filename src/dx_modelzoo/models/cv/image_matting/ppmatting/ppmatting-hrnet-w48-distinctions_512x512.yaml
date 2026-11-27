@@ -2,7 +2,9 @@ name: ppmatting-hrnet-w48-distinctions_512x512
 display_name: ppmatting-hrnet_w48-distinctions
 task: image_matting
 reference: https://github.com/PaddlePaddle/PaddleSeg/blob/release/2.8/Matting/configs/ppmatting/ppmatting-hrnet_w48-distinctions.yml
-license: Apache-2.0
+license:
+  model: Apache-2.0
+  weights: Apache-2.0
 description: PaddleSeg PP-Matting HRNet-W48 trimap-free image matting model evaluated on the official Distinctions-646 test
   split (50 foregrounds x 20 PASCAL VOC 2012 backgrounds).
 macs: 173.81 GMACs

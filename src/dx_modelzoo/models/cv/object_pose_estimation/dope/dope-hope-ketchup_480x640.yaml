@@ -2,7 +2,9 @@ name: dope-hope-ketchup_480x640
 display_name: DOPE (HOPE Ketchup)
 task: object_pose_estimation
 reference: https://github.com/NVlabs/Deep_Object_Pose
-license: NVIDIA Source Code License-NC
+license:
+  model: NVIDIA Source Code License-NC
+  weights: NVIDIA Source Code License-NC
 description: >-
   NVIDIA Isaac ROS DOPE (Deep Object Pose Estimation) — single-object 6-DoF pose for
   the HOPE 'Ketchup' class. The network emits one [1,25,50,50] tensor (input

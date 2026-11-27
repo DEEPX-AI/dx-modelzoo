@@ -2,7 +2,9 @@ name: vit-t-p16_224x224
 display_name: ViT-Tiny/16
 task: image_classification
 reference: https://github.com/google-research/vision_transformer
-license: Apache-2.0
+license:
+  model: Apache-2.0
+  weights: Apache-2.0
 macs: 1.36 GMACs
 params: 5.72 M
 description: vit-t-p16_224x224 image_classification model with 224x224 input.

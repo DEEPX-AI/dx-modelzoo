@@ -2,7 +2,9 @@ name: fastdepth_224x224
 display_name: FastDepth
 task: depth_estimation
 reference: https://github.com/dwofk/fast-depth
-license: MIT
+license:
+  model: MIT
+  weights: MIT
 description: >-
   FastDepth efficient encoder-decoder monocular depth estimation model on a 224x224 RGB
   input, regressing a dense per-pixel depth map (postprocessing is identity). Evaluated

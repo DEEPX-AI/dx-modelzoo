@@ -2,7 +2,9 @@ name: patchcore_224x224
 display_name: PatchCore 224x224
 task: anomaly_detection
 reference: https://github.com/amazon-science/patchcore-inspection
-license: Apache-2.0
+license:
+  model: Apache-2.0
+  weights: BSD-3-Clause
 description: >-
   PatchCore anomaly detector with a 224x224 RGB input (NCHW). A frozen
   WideResNet-50 backbone emits two intermediate feature maps (feat_layer2

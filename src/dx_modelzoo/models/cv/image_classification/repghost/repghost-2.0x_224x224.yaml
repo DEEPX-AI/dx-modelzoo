@@ -2,7 +2,9 @@ name: repghost-2.0x_224x224
 display_name: RepGhost-2.0x
 task: image_classification
 reference: https://github.com/ChengpengChen/RepGhost
-license: MIT
+license:
+  model: MIT
+  weights: MIT
 description: >-
   RepGhost re-parameterizable CNN image classification model that ingests a 224x224 RGB
   image (NCHW, ImageNet mean/std normalization) and outputs a 1000-way logit vector over

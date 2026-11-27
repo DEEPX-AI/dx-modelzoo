@@ -2,7 +2,9 @@ name: clip-img_vit-b32_256x256_datacomp-s34b-b86k
 display_name: CLIP ViT-B/32 (DataComp)
 task: zero_shot_image_classification
 reference: https://github.com/mlfoundations/open_clip
-license: MIT
+license:
+  model: MIT
+  weights: MIT
 description: >-
   CLIP image-encoder branch with a ViT-B/32 image encoder (DataComp weights) on a
   256x256 RGB input, producing an image embedding aligned to CLIP text embeddings. Zero-

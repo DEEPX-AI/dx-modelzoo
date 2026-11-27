@@ -28,7 +28,7 @@ _INSTALL_GUIDE = """\
   Sequences prefixed with 'i_' = illumination changes (same viewpoint).
   Sequences prefixed with 'v_' = viewpoint changes.
 
-  License: CC BY-SA (research use).
+  License: MIT (repository); images come from mixed sources — cite the originals.
   See: https://github.com/hpatches/hpatches-dataset
 """
 
@@ -60,6 +60,9 @@ class HPatches(DatasetBase):
     where ``H_1_n`` is a 3×3 ``ndarray`` or ``None`` for the reference
     image (n=1).
     """
+
+    LICENSE = "MIT (images from mixed sources)"
+    LICENSE_URL = "https://github.com/hpatches/hpatches-dataset"
 
     def __init__(self, data_dir: str) -> None:
         self.ensure_exists(data_dir, _INSTALL_GUIDE)

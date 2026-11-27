@@ -2,7 +2,9 @@ name: dark-hrnet-w32_192x256
 display_name: dark_hrnet_w32_256x192
 task: pose_estimation
 reference: https://github.com/PaddlePaddle/PaddleDetection/blob/release/2.6/configs/pphuman/dark_hrnet_w32_256x192.yml
-license: Apache-2.0
+license:
+  model: Apache-2.0
+  weights: Apache-2.0
 description: PaddleDetection dark_hrnet_w32_256x192 pose estimation model evaluated with the COCOPoseTopDown dataset and 192x256
   (HxW) input.
 macs: 8.27 GMACs

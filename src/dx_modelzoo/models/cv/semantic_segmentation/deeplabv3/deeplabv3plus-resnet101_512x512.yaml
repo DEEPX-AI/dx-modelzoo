@@ -2,7 +2,9 @@ name: deeplabv3plus-resnet101_512x512
 display_name: DeepLabV3+ (ResNet-101)
 task: semantic_segmentation
 reference: https://github.com/VainF/DeepLabV3Plus-Pytorch
-license: MIT
+license:
+  model: MIT
+  weights: MIT
 description: >-
   DeepLabV3+ atrous segmentation network for semantic segmentation on a 512x512 RGB
   input, producing per-pixel class logits. Postprocessing applies a per-pixel argmax to

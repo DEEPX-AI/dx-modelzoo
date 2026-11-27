@@ -2,7 +2,9 @@ name: repvgg-a0_320x320
 display_name: RepVGG-A0
 task: image_classification
 reference: https://github.com/DingXiaoH/RepVGG
-license: MIT
+license:
+  model: MIT
+  weights: MIT
 description: >-
   RepVGG re-parameterizable VGG-style CNN image classification model that ingests a
   320x320 RGB image (NCHW, ImageNet mean/std normalization) and outputs a 1000-way logit

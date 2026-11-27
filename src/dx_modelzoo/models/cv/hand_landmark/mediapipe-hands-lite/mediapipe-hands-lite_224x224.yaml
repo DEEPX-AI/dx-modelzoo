@@ -2,7 +2,9 @@ name: mediapipe-hands-lite_224x224
 display_name: MediaPipe Hands (Lite)
 task: hand_landmark
 reference: https://github.com/google-ai-edge/mediapipe
-license: Apache-2.0
+license:
+  model: Apache-2.0
+  weights: Apache-2.0
 description: >-
   MediaPipe Hands landmark regressor (lite). Operates on a 224x224 RGB hand crop
   (NCHW, scaled by 1/255) and regresses 21 hand keypoints in 2.5D (x, y in image

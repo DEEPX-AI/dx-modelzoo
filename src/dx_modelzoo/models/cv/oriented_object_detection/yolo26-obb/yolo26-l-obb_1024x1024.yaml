@@ -2,7 +2,9 @@ name: yolo26-l-obb_1024x1024
 display_name: Ultralytics YOLO26-l-obb
 task: oriented_object_detection
 reference: https://github.com/ultralytics/ultralytics
-license: AGPL-3.0
+license:
+  model: AGPL-3.0
+  weights: AGPL-3.0
 description: >-
   YOLO26-OBB oriented object detector on a 1024x1024 RGB input that predicts rotated
   bounding boxes (center, size and angle) with class scores. Postprocessing

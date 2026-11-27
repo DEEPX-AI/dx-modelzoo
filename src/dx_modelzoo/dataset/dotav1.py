@@ -55,6 +55,9 @@ CLASS_TO_IDX = {name: idx for idx, name in enumerate(DOTA_CLASSES)}
 
 @DATASET_REGISTRY.register
 class DOTAv1(DatasetBase):
+    LICENSE = "DOTA Terms (academic use only)"
+    LICENSE_URL = "https://captain-whu.github.io/DOTA/dataset.html"
+
     def __init__(self, data_dir: str, split: str = "val") -> None:
         self.ensure_exists(data_dir, _INSTALL_GUIDE)
         super().__init__(data_dir)

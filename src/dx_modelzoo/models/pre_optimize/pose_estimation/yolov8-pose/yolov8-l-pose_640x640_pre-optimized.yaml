@@ -2,7 +2,9 @@ name: yolov8-l-pose_640x640_pre-optimized
 display_name: Ultralytics YOLOv8-l-pose (Pre-Optimized)
 task: pose_estimation
 reference: https://github.com/ultralytics/ultralytics
-license: AGPL-3.0
+license:
+  model: AGPL-3.0
+  weights: AGPL-3.0
 description: >-
   Pre-optimized YOLOv8-l human pose estimation model on a 640x640 RGB input that
   detects people and regresses 17 COCO body keypoints. Postprocessing

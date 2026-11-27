@@ -2,7 +2,9 @@ name: clip-img_vit-l14-quickgelu_224x224_dfn2b
 display_name: CLIP ViT-L/14 QuickGELU (DFN-2B)
 task: zero_shot_image_classification
 reference: https://github.com/mlfoundations/open_clip
-license: Apple Machine Learning Research Model License
+license:
+  model: MIT
+  weights: Apple Machine Learning Research Model License
 description: >-
   CLIP image-encoder branch with a ViT-L/14 QuickGELU image encoder (DFN-2B weights) on
   a 224x224 RGB input, producing an image embedding aligned to CLIP text embeddings.

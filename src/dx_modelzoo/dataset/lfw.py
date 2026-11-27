@@ -33,6 +33,9 @@ _INSTALL_GUIDE = """\
 
 @DATASET_REGISTRY.register
 class LFW(DatasetBase):
+    LICENSE = None
+    LICENSE_URL = "http://vis-www.cs.umass.edu/lfw/"
+
     def __init__(self, data_dir: str) -> None:
         self.ensure_exists(data_dir, _INSTALL_GUIDE)
         super().__init__(data_dir)

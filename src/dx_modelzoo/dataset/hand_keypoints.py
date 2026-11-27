@@ -13,7 +13,7 @@ from dx_modelzoo.common.dataloader import DatasetBase
 from dx_modelzoo.dataset import DATASET_REGISTRY
 
 _INSTALL_GUIDE = """\
-  [Hand Keypoints] — Custom dataset
+  [Hand Keypoints] — CC BY-NC-SA 4.0 (non-commercial)
 
   This dataset uses a custom hand keypoints format with YOLO-style labels.
   1. Prepare images and labels in the following structure:
@@ -30,7 +30,9 @@ _INSTALL_GUIDE = """\
              ...
      Each label file: <class> <cx> <cy> <w> <h> <kp1_x> <kp1_y> <kp1_v> ... (21 keypoints)
 
-  Contact dataset maintainer for access.
+  Download: https://docs.ultralytics.com/datasets/pose/hand-keypoints/
+
+  License: CC BY-NC-SA 4.0 — non-commercial use only.
 """
 
 _WRIST = 0
@@ -40,6 +42,9 @@ _CROP_MARGIN = 1.1
 
 @DATASET_REGISTRY.register
 class HandKeypoints(DatasetBase):
+    LICENSE = "CC-BY-NC-SA-4.0"
+    LICENSE_URL = "https://docs.ultralytics.com/datasets/pose/hand-keypoints/"
+
     NUM_KEYPOINTS = 21
 
     def __init__(self, data_dir: str) -> None:
@@ -156,6 +161,9 @@ class HandKeypointsDetection(DatasetBase):
     with *all* hand bounding boxes present in the image, for detection (AP)
     evaluation.  Boxes are returned in normalized ``xyxy`` format.
     """
+
+    LICENSE = "CC-BY-NC-SA-4.0"
+    LICENSE_URL = "https://docs.ultralytics.com/datasets/pose/hand-keypoints/"
 
     def __init__(self, data_dir: str) -> None:
         self.ensure_exists(data_dir, _INSTALL_GUIDE)

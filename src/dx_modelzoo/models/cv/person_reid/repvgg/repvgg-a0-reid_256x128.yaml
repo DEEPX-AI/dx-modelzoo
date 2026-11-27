@@ -2,7 +2,9 @@ name: repvgg-a0-reid_256x128
 display_name: RepVGG-A0 Person ReID
 task: person_reid
 reference: https://github.com/DingXiaoH/RepVGG
-license: MIT
+license:
+  model: MIT
+  weights: MIT
 description: >-
   RepVGG-A0 person re-identification embedding model evaluated on Market1501.
 macs: 0.89 GMACs

@@ -2,7 +2,9 @@ name: vit-b-p16_384x384
 display_name: ViT-Base/16 (384x384)
 task: image_classification
 reference: https://github.com/google-research/vision_transformer
-license: Apache-2.0
+license:
+  model: Apache-2.0
+  weights: Apache-2.0
 macs: 58.06 GMACs
 params: 86.86 M
 description: vit-b-p16_384x384 image_classification model with 384x384 input.

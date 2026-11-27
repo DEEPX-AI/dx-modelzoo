@@ -2,7 +2,9 @@ name: vgg19-bn_224x224
 display_name: VGG-19 (BN)
 task: image_classification
 reference: https://github.com/pytorch/vision
-license: BSD-3-Clause
+license:
+  model: BSD-3-Clause
+  weights: BSD-3-Clause
 description: >-
   VGG CNN image classification model that ingests a 224x224 RGB image (NCHW, ImageNet
   mean/std normalization) and outputs a 1000-way logit vector over the ImageNet-1k
