@@ -1,8 +1,10 @@
 name: yolopv2_384x640
 display_name: YOLOPv2
 task: panoptic_driving_perception
-reference: https://github.com/hustvl/YOLOP
-license: MIT
+reference: https://github.com/CAIC-AD/YOLOPv2
+license:
+  model: MIT
+  weights: MIT
 description: >
   YOLOPv2: Multi-task model for autonomous driving.
   Performs detection, drivable area segmentation, and lane segmentation simultaneously.

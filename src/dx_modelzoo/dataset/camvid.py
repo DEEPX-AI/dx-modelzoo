@@ -38,6 +38,9 @@ _INSTALL_GUIDE = """\
 class CamVid(DatasetBase):
     """CamVid 11-class semantic segmentation dataset."""
 
+    LICENSE = None
+    LICENSE_URL = "http://mi.eng.cam.ac.uk/research/projects/VideoRec/CamVid/"
+
     num_class = 11
 
     def __init__(self, data_dir: str, split: str = "val") -> None:

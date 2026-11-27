@@ -187,6 +187,9 @@ class Objectron(DatasetBase):
     corners).
     """
 
+    LICENSE = "C-UDA-1.0"
+    LICENSE_URL = "https://github.com/google-research-datasets/Objectron/blob/master/LICENSE"
+
     def __init__(self, data_dir: str, sample: int = 300, **kwargs) -> None:
         self.ensure_exists(data_dir, _INSTALL_GUIDE)
         super().__init__(data_dir)

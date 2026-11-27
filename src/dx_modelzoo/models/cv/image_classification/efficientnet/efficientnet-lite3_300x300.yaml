@@ -2,7 +2,9 @@ name: efficientnet-lite3_300x300
 display_name: EfficientNet-Lite3
 task: image_classification
 reference: https://github.com/huggingface/pytorch-image-models
-license: Apache-2.0
+license:
+  model: Apache-2.0
+  weights: Apache-2.0
 description: >-
   EfficientNet compound-scaled CNN image classification model that ingests a 300x300 RGB
   image (NCHW, ImageNet mean/std normalization) and outputs a 1000-way logit vector over

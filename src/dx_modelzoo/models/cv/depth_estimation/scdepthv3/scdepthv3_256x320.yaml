@@ -2,7 +2,9 @@ name: scdepthv3_256x320
 display_name: SC-DepthV3
 task: depth_estimation
 reference: https://github.com/JiawangBian/sc_depth_pl
-license: GPL-3.0
+license:
+  model: GPL-3.0
+  weights: GPL-3.0
 description: >-
   SC-DepthV3 self-supervised monocular depth estimation model on a 256x320 RGB input,
   regressing a dense per-pixel depth map (postprocessing is identity). Evaluated on the

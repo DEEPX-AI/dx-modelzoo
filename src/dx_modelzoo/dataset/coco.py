@@ -12,7 +12,7 @@ from dx_modelzoo.common.dataloader import DatasetBase
 from dx_modelzoo.dataset import DATASET_REGISTRY
 
 _INSTALL_GUIDE = """\
-  [COCO 2017] — CC BY 4.0 (free for research and commercial use)
+  [COCO 2017] — annotations CC BY 4.0; images follow the Flickr Terms of Use
 
   1. Download from https://cocodataset.org/#download
      - val2017.zip (validation images, ~1GB)
@@ -29,7 +29,7 @@ _INSTALL_GUIDE = """\
      NOTE: All COCO-based datasets (COCO, COCOPose, COCOPoseTopDown,
      COCOPersonSeg) share this layout.
 
-  License: CC BY 4.0 — free for research and commercial use.
+  License: annotations CC BY 4.0; images follow the Flickr Terms of Use.
   See: https://cocodataset.org/#termsofuse
 """
 
@@ -43,6 +43,9 @@ class COCO(DatasetBase):
             val2017/*.jpg
             annotations/instances_val2017.json
     """
+
+    LICENSE = "CC-BY-4.0 (annotations); images: Flickr Terms of Use"
+    LICENSE_URL = "https://cocodataset.org/#termsofuse"
 
     def __init__(self, data_dir: str) -> None:
         self.ensure_exists(data_dir, _INSTALL_GUIDE)
@@ -115,6 +118,9 @@ class COCO(DatasetBase):
 
 @DATASET_REGISTRY.register
 class COCOPose(DatasetBase):
+    LICENSE = "CC-BY-4.0 (annotations); images: Flickr Terms of Use"
+    LICENSE_URL = "https://cocodataset.org/#termsofuse"
+
     def __init__(self, data_dir: str) -> None:
         self.ensure_exists(data_dir, _INSTALL_GUIDE)
         super().__init__(data_dir)
@@ -189,6 +195,9 @@ class COCOPoseTopDown(DatasetBase):
             val2017/*.jpg
             annotations/person_keypoints_val2017.json
     """
+
+    LICENSE = "CC-BY-4.0 (annotations); images: Flickr Terms of Use"
+    LICENSE_URL = "https://cocodataset.org/#termsofuse"
 
     _BBOX_PAD_RATIO = 0.25
 
@@ -334,6 +343,9 @@ class COCOPersonSeg(DatasetBase):
             val2017/*.jpg
             annotations/person_keypoints_val2017.json  (or instances_val2017.json)
     """
+
+    LICENSE = "CC-BY-4.0 (annotations); images: Flickr Terms of Use"
+    LICENSE_URL = "https://cocodataset.org/#termsofuse"
 
     num_class = 2
 

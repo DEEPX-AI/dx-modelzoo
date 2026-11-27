@@ -2,7 +2,9 @@ name: clip-img_vit-b16-quickgelu_224x224_metaclip-fullcc
 display_name: CLIP ViT-B/16 QuickGELU (MetaCLIP FullCC)
 task: zero_shot_image_classification
 reference: https://github.com/mlfoundations/open_clip
-license: CC-BY-NC-4.0
+license:
+  model: MIT
+  weights: CC-BY-NC-4.0
 description: >-
   CLIP image-encoder branch with a ViT-B/16 QuickGELU image encoder (MetaCLIP FullCC
   weights) on a 224x224 RGB input, producing an image embedding aligned to CLIP text

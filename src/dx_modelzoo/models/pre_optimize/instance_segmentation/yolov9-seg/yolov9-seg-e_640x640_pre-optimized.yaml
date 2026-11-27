@@ -2,7 +2,9 @@ name: yolov9-seg-e_640x640_pre-optimized
 display_name: YOLOv9-e-seg (Pre-Optimized)
 task: instance_segmentation
 reference: https://github.com/WongKinYiu/yolov9
-license: GPL-3.0
+license:
+  model: GPL-3.0
+  weights: GPL-3.0
 description: YOLOv9 instance segmentation model on a 640x640 RGB input that predicts object boxes, classes and per-instance
   mask coefficients/prototypes. Postprocessing (yolov9_seg_decode) assembles per-instance masks and applies NMS. Evaluated
   on the COCO instance segmentation benchmark reporting mask mean Average Precision (mAP).

@@ -2,7 +2,9 @@ name: sfa3d_608x608
 display_name: SFA3D
 task: 3d_object_detection
 reference: https://github.com/maudzung/SFA3D
-license: MIT
+license:
+  model: MIT
+  weights: MIT
 description: >
   Super Fast and Accurate 3D Object Detection on KITTI BEV.
   Input is a Bird's Eye View (BEV) map [height, intensity, density]

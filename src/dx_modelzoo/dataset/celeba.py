@@ -80,6 +80,9 @@ CELEBA_ATTRIBUTES = [
 
 @DATASET_REGISTRY.register
 class CelebA(DatasetBase):
+    LICENSE = "CelebA Agreement (non-commercial research)"
+    LICENSE_URL = "https://mmlab.ie.cuhk.edu.hk/projects/CelebA.html"
+
     NUM_ATTRIBUTES = 40
 
     def __init__(self, data_dir: str) -> None:

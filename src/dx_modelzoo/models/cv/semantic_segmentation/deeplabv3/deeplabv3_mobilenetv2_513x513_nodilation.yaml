@@ -1,8 +1,10 @@
 name: deeplabv3_mobilenetv2_513x513_nodilation
 display_name: DeepLabV3 (MobileNetV2, no-dilation)
 task: semantic_segmentation
-reference: https://github.com/pytorch/vision
-license: BSD-3-Clause
+reference: https://github.com/tensorflow/models/tree/master/research/deeplab
+license:
+  model: Apache-2.0
+  weights: Apache-2.0
 description: >-
   DeepLabV3 atrous segmentation network for semantic segmentation on a 513x513 RGB
   input, producing per-pixel class logits. Postprocessing applies a per-pixel argmax to

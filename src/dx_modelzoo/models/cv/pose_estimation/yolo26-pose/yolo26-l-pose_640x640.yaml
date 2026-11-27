@@ -2,7 +2,9 @@ name: yolo26-l-pose_640x640
 display_name: Ultralytics YOLO26-l-pose
 task: pose_estimation
 reference: https://github.com/ultralytics/ultralytics
-license: AGPL-3.0
+license:
+  model: AGPL-3.0
+  weights: AGPL-3.0
 description: >-
   YOLO26-Pose human pose estimation model on a 640x640 RGB input that jointly detects
   people and regresses 17 COCO body keypoints with confidences. Postprocessing

@@ -133,6 +133,34 @@ def _require_string(value: Any, path: str) -> str:
     return value
 
 
+LICENSE_KEYS = ("model", "weights")
+
+
+def _validate_license(value: Any, yaml_path: str) -> None:
+    """Validate the optional top-level ``license``.
+
+    It is either a string (one license for both the code and the weights) or a mapping with
+    ``model`` (code/architecture license) and/or ``weights`` (pretrained weights
+    license). The dataset license comes from the dataset class, not the YAML.
+    """
+    if value is None:
+        return
+    if isinstance(value, str):
+        _require_string(value, f"{yaml_path}: license")
+        return
+    mapping = _require_mapping(value, f"{yaml_path}: license (string or mapping)")
+    unknown = sorted(set(mapping) - set(LICENSE_KEYS))
+    if unknown:
+        raise YamlValidationError(
+            f"{yaml_path}: license has unknown keys {unknown}; allowed keys are {list(LICENSE_KEYS)} "
+            "(the dataset license is defined by the dataset class)"
+        )
+    if not mapping:
+        raise YamlValidationError(f"{yaml_path}: license mapping must define {list(LICENSE_KEYS)}")
+    for key, item in mapping.items():
+        _require_string(item, f"{yaml_path}: license.{key}")
+
+
 def _validate_inputs(
     inputs: Any,
     yaml_path: str,
@@ -275,6 +303,8 @@ def _validate_profiles(profiles: Any, yaml_path: str) -> None:
 
 def validate_yaml(config: Dict[str, Any], yaml_path: str) -> None:
     """Validate YAML structure. Raises YamlValidationError on problems."""
+
+    _validate_license(config.get("license"), yaml_path)
 
     # Pipeline YAML — per-stage validation
     if "pipeline" in config:

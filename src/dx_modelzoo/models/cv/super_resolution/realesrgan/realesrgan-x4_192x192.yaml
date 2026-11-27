@@ -2,7 +2,9 @@ name: realesrgan-x4_192x192
 display_name: Real-ESRGAN-x4
 task: super_resolution
 reference: https://github.com/xinntao/Real-ESRGAN
-license: BSD-3-Clause
+license:
+  model: BSD-3-Clause
+  weights: BSD-3-Clause
 description: >-
   Real-ESRGAN x4 single-image super-resolution model based on an RRDB (Residual-in-
   Residual Dense Block) generator, taking a fixed 192x192 RGB low-resolution input

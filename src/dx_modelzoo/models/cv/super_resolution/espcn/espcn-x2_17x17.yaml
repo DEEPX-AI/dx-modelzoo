@@ -2,7 +2,9 @@ name: espcn-x2_17x17
 display_name: ESPCN-x2
 task: super_resolution
 reference: https://github.com/Lornatang/ESPCN-PyTorch
-license: Apache-2.0
+license:
+  model: Apache-2.0
+  weights: Apache-2.0
 description: >-
   ESPCN efficient sub-pixel CNN for x2 single-image super-resolution, taking a 17x17
   low-resolution luminance (Y) patch and reconstructing the high-resolution output via a

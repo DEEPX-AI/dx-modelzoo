@@ -2,7 +2,9 @@ name: clip-img_resnet50_224x224_openai
 display_name: CLIP ResNet-50 (OpenAI)
 task: zero_shot_image_classification
 reference: https://github.com/mlfoundations/open_clip
-license: MIT
+license:
+  model: MIT
+  weights: MIT
 description: >-
   CLIP image-encoder branch with an OpenAI ResNet-50 image encoder on a 224x224 RGB
   input, producing an image embedding aligned to CLIP text embeddings. Zero-shot

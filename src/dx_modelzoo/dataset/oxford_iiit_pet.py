@@ -35,6 +35,9 @@ _INSTALL_GUIDE = """\
 
 @DATASET_REGISTRY.register
 class OxfordIIITPet(DatasetBase):
+    LICENSE = "CC-BY-SA-4.0"
+    LICENSE_URL = "https://www.robots.ox.ac.uk/~vgg/data/pets/"
+
     num_class = 3
 
     def __init__(self, data_dir: str) -> None:

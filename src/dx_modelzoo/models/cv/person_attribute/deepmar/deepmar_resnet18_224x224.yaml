@@ -2,7 +2,9 @@ name: deepmar_resnet18_224x224
 display_name: DeepMAR ResNet-18
 task: person_attribute
 reference: https://github.com/dangweili/pedestrian-attribute-recognition-pytorch
-license: Custom License (Academic Research Only)
+license:
+  model: Custom License (Academic Research Only)
+  weights: Custom License (Academic Research Only)
 description: >-
   DeepMAR pedestrian (person) attribute recognition with a ResNet-18 backbone on
   a 224x224 RGB crop (NCHW, ImageNet mean/std normalization). The network is a

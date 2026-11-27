@@ -62,6 +62,9 @@ def get_image_label_path_list(data_dir: str) -> Tuple[List[str], List[str]]:
 
 @DATASET_REGISTRY.register
 class PascalVOC2012(DatasetBase):
+    LICENSE = "Flickr Terms of Use (images)"
+    LICENSE_URL = "http://host.robots.ox.ac.uk/pascal/VOC/voc2012/"
+
     num_class = 21
 
     def __init__(self, data_dir: str) -> None:
@@ -127,6 +130,9 @@ class PascalVOC2012(DatasetBase):
 
 @DATASET_REGISTRY.register
 class PascalVOC2007(DatasetBase):
+    LICENSE = "Flickr Terms of Use (images)"
+    LICENSE_URL = "http://host.robots.ox.ac.uk/pascal/VOC/voc2007/"
+
     def __init__(self, data_dir: str) -> None:
         self.ensure_exists(data_dir, _INSTALL_GUIDE)
         super().__init__(data_dir)

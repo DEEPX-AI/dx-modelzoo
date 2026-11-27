@@ -2,7 +2,9 @@ name: stdc1-seg50_512x1024
 display_name: STDC1-Seg50
 task: semantic_segmentation
 reference: https://github.com/MichaelFan01/STDC-Seg
-license: MIT
+license:
+  model: MIT
+  weights: MIT
 description: >-
   STDC1-Seg50 semantic segmentation model using an STDCNet813 backbone.
   The reference reports 72.22% mIoU on Cityscapes at 0.5 scale.

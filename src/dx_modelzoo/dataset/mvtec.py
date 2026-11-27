@@ -62,6 +62,9 @@ class MVTecADDataset(DatasetBase):
             building tractable on CPU.
     """
 
+    LICENSE = "CC-BY-NC-SA-4.0"
+    LICENSE_URL = "https://www.mvtec.com/company/research/datasets/mvtec-ad"
+
     def __init__(
         self,
         data_dir: str,

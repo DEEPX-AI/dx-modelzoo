@@ -1,8 +1,10 @@
 name: realesrgan-x8_192x192
 display_name: Real-ESRGAN-x8
 task: super_resolution
-reference: https://github.com/xinntao/Real-ESRGAN
-license: BSD-3-Clause
+reference: https://github.com/ai-forever/Real-ESRGAN
+license:
+  model: BSD-3-Clause
+  weights: BSD-3-Clause
 description: 'Real-ESRGAN x8 super resolution. Fixed 192x192 RGB input. (Eval blocked: BSD100/bicubic_8x dataset not available.)'
 macs: 818.75 GMACs
 params: 16.73 M

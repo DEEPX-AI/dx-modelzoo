@@ -2,7 +2,9 @@ name: yolov9-e_640x640_pre-optimized
 display_name: YOLOv9-e (Pre-Optimized)
 task: object_detection
 reference: https://github.com/WongKinYiu/yolov9
-license: GPL-3.0
+license:
+  model: GPL-3.0
+  weights: GPL-3.0
 macs: 99.93 GMACs
 params: 57.37 M
 description: >-

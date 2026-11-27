@@ -45,6 +45,9 @@ class ADE20K(DatasetBase):
     spatial resolution.
     """
 
+    LICENSE = "ADE20K Terms of Use (non-commercial); annotations: BSD-3-Clause"
+    LICENSE_URL = "https://ade20k.csail.mit.edu/terms/"
+
     num_class = 150
 
     def __init__(self, data_dir: str, eval_size: int = 512) -> None:

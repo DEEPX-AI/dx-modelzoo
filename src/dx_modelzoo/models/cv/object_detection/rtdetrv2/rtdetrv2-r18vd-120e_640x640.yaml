@@ -2,7 +2,9 @@ name: rtdetrv2-r18vd-120e_640x640
 display_name: rtdetrv2_r18vd_120e_coco
 task: object_detection
 reference: https://github.com/PaddlePaddle/PaddleDetection/blob/release/2.9/configs/rtdetrv2/rtdetrv2_r18vd_120e_coco.yml
-license: Apache-2.0
+license:
+  model: Apache-2.0
+  weights: Apache-2.0
 description: PaddleDetection rtdetrv2_r18vd_120e_coco object detection model evaluated with the COCO dataset and 640x640 input.
 macs: 32.15 GMACs
 params: 20.09 M

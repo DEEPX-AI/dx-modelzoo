@@ -2,7 +2,9 @@ name: yolov4-leaky_512x512
 display_name: YOLOv4-leaky
 task: object_detection
 reference: https://github.com/AlexeyAB/darknet
-license: YOLO License
+license:
+  model: YOLO License
+  weights: YOLO License
 description: >-
   YOLOv4 object detector taking a 512x512 RGB image (NCHW) and producing dense box/class
   predictions. Postprocessing (yolov4_decode, nms) decodes the raw outputs into boxes

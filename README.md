@@ -4,11 +4,6 @@
 
 **Evaluate, compile and manage models for DEEPX NPUs from a single YAML file.**
 
-- **YAML-Centric Configuration** — Define entire model pipelines in a single YAML file. No Python code required.
-- **Extensible Registry System** — Add custom preprocessing, postprocessing, datasets, and evaluators via `@REGISTRY.register()`.
-- **Auto-Discovery of Custom Ops** — Place a `custom_ops.py` in your model directory; it's automatically imported and registered.
-- **Multi-Profile Execution** — Manage ONNX, NPU/dxnn, and other runtime profiles within one YAML.
-- **Extensive Built-in Model Library** — Production-ready CV models spanning classification, detection, segmentation, and beyond.
 [![Release](https://img.shields.io/github/v/release/DEEPX-AI/dx-modelzoo)](https://github.com/DEEPX-AI/dx-modelzoo/releases)
 [![Docs](https://img.shields.io/badge/docs-Tech%20Docs-blue)](https://developer.deepx.ai/tech-docs/DXNN-SDK/DX-ModelZoo/DX-ModelZoo_Overview/)
 
@@ -98,6 +93,15 @@ Every model is one YAML file with its preprocessing, postprocessing, dataset and
 
 ## License
 
-Released under the MIT License. See [LICENSE](./LICENSE) for terms of use.
+- **Source code**: released under the MIT License. See [LICENSE](./LICENSE) for terms of use.
+- **Model weights** (ONNX / DXNN): each model follows the license of its original (upstream)
+  project, which is **separate from the MIT license of this repository**. Many models are
+  under copyleft licenses such as AGPL-3.0 (e.g. Ultralytics YOLO) or GPL-3.0 (e.g. YOLOv7),
+  and some are **non-commercial only** (e.g. NVIDIA Source Code License-NC, CC-BY-NC-4.0). See [MODEL_LICENSES.md](./MODEL_LICENSES.md)
+  for the original license of every model and check it before commercial use.
+  The authoritative license of each model is the `license` field in its YAML under
+  [`src/dx_modelzoo/models/`](./src/dx_modelzoo/models/); MODEL_LICENSES.md is generated from it.
+- **Datasets** (COCO, ImageNet, ...) are not redistributed; obtain them from their original
+  sources under their own terms.
 
 Copyright © DEEPX Co., Ltd.

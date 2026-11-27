@@ -34,6 +34,9 @@ _INSTALL_GUIDE = """\
 
 @DATASET_REGISTRY.register
 class LOL(DatasetBase):
+    LICENSE = None
+    LICENSE_URL = "https://daooshee.github.io/BMVC2018website/"
+
     def __init__(self, data_dir: str) -> None:
         self.ensure_exists(data_dir, _INSTALL_GUIDE)
         super().__init__(data_dir)

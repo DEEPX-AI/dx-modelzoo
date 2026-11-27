@@ -2,7 +2,9 @@ name: yolov12-cls-l_224x224
 display_name: YOLOv12-l-cls
 task: image_classification
 reference: https://github.com/sunsmarterjie/yolov12
-license: AGPL-3.0
+license:
+  model: AGPL-3.0
+  weights: AGPL-3.0
 description: >-
   YOLOv12 classification model that ingests a 224x224 RGB image (NCHW) and outputs a
   1000-way logit vector over the ImageNet-1k categories. Postprocessing applies top-k

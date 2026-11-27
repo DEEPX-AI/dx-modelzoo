@@ -2,7 +2,9 @@ name: yolov13-s_640x640_pre-optimized
 display_name: YOLOv13-s (Pre-Optimized)
 task: object_detection
 reference: https://github.com/iMoonLab/yolov13
-license: AGPL-3.0
+license:
+  model: AGPL-3.0
+  weights: AGPL-3.0
 macs: 13.12 GMACs
 params: 9.05 M
 description: >-

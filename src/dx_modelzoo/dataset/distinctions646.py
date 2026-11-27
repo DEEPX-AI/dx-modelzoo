@@ -50,6 +50,9 @@ class Distinctions646(DatasetBase):
     so no derived ``val/`` directory is required.
     """
 
+    LICENSE = "Distinctions-646 Terms (non-commercial, on request)"
+    LICENSE_URL = "https://github.com/wukaoliu/CVPR2020-HAttMatting"
+
     def __init__(
         self,
         data_dir: str,

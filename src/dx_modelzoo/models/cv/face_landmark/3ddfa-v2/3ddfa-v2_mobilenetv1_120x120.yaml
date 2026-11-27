@@ -2,7 +2,9 @@ name: 3ddfa-v2_mobilenetv1_120x120
 display_name: 3DDFA-V2 (MobileNetV1)
 task: face_landmark
 reference: https://github.com/cleardusk/3DDFA_V2
-license: MIT
+license:
+  model: MIT
+  weights: MIT
 description: >-
   3DDFA_V2 dense 3D face alignment with a MobileNet-V1 backbone on a 120x120 RGB
   face crop (NCHW, scaled by 1/255). The network regresses 62 3DMM parameters

@@ -15,7 +15,16 @@ from dx_modelzoo.common.exceptions import DatasetValidationError
 
 
 class DatasetBase(ABC):
-    """Abstract base class for all datasets."""
+    """Abstract base class for all datasets.
+
+    Attributes:
+        LICENSE: License / terms of use of the dataset (e.g. ``"CC-BY-4.0"``). It is
+            reported as ``license.dataset`` in evaluation results. ``None`` when unknown.
+        LICENSE_URL: Official page that states the dataset terms.
+    """
+
+    LICENSE: Optional[str] = None
+    LICENSE_URL: Optional[str] = None
 
     def __init__(self, data_dir: str) -> None:
         self.data_dir = data_dir

@@ -2,7 +2,9 @@ name: yolov3_416x416_ppu
 display_name: YOLOv3 (PPU, 416x416)
 task: object_detection
 reference: https://github.com/AlexeyAB/darknet
-license: YOLO License
+license:
+  model: YOLO License
+  weights: YOLO License
 description: >-
   YOLOv3 object detector taking a 416x416 RGB image (NCHW) and producing dense box/class
   predictions. Postprocessing (ppu_nms) decodes the raw outputs into boxes and applies

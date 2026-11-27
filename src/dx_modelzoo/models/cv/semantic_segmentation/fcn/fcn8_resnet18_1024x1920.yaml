@@ -1,8 +1,10 @@
 name: fcn8_resnet18_1024x1920
 display_name: FCN-8s (ResNet-18)
 task: semantic_segmentation
-reference: https://github.com/pytorch/vision
-license: BSD-3-Clause
+reference: https://github.com/open-mmlab/mmsegmentation
+license:
+  model: Apache-2.0
+  weights: Apache-2.0
 description: >-
   FCN-8s fully convolutional network for semantic segmentation on a 1024x1920 RGB input,
   producing per-pixel class logits. Postprocessing applies a per-pixel argmax to yield

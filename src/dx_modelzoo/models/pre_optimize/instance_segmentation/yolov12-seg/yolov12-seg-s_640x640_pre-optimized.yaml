@@ -2,7 +2,9 @@ name: yolov12-seg-s_640x640_pre-optimized
 display_name: YOLOv12-s-seg (Pre-Optimized)
 task: instance_segmentation
 reference: https://github.com/sunsmarterjie/yolov12
-license: AGPL-3.0
+license:
+  model: AGPL-3.0
+  weights: AGPL-3.0
 description: YOLOv12 instance segmentation model on a 640x640 RGB input that predicts object boxes, classes and per-instance
   mask coefficients/prototypes. Postprocessing (yolov12_seg_decode) assembles per-instance masks and applies NMS. Evaluated
   on the COCO instance segmentation benchmark reporting mask mean Average Precision (mAP).

@@ -55,6 +55,9 @@ class ILSVRC2012(DatasetBase):
                 xxxxx.JPEG
     """
 
+    LICENSE = "ImageNet Terms of Access (non-commercial research)"
+    LICENSE_URL = "https://image-net.org/accessagreement"
+
     def __init__(self, data_dir: str) -> None:
         self.ensure_exists(data_dir, _INSTALL_GUIDE)
         super().__init__(data_dir)
@@ -117,6 +120,9 @@ class ILSVRC2012(DatasetBase):
 @DATASET_REGISTRY.register
 class ImageNetText(DatasetBase):
     """ImageNet class prompts converted to CLIP text-transformer inputs."""
+
+    LICENSE = "ImageNet Terms of Access (non-commercial research)"
+    LICENSE_URL = "https://image-net.org/accessagreement"
 
     def __init__(
         self,

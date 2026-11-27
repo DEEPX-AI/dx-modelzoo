@@ -2,7 +2,9 @@ name: yolov8-x-seg_640x640
 display_name: Ultralytics YOLOv8-x-seg
 task: instance_segmentation
 reference: https://github.com/ultralytics/ultralytics
-license: AGPL-3.0
+license:
+  model: AGPL-3.0
+  weights: AGPL-3.0
 description: >-
   YOLOv8 instance segmentation model on a 640x640 RGB input that predicts object boxes,
   classes and per-instance mask coefficients/prototypes. Postprocessing (yolov8_seg_decode)

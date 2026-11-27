@@ -2,7 +2,9 @@ name: arcface_mobilefacenet_112x112
 display_name: ArcFace MobileFaceNet
 task: face_recognition
 reference: https://github.com/deepinsight/insightface
-license: InsightFace Model License (Non-Commercial Research)
+license:
+  model: MIT
+  weights: InsightFace Model License (Non-Commercial Research)
 description: >-
   ArcFace face recognition model with a MobileFaceNet backbone on a 112x112 aligned face
   crop, producing a 512-dimensional embedding (postprocessing is identity). Embeddings

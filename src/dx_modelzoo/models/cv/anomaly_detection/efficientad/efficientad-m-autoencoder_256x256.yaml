@@ -2,7 +2,9 @@ name: efficientad-m-autoencoder_256x256
 display_name: EfficientAD-M Autoencoder
 task: anomaly_detection
 reference: https://github.com/nelson1425/EfficientAD
-license: Apache-2.0
+license:
+  model: Apache-2.0
+  weights: Apache-2.0
 description: >-
   EfficientAD-M Autoencoder component with a 256x256 RGB input (NCHW) and
   reconstructed teacher features [1,384,64,64]. In per-model Hive evaluation,

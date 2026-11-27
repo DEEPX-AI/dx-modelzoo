@@ -39,6 +39,9 @@ _INSTALL_GUIDE = """\
 
 @DATASET_REGISTRY.register
 class WiderFace(DatasetBase):
+    LICENSE = "Non-commercial research only"
+    LICENSE_URL = "http://shuoyang1213.me/WIDERFACE/"
+
     def __init__(self, data_dir: str) -> None:
         self.ensure_exists(data_dir, _INSTALL_GUIDE)
         super().__init__(data_dir)

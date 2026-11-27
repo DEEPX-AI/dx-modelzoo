@@ -2,7 +2,9 @@ name: ddrnet23_1024x2048
 display_name: DDRNet23
 task: semantic_segmentation
 reference: https://github.com/ydhongHIT/DDRNet
-license: MIT
+license:
+  model: MIT
+  weights: MIT
 description: >-
   DDRNet-23 semantic segmentation model for Cityscapes at 1024x2048
   resolution. The reference reports approximately 77% mIoU on Cityscapes

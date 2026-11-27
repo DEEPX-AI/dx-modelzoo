@@ -2,7 +2,9 @@ name: levit-128s_224x224
 display_name: LeViT-128S
 task: image_classification
 reference: https://github.com/facebookresearch/LeViT
-license: Apache-2.0
+license:
+  model: Apache-2.0
+  weights: Apache-2.0
 macs: 0.35 GMACs
 params: 7.87 M
 description: levit-128s_224x224 image_classification model with 224x224 input.

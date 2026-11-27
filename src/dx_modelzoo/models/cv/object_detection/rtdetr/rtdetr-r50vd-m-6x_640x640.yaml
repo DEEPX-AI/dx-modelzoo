@@ -2,7 +2,9 @@ name: rtdetr-r50vd-m-6x_640x640
 display_name: rtdetr_r50vd_m_6x_coco
 task: object_detection
 reference: https://github.com/PaddlePaddle/PaddleDetection/blob/release/2.9/configs/rtdetr/rtdetr_r50vd_m_6x_coco.yml
-license: Apache-2.0
+license:
+  model: Apache-2.0
+  weights: Apache-2.0
 description: PaddleDetection rtdetr_r50vd_m_6x_coco object detection model evaluated with the COCO dataset and 640x640 input.
 macs: 53.94 GMACs
 params: 33.15 M

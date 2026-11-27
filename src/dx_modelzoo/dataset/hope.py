@@ -189,6 +189,9 @@ class HOPE(DatasetBase):
         max_samples: cap on number of indexed frames (0 = all).
     """
 
+    LICENSE = "CC-BY-NC-SA-4.0"
+    LICENSE_URL = "https://github.com/swtyree/hope-dataset"
+
     def __init__(
         self,
         data_dir: str,

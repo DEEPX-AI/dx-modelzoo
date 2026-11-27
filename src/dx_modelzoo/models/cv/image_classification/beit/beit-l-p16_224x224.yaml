@@ -2,7 +2,9 @@ name: beit-l-p16_224x224
 display_name: BEiT-Large/16
 task: image_classification
 reference: https://github.com/microsoft/unilm/tree/master/beit
-license: MIT
+license:
+  model: MIT
+  weights: MIT
 description: >-
   BEiT-Large (patch 16) Vision Transformer image classification model that ingests a
   224x224 RGB image (NCHW, ImageNet mean/std normalization) and outputs a 1000-way logit

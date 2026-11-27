@@ -2,7 +2,9 @@ name: yolo26-depth-l_768x768
 display_name: Ultralytics YOLO26-l-depth
 task: depth_estimation
 reference: https://github.com/ultralytics/ultralytics
-license: AGPL-3.0
+license:
+  model: AGPL-3.0
+  weights: AGPL-3.0
 description: >-
   Ultralytics YOLO26-l monocular depth estimation model taking a 768x768 RGB image
   and producing a dense per-pixel depth map. Evaluated on the NYU Depth v2 benchmark

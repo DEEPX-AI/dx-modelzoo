@@ -161,6 +161,9 @@ class _Calib:
 class KITTI(DatasetBase):
     """KITTI 3D object detection — BEV input + LiDAR-frame GT boxes."""
 
+    LICENSE = "CC-BY-NC-SA-3.0"
+    LICENSE_URL = "https://www.cvlibs.net/datasets/kitti/"
+
     def __init__(self, data_dir: str, split: str = "val") -> None:
         self.ensure_exists(data_dir, _INSTALL_GUIDE)
         super().__init__(data_dir)

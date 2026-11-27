@@ -133,10 +133,12 @@ class TestModelBuilder:
             def __getitem__(self, i):
                 return None, None
 
+        FakeDs.LICENSE = "ImageNet Terms of Access"
         ev = builder.build_evaluator(FakeSess(), FakeDs(), "onnx")
         from dx_modelzoo.evaluator import EvaluatorBase
 
         assert isinstance(ev, EvaluatorBase)
+        assert ev.model_spec["license"] == {"model": None, "weights": None, "dataset": "ImageNet Terms of Access"}
 
 
 PIPELINE_YAML = {
@@ -199,3 +201,43 @@ class TestModelBuilderPipeline:
         img = (np.random.rand(800, 800, 3) * 255).astype(np.uint8)
         result = prep(img)
         assert result.shape[-2:] == (640, 640) or result.shape[0] == 640
+
+
+class TestBuildLicenseInfo:
+    """Evaluation results report model, weights and dataset licenses (DXM1-2908)."""
+
+    def test_string_license_is_both_code_and_weights_license(self):
+        from dx_modelzoo.loader.model_builder import build_license_info
+
+        class _Dataset:
+            LICENSE = "CC-BY-4.0"
+
+        assert build_license_info("AGPL-3.0", _Dataset()) == {
+            "model": "AGPL-3.0",
+            "weights": "AGPL-3.0",
+            "dataset": "CC-BY-4.0",
+        }
+
+    def test_mapping_license_and_dataset_without_license(self):
+        from dx_modelzoo.loader.model_builder import build_license_info
+
+        info = build_license_info({"model": "Apache-2.0", "weights": "CC-BY-NC-4.0"}, object())
+        assert info == {"model": "Apache-2.0", "weights": "CC-BY-NC-4.0", "dataset": None}
+
+    def test_mapping_without_weights_uses_model_license(self):
+        from dx_modelzoo.loader.model_builder import build_license_info
+
+        assert build_license_info({"model": "MIT"}, None) == {"model": "MIT", "weights": "MIT", "dataset": None}
+
+    def test_mapping_without_model_keeps_model_unknown(self):
+        from dx_modelzoo.loader.model_builder import build_license_info
+
+        info = build_license_info({"weights": "CC-BY-NC-4.0"}, None)
+        assert info == {"model": None, "weights": "CC-BY-NC-4.0", "dataset": None}
+
+    def test_no_license(self):
+        from dx_modelzoo.common.dataloader import DatasetBase
+        from dx_modelzoo.loader.model_builder import build_license_info
+
+        assert DatasetBase.LICENSE is None
+        assert build_license_info(None, None) == {"model": None, "weights": None, "dataset": None}

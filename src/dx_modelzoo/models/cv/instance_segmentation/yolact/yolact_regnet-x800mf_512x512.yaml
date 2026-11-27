@@ -2,7 +2,9 @@ name: yolact_regnet-x800mf_512x512
 display_name: YOLACT (RegNetX-800MF)
 task: instance_segmentation
 reference: https://github.com/dbolya/yolact
-license: MIT
+license:
+  model: MIT
+  weights: MIT
 description: >-
   YOLACT instance segmentation model on a 512x512 RGB input that predicts object boxes,
   classes and per-instance mask coefficients/prototypes. Postprocessing (yolact_decode)

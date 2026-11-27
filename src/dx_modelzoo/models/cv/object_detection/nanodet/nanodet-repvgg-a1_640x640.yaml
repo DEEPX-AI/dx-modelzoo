@@ -1,30 +1,32 @@
-name: nanodet-plus-1.5x_224x224
-display_name: NanoDet-Plus-1.5x
+name: nanodet-repvgg-a1_640x640
+display_name: NanoDet-RepVGG-A1
 task: object_detection
 reference: https://github.com/RangiLyu/nanodet
-license: Apache-2.0
+license:
+  model: Apache-2.0
+  weights: Apache-2.0
 description: >-
-  NanoDet anchor-free object detector taking a 416x416 RGB image (NCHW) and producing
+  NanoDet anchor-free object detector taking a 640x640 RGB image (NCHW) and producing
   dense box/class predictions. Postprocessing (nanodet_decode) decodes the raw outputs
   into boxes and applies non-maximum suppression. Evaluated on the COCO detection
   benchmark reporting mean Average Precision (mAP@0.5:0.95).
-macs: 1.54 GMACs
-params: 2.46 M
+macs: 21.44 GMACs
+params: 10.79 M
 inputs:
 - name: input
   shape:
   - 1
   - 3
-  - 416
-  - 416
+  - 640
+  - 640
   dtype: float32
   layout: NCHW
 preprocessing:
 - type: resize
   mode: pad
   size:
-  - 416
-  - 416
+  - 640
+  - 640
   pad_location: edge
   pad_value:
   - 114
@@ -51,13 +53,11 @@ preprocessing:
 postprocessing:
 - type: nanodet_decode
   num_class: 80
-  center_offset: 0.0
-  reg_max: 7
+  reg_max: 10
   strides:
   - 8
   - 16
   - 32
-  - 64
 dataset:
   type: COCO
   eval_path: ${DATA_ROOT}/COCO

@@ -2,7 +2,9 @@ name: yolov12-n_640x640_pre-optimized
 display_name: YOLOv12-n (Pre-Optimized)
 task: object_detection
 reference: https://github.com/sunsmarterjie/yolov12
-license: AGPL-3.0
+license:
+  model: AGPL-3.0
+  weights: AGPL-3.0
 macs: 4.41 GMACs
 params: 2.57 M
 description: >-

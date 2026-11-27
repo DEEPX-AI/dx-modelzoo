@@ -2,7 +2,9 @@ name: yolo26-cls-x_224x224
 display_name: Ultralytics YOLO26-x-cls
 task: image_classification
 reference: https://github.com/ultralytics/ultralytics
-license: AGPL-3.0
+license:
+  model: AGPL-3.0
+  weights: AGPL-3.0
 description: >-
   YOLO26 classification CNN image classification model that ingests a 224x224 RGB image
   (NCHW, ImageNet mean/std normalization) and outputs a 1000-way logit vector over the
